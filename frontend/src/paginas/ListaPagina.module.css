@@ -1,0 +1,141 @@
+.novoItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.maisDetalhes {
+  align-self: flex-start;
+}
+
+.detalhes {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+@media (min-width: 40rem) {
+  .detalhes {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  overflow: hidden;
+}
+
+.item {
+  display: flex;
+  align-items: stretch;
+}
+
+.item + .item {
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* A linha inteira é o alvo de toque: marcar como comprado é um toque só */
+.alternar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-width: 0;
+  min-height: 56px;
+  padding: var(--espaco-3) var(--espaco-4);
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicao);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.alternar:hover {
+  background: var(--cor-superficie-2);
+}
+
+.alternar:focus-visible {
+  outline-offset: -2px;
+}
+
+.marcador {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--cor-texto-secundario);
+  border-radius: 50%;
+  color: var(--cor-primaria-texto);
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao);
+}
+
+.item[data-comprado='true'] .marcador {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.itemNome {
+  overflow-wrap: anywhere;
+}
+
+.item[data-comprado='true'] .itemNome {
+  color: var(--cor-texto-secundario);
+  text-decoration: line-through;
+}
+
+.itemQuantidade {
+  color: var(--cor-texto-secundario);
+}
+
+.itemDetalhe {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-secundario);
+  overflow-wrap: anywhere;
+}
+
+.editar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  min-height: var(--alvo-toque);
+  background: none;
+  border: 0;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: color var(--transicao);
+}
+
+.editar:hover {
+  color: var(--cor-texto);
+}
+
+.editar:focus-visible {
+  outline-offset: -2px;
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.acoesItem {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}

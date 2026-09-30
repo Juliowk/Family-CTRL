@@ -1,0 +1,57 @@
+.convite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.codigo {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+  font-size: var(--texto-2xl);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  overflow-wrap: anywhere;
+}
+
+.membro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.membroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.membroInfo span {
+  overflow-wrap: anywhere;
+}
+
+.erro {
+  color: var(--cor-perigo);
+  font-size: var(--texto-sm);
+}
+
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+@media (min-width: 40rem) {
+  .membro {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

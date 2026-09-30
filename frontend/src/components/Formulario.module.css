@@ -9,7 +9,8 @@
 .linha {
   display: flex;
   gap: var(--espaco-2);
-  align-items: flex-end;
+  /* Topo alinhado: a mensagem de erro do campo cresce para baixo sem desalinhar o botão */
+  align-items: flex-start;
 }
 
 .linha > :first-child {

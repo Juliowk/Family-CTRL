@@ -1,0 +1,53 @@
+/* Cartões clicáveis usados em listas de famílias e de listas de compras */
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  min-height: var(--alvo-toque);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  color: var(--cor-texto);
+  text-decoration: none;
+  transition: border-color var(--transicao);
+}
+
+.cartao:hover {
+  border-color: var(--cor-texto-secundario);
+}
+
+.cartaoTopo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
+.cartaoTitulo {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cartaoMeta {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.selo {
+  flex-shrink: 0;
+  padding: 2px var(--espaco-2);
+  border-radius: 999px;
+  background: var(--cor-destaque-suave);
+  color: var(--cor-destaque);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+}
+
+.cartaoAcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}

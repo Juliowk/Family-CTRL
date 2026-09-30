@@ -1,9 +1,20 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { LayoutAutenticado, LayoutPublico } from './components/Layouts';
+import { useFamiliaAtual } from './estado/familiaAtual';
 import { Cadastro } from './paginas/Cadastro';
 import { Conta } from './paginas/Conta';
+import { FamiliaListas } from './paginas/FamiliaListas';
+import { FamiliaMembros } from './paginas/FamiliaMembros';
+import { Familias } from './paginas/Familias';
 import { Landing } from './paginas/Landing';
+import { ListaPagina } from './paginas/ListaPagina';
 import { Login } from './paginas/Login';
+
+/** Após o login: abre a última família usada ou a tela para escolher uma. */
+function Inicio() {
+  const [familiaAtual] = useFamiliaAtual();
+  return <Navigate to={familiaAtual ? `/familias/${familiaAtual}` : '/familias'} replace />;
+}
 
 /** Mapa de rotas do app (separado do roteador para poder ser testado com MemoryRouter). */
 export function Rotas() {
@@ -15,7 +26,11 @@ export function Rotas() {
         <Route path="cadastro" element={<Cadastro />} />
       </Route>
       <Route element={<LayoutAutenticado />}>
-        <Route path="inicio" element={<Navigate to="/conta" replace />} />
+        <Route path="inicio" element={<Inicio />} />
+        <Route path="familias" element={<Familias />} />
+        <Route path="familias/:familiaId" element={<FamiliaListas />} />
+        <Route path="familias/:familiaId/membros" element={<FamiliaMembros />} />
+        <Route path="listas/:listaId" element={<ListaPagina />} />
         <Route path="conta" element={<Conta />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
