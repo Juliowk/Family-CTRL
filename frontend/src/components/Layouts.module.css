@@ -1,0 +1,152 @@
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.marcaIcone {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 6px;
+  background: var(--cor-primaria);
+}
+
+.linkMarca {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  color: var(--cor-texto);
+  text-decoration: none;
+}
+
+/* ---------- Área pública ---------- */
+
+.publico {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.publicoTopo {
+  padding: var(--espaco-3) var(--espaco-4);
+  max-width: var(--largura-conteudo);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.publicoConteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--espaco-5) var(--espaco-4) var(--espaco-7);
+}
+
+.telaCheia {
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--espaco-7) var(--espaco-4);
+}
+
+/* ---------- Área logada (mobile-first) ---------- */
+
+.app {
+  min-height: 100dvh;
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.topoInterno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--espaco-4);
+}
+
+.conteudo {
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: var(--espaco-5) var(--espaco-4);
+  /* Espaço para a barra inferior fixa não cobrir o conteúdo */
+  padding-bottom: calc(
+    var(--altura-barra-inferior) + var(--espaco-6) + env(safe-area-inset-bottom)
+  );
+}
+
+/* No celular a navegação é uma barra fixa na parte de baixo */
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: calc(var(--altura-barra-inferior) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--cor-superficie);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.navLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--alvo-toque);
+  color: var(--cor-texto-secundario);
+  text-decoration: none;
+  font-size: var(--texto-xs);
+  font-weight: 550;
+  transition: color var(--transicao);
+}
+
+.navLink:hover {
+  color: var(--cor-texto);
+}
+
+.navLinkAtivo,
+.navLinkAtivo:hover {
+  color: var(--cor-destaque);
+}
+
+/* No desktop a navegação sobe para o topo */
+@media (min-width: 48rem) {
+  .nav {
+    position: static;
+    display: flex;
+    gap: var(--espaco-1);
+    height: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+
+  .navLink {
+    flex-direction: row;
+    gap: var(--espaco-2);
+    padding: 0 var(--espaco-3);
+    border-radius: var(--raio);
+    font-size: var(--texto-sm);
+  }
+
+  .navLinkAtivo {
+    background: var(--cor-destaque-suave);
+  }
+
+  .conteudo {
+    padding-top: var(--espaco-6);
+    padding-bottom: var(--espaco-7);
+  }
+}

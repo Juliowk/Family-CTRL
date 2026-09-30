@@ -1,0 +1,48 @@
+/* Estilos compartilhados por formulários e diálogos */
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.linha {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: flex-end;
+}
+
+.linha > :first-child {
+  flex: 1;
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.texto {
+  color: var(--cor-texto-secundario);
+}
+
+.erro {
+  color: var(--cor-perigo);
+  font-size: var(--texto-sm);
+}
+
+.caixa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-toque);
+  cursor: pointer;
+  font-size: var(--texto-sm);
+}
+
+.caixa input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--cor-primaria);
+}

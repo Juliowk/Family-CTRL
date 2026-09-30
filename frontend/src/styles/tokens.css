@@ -1,0 +1,72 @@
+/*
+ * Tokens de design: todas as cores, espaçamentos e tamanhos do app vêm daqui.
+ * Tema escuro é o padrão; o claro é aplicado quando o sistema prefere "light".
+ */
+:root {
+  color-scheme: dark;
+
+  --cor-fundo: #0e0e11;
+  --cor-superficie: #17171c;
+  --cor-superficie-2: #1f1f26;
+  --cor-borda: #2a2a31;
+  --cor-texto: #ededf0;
+  --cor-texto-secundario: #9a9aa5;
+  /* Roxo para texto/foco/estado ativo (contraste AA sobre o fundo escuro) */
+  --cor-destaque: #a78bfa;
+  /* Roxo para fundo de botão primário (contraste AA com texto branco) */
+  --cor-primaria: #7c3aed;
+  --cor-primaria-hover: #6d28d9;
+  --cor-primaria-texto: #ffffff;
+  --cor-destaque-suave: rgb(139 92 246 / 0.14);
+  --cor-perigo: #f87171;
+  --cor-perigo-fundo: rgb(248 113 113 / 0.12);
+  --cor-sucesso: #4ade80;
+  --cor-foco: #8b5cf6;
+  --cor-overlay: rgb(0 0 0 / 0.6);
+
+  --fonte:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --texto-xs: 0.8125rem;
+  --texto-sm: 0.875rem;
+  --texto-md: 1rem;
+  --texto-lg: 1.125rem;
+  --texto-xl: 1.5rem;
+  --texto-2xl: 2rem;
+
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-5: 1.5rem;
+  --espaco-6: 2rem;
+  --espaco-7: 3rem;
+
+  --raio: 10px;
+  --raio-lg: 14px;
+  --alvo-toque: 44px;
+  --largura-conteudo: 44rem;
+  --altura-barra-inferior: 64px;
+  --transicao: 150ms ease;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --cor-fundo: #fafafb;
+    --cor-superficie: #ffffff;
+    --cor-superficie-2: #f3f3f6;
+    --cor-borda: #e4e4e8;
+    --cor-texto: #18181b;
+    --cor-texto-secundario: #6b6b76;
+    --cor-destaque: #6d28d9;
+    --cor-primaria: #6d28d9;
+    --cor-primaria-hover: #5b21b6;
+    --cor-destaque-suave: rgb(109 40 217 / 0.08);
+    --cor-perigo: #b91c1c;
+    --cor-perigo-fundo: rgb(185 28 28 / 0.08);
+    --cor-sucesso: #15803d;
+    --cor-foco: #6d28d9;
+    --cor-overlay: rgb(24 24 27 / 0.4);
+  }
+}

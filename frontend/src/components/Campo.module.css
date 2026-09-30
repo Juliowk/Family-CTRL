@@ -1,0 +1,47 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.rotulo {
+  font-size: var(--texto-sm);
+  font-weight: 550;
+}
+
+.entrada {
+  width: 100%;
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  /* 16px evita o zoom automático do iOS ao focar o campo */
+  font-size: var(--texto-md);
+  transition: border-color var(--transicao);
+}
+
+.entrada::placeholder {
+  color: var(--cor-texto-secundario);
+}
+
+.entrada:focus-visible {
+  outline: none;
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 1px var(--cor-foco);
+}
+
+.entrada[aria-invalid='true'] {
+  border-color: var(--cor-perigo);
+}
+
+.dica {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-secundario);
+}
+
+.erro {
+  font-size: var(--texto-sm);
+  color: var(--cor-perigo);
+}

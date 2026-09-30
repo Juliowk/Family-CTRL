@@ -1,0 +1,130 @@
+/* Estilos compartilhados pelas páginas */
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.cabecalhoLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
+.cabecalhoLinha h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.subtitulo {
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.secaoTitulo {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  align-self: flex-start;
+  min-height: var(--alvo-toque);
+  margin: calc(-1 * var(--espaco-3)) 0 calc(-1 * var(--espaco-2)) calc(-1 * var(--espaco-2));
+  padding: 0 var(--espaco-2);
+  color: var(--cor-texto-secundario);
+  text-decoration: none;
+  font-size: var(--texto-sm);
+  border-radius: var(--raio);
+}
+
+.voltar:hover {
+  color: var(--cor-texto);
+}
+
+.linkDiscreto {
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.rodapeForm {
+  text-align: center;
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+/* ---------- Landing ---------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding-top: var(--espaco-6);
+}
+
+.heroTitulo {
+  font-size: var(--texto-2xl);
+  line-height: 1.15;
+}
+
+.heroTexto {
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-lg);
+}
+
+.heroAcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-3);
+}
+
+.recursos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-6);
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.recursos li {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: flex-start;
+}
+
+.recursos svg {
+  flex-shrink: 0;
+  color: var(--cor-destaque);
+}
+
+.linkBotao {
+  text-decoration: none;
+}
