@@ -62,6 +62,12 @@ public class FamiliaService {
 		buscarMembro(familiaId, usuarioId);
 	}
 
+	/** Versão sem exceção de {@link #verificarMembro}, para quem quer escolher a mensagem de erro. */
+	@Transactional(readOnly = true)
+	public boolean ehMembro(Long familiaId, Long usuarioId) {
+		return membros.existsById(new MembroFamiliaId(familiaId, usuarioId));
+	}
+
 	// ---------------------------------------------------------------------------------------------
 	// Consultas
 	// ---------------------------------------------------------------------------------------------
