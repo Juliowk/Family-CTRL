@@ -1,0 +1,32 @@
+name: CI backend
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'frontend/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'frontend/**'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build e testes (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Java 25 (Temurin)
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # O Testcontainers usa o Docker que já vem instalado no runner do GitHub
+      - name: Build e testes
+        run: ./mvnw -B verify
