@@ -1,3 +1,5 @@
 frontend/
 docs/
 .github/
+scripts/
+dev.cmd

@@ -57,6 +57,21 @@ Detalhes e o porquê de cada decisão: [docs/ARQUITETURA.md](docs/ARQUITETURA.md
 - Node 24 (LTS) e npm
 - Docker (para o PostgreSQL local e para os testes com Testcontainers)
 
+### Atalho: tudo com um comando (Windows)
+
+Na raiz do projeto, no PowerShell:
+
+```powershell
+.\dev
+```
+
+O script [scripts/dev.ps1](scripts/dev.ps1) sobe o PostgreSQL (Docker), abre o backend numa janela
+separada e roda o frontend no terminal atual, abrindo o navegador em http://localhost:5173.
+**Ctrl+C** encerra o front e o back; o banco continua rodando (`docker compose stop` para parar).
+Use `.\dev -SemNavegador` para não abrir o navegador.
+
+Ou, passo a passo:
+
 ### Backend
 
 ```bash
