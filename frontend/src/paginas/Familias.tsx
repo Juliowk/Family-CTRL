@@ -6,7 +6,12 @@ import { familiasApi } from '../api/endpoints';
 import type { FamiliaResumo } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
+import { Avatar } from '../components/Avatar';
+import { CabecalhoPagina } from '../components/CabecalhoPagina';
+import { CardNumerado } from '../components/Card';
 import { Carregando, EstadoVazio, MensagemErro } from '../components/Estados';
+import { IconeFamilia, IconeSeta } from '../components/Icones';
+import { Selo } from '../components/Selo';
 import form from '../components/Formulario.module.css';
 import { chaves } from '../estado/chaves';
 import { useFamiliaAtual } from '../estado/familiaAtual';
@@ -51,88 +56,108 @@ export function Familias() {
 
   return (
     <div className={estilos.pagina}>
-      <div className={estilos.cabecalho}>
-        <h1>Suas famílias</h1>
-        <p className={estilos.subtitulo}>Escolha uma família para ver as listas.</p>
-      </div>
+      <CabecalhoPagina
+        titulo="Suas famílias"
+        descricao="Escolha uma família para ver as listas, crie uma nova ou entre com um código."
+      />
 
       {familias.isPending ? (
         <Carregando linhas={2} />
       ) : familias.isError ? (
         <MensagemErro erro={familias.error} aoTentarDeNovo={() => void familias.refetch()} />
       ) : familias.data.length === 0 ? (
-        <EstadoVazio titulo="Você ainda não participa de nenhuma família">
+        <EstadoVazio icone={<IconeFamilia />} titulo="Você ainda não participa de nenhuma família">
           Crie uma família ou entre com o código de convite que alguém te passou.
         </EstadoVazio>
       ) : (
-        <ul className={estilos.lista}>
-          {familias.data.map((familia) => (
-            <li key={familia.id}>
-              <Link
-                to={`/familias/${familia.id}`}
-                className={cartoes.cartao}
-                onClick={() => definirFamiliaAtual(familia.id)}
-              >
-                <div className={cartoes.cartaoTopo}>
-                  <span className={cartoes.cartaoTitulo}>{familia.nome}</span>
-                  {familia.id === familiaAtual && <span className={cartoes.selo}>Atual</span>}
-                </div>
-                <span className={cartoes.cartaoMeta}>
-                  {familia.totalMembros} {familia.totalMembros === 1 ? 'membro' : 'membros'}
-                  {familia.meuPapel === 'ADMIN' && ' · você é ADMIN'}
-                </span>
-              </Link>
-            </li>
-          ))}
+        <ul className={estilos.grade}>
+          {familias.data.map((familia) => {
+            const atual = familia.id === familiaAtual;
+            return (
+              <li key={familia.id}>
+                <Link
+                  to={`/familias/${familia.id}`}
+                  className={cartoes.cartao}
+                  data-estado={atual ? 'atual' : undefined}
+                  onClick={() => definirFamiliaAtual(familia.id)}
+                >
+                  <div className={cartoes.cartaoTopo}>
+                    <div className={cartoes.cartaoIdentidade}>
+                      <Avatar nome={familia.nome} />
+                      <span className={cartoes.cartaoTitulo}>{familia.nome}</span>
+                    </div>
+                    <span className={cartoes.cartaoSeta}>
+                      <IconeSeta tamanho={20} />
+                    </span>
+                  </div>
+                  <div className={cartoes.cartaoSelos}>
+                    {atual && (
+                      <Selo tom="destaque" ponto>
+                        Atual
+                      </Selo>
+                    )}
+                    <Selo>
+                      {familia.totalMembros} {familia.totalMembros === 1 ? 'membro' : 'membros'}
+                    </Selo>
+                    {familia.meuPapel === 'ADMIN' && <Selo>Você é ADMIN</Selo>}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
 
-      <section className={estilos.secao} aria-labelledby="titulo-criar">
-        <h2 id="titulo-criar" className={estilos.secaoTitulo}>
-          Criar família
-        </h2>
-        <form className={form.linha} onSubmit={enviarCriar}>
-          <Campo
-            rotulo="Nome da família"
-            rotuloOculto
-            placeholder="Ex.: Casa da Ana"
-            maxLength={100}
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            erro={criar.error instanceof ApiError ? criar.error.message : undefined}
-          />
-          <Botao
-            type="submit"
-            variante="primario"
-            carregando={criar.isPending}
-            disabled={!nome.trim()}
-          >
-            Criar
-          </Botao>
-        </form>
-      </section>
+      <div className={estilos.grade}>
+        <CardNumerado
+          numero={1}
+          titulo="Criar família"
+          descricao="Você vira ADMIN e recebe um código para convidar os outros."
+        >
+          <form className={form.linha} onSubmit={enviarCriar}>
+            <Campo
+              rotulo="Nome da família"
+              rotuloOculto
+              placeholder="Ex.: Casa da Ana"
+              maxLength={100}
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              erro={criar.error instanceof ApiError ? criar.error.message : undefined}
+            />
+            <Botao
+              type="submit"
+              variante="primario"
+              carregando={criar.isPending}
+              disabled={!nome.trim()}
+            >
+              Criar
+            </Botao>
+          </form>
+        </CardNumerado>
 
-      <section className={estilos.secao} aria-labelledby="titulo-entrar">
-        <h2 id="titulo-entrar" className={estilos.secaoTitulo}>
-          Entrar com código
-        </h2>
-        <form className={form.linha} onSubmit={enviarEntrar}>
-          <Campo
-            rotulo="Código de convite"
-            rotuloOculto
-            placeholder="Ex.: K7M2Q9XA"
-            autoCapitalize="characters"
-            autoComplete="off"
-            maxLength={12}
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            erro={erroEntrar}
-          />
-          <Botao type="submit" carregando={entrar.isPending} disabled={!codigo.trim()}>
-            Entrar
-          </Botao>
-        </form>
-      </section>
+        <CardNumerado
+          numero={2}
+          titulo="Entrar com código"
+          descricao="Peça o código de convite a alguém da família."
+        >
+          <form className={form.linha} onSubmit={enviarEntrar}>
+            <Campo
+              rotulo="Código de convite"
+              rotuloOculto
+              placeholder="Ex.: K7M2Q9XA"
+              autoCapitalize="characters"
+              autoComplete="off"
+              maxLength={12}
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              erro={erroEntrar}
+            />
+            <Botao type="submit" carregando={entrar.isPending} disabled={!codigo.trim()}>
+              Entrar
+            </Botao>
+          </form>
+        </CardNumerado>
+      </div>
     </div>
   );
 }

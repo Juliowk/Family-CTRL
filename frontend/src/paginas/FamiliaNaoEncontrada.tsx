@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router';
 import { ApiError } from '../api/cliente';
+import { LinkBotao } from '../components/Botao';
 import { EstadoVazio, MensagemErro } from '../components/Estados';
+import { IconeFamilia } from '../components/Icones';
 import { esquecerFamiliaAtual } from '../estado/familiaAtual';
 
 /** Erro ao carregar família: 404 (não existe ou não sou membro) ou falha genérica. */
@@ -20,9 +21,12 @@ export function ErroFamilia({
 
   if (!naoEncontrada) return <MensagemErro erro={erro} aoTentarDeNovo={aoTentarDeNovo} />;
   return (
-    <EstadoVazio titulo="Família não encontrada">
-      Ela pode ter sido excluída ou você não participa mais dela.{' '}
-      <Link to="/familias">Ver suas famílias</Link>
+    <EstadoVazio
+      icone={<IconeFamilia />}
+      titulo="Família não encontrada"
+      acao={<LinkBotao to="/familias">Ver suas famílias</LinkBotao>}
+    >
+      Ela pode ter sido excluída ou você não participa mais dela.
     </EstadoVazio>
   );
 }

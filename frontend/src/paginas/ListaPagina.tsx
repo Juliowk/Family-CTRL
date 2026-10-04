@@ -1,18 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/cliente';
-import { itensApi, listasApi, type DadosItem } from '../api/endpoints';
+import { familiasApi, itensApi, listasApi, type DadosItem } from '../api/endpoints';
 import type { Item, ListaDetalhe } from '../api/tipos';
-import { Botao } from '../components/Botao';
+import { Botao, LinkBotao } from '../components/Botao';
+import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Campo } from '../components/Campo';
+import { Card } from '../components/Card';
 import { ConfirmarDialogo } from '../components/ConfirmarDialogo';
 import { Carregando, EstadoVazio, MensagemErro } from '../components/Estados';
 import form from '../components/Formulario.module.css';
-import { IconeCheck, IconeEditar, IconeVoltar } from '../components/Icones';
+import {
+  IconeCarrinho,
+  IconeCheck,
+  IconeEditar,
+  IconeMais,
+  IconeOpcoes,
+} from '../components/Icones';
 import { Modal } from '../components/Modal';
 import { ModalNome } from '../components/ModalNome';
 import { Progresso } from '../components/Progresso';
+import { Selo } from '../components/Selo';
 import { useAuth } from '../estado/auth';
 import { chaves } from '../estado/chaves';
 import estilos from './ListaPagina.module.css';
@@ -40,6 +49,14 @@ export function ListaPagina() {
     queryKey: chaveLista,
     queryFn: () => listasApi.detalhar(listaId),
     enabled: Number.isFinite(listaId),
+  });
+
+  // Nome da família para o breadcrumb (normalmente já está no cache)
+  const familiaIdDaLista = lista.data?.familiaId;
+  const familia = useQuery({
+    queryKey: chaves.familia(familiaIdDaLista ?? 0),
+    queryFn: () => familiasApi.detalhar(familiaIdDaLista ?? 0),
+    enabled: familiaIdDaLista !== undefined,
   });
 
   const [opcoesAbertas, setOpcoesAbertas] = useState(false);
@@ -135,8 +152,12 @@ export function ListaPagina() {
   if (lista.isError) {
     if (lista.error instanceof ApiError && lista.error.status === 404) {
       return (
-        <EstadoVazio titulo="Lista não encontrada">
-          Ela pode ter sido excluída. <Link to="/inicio">Voltar às listas</Link>
+        <EstadoVazio
+          icone={<IconeCarrinho />}
+          titulo="Lista não encontrada"
+          acao={<LinkBotao to="/inicio">Voltar às listas</LinkBotao>}
+        >
+          Ela pode ter sido excluída ou você não participa mais da família dela.
         </EstadoVazio>
       );
     }
@@ -148,30 +169,30 @@ export function ListaPagina() {
   const comprados = itens.filter((i) => i.comprado).length;
 
   return (
-    <div className={paginas.pagina}>
-      <Link to={`/familias/${dados.familiaId}`} className={paginas.voltar}>
-        <IconeVoltar tamanho={18} />
-        Listas
-      </Link>
-
-      <div className={paginas.cabecalho}>
-        <div className={paginas.cabecalhoLinha}>
-          <h1>{dados.nome}</h1>
-          <Botao variante="fantasma" pequeno onClick={() => setOpcoesAbertas(true)}>
+    <div className={[paginas.pagina, paginas.estreita].join(' ')}>
+      <CabecalhoPagina
+        trilha={[{ rotulo: familia.data?.nome ?? 'Listas', para: `/familias/${dados.familiaId}` }]}
+        rotulo="Lista de compras"
+        titulo={dados.nome}
+        selos={dados.arquivada && <Selo tom="atencao">Arquivada</Selo>}
+        acoes={
+          <Botao pequeno onClick={() => setOpcoesAbertas(true)}>
+            <IconeOpcoes tamanho={18} />
             Opções
           </Botao>
-        </div>
-        {dados.arquivada && <p className={paginas.subtitulo}>Lista arquivada</p>}
-        <Progresso comprados={comprados} total={itens.length} />
-      </div>
-
-      <FormularioItem
-        carregando={adicionar.isPending}
-        erro={adicionar.error instanceof ApiError ? adicionar.error : undefined}
-        aoAdicionar={(item, limparCampos) =>
-          adicionar.mutate(item, { onSuccess: () => limparCampos() })
         }
       />
+
+      <Card className={estilos.resumo}>
+        <Progresso comprados={comprados} total={itens.length} />
+        <FormularioItem
+          carregando={adicionar.isPending}
+          erro={adicionar.error instanceof ApiError ? adicionar.error : undefined}
+          aoAdicionar={(item, limparCampos) =>
+            adicionar.mutate(item, { onSuccess: () => limparCampos() })
+          }
+        />
+      </Card>
 
       {erroAlternar && (
         <p className={form.erro} role="alert">
@@ -180,7 +201,9 @@ export function ListaPagina() {
       )}
 
       {itens.length === 0 ? (
-        <EstadoVazio titulo="Nenhum item ainda">Adicione o primeiro item acima.</EstadoVazio>
+        <EstadoVazio icone={<IconeCarrinho />} titulo="Nenhum item ainda">
+          Adicione o primeiro item acima. Quantidade e observação são opcionais.
+        </EstadoVazio>
       ) : (
         <ul className={estilos.itens} aria-label="Itens da lista">
           {itens.map((item) => (
@@ -225,7 +248,11 @@ export function ListaPagina() {
       )}
 
       {comprados > 0 && (
-        <Botao variante="fantasma" onClick={() => setConfirmar('limpar')}>
+        <Botao
+          variante="fantasma"
+          className={estilos.limpar}
+          onClick={() => setConfirmar('limpar')}
+        >
           Limpar comprados ({comprados})
         </Botao>
       )}
@@ -370,6 +397,7 @@ function FormularioItem({
           }
         />
         <Botao type="submit" variante="primario" carregando={carregando} disabled={!nome.trim()}>
+          <IconeMais tamanho={18} />
           Adicionar
         </Botao>
       </div>
@@ -399,7 +427,8 @@ function FormularioItem({
           className={estilos.maisDetalhes}
           onClick={() => setDetalhes(true)}
         >
-          + Quantidade e observação
+          <IconeMais tamanho={16} />
+          Quantidade e observação
         </Botao>
       )}
     </form>

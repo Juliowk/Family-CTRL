@@ -1,0 +1,37 @@
+.perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.perfilTexto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nome {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+}
+
+.linha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-4);
+}
+
+@media (min-width: 40rem) {
+  .linha {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .linha > :last-child {
+    flex-shrink: 0;
+  }
+}

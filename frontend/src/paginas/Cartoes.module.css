@@ -1,33 +1,67 @@
 /* Cartões clicáveis usados em listas de famílias e de listas de compras */
 
 .cartao {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
+  gap: var(--espaco-4);
+  height: 100%;
   padding: var(--espaco-4);
   min-height: var(--alvo-toque);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-lg);
+  border-radius: var(--raio);
   color: var(--cor-texto);
   text-decoration: none;
-  transition: border-color var(--transicao);
+  transition:
+    border-color var(--transicao),
+    transform var(--transicao);
 }
 
 .cartao:hover {
-  border-color: var(--cor-texto-secundario);
+  border-color: var(--cor-borda-forte);
+}
+
+@media (hover: hover) {
+  .cartao:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Família/lista atual ou concluída: filete à esquerda indica o estado pela forma */
+.cartao[data-estado='atual'] {
+  border-left: 3px solid var(--cor-destaque);
+}
+
+.cartao[data-estado='concluida'] {
+  border-left: 3px solid var(--cor-sucesso);
+}
+
+@media (min-width: 40rem) {
+  .cartao {
+    padding: var(--espaco-5);
+  }
 }
 
 .cartaoTopo {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--espaco-2);
+  gap: var(--espaco-3);
+  min-width: 0;
+}
+
+.cartaoIdentidade {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
   min-width: 0;
 }
 
 .cartaoTitulo {
-  font-weight: 600;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
@@ -36,14 +70,24 @@
   color: var(--cor-texto-secundario);
 }
 
-.selo {
+/* Seta "abrir" que anda no hover */
+.cartaoSeta {
   flex-shrink: 0;
-  padding: 2px var(--espaco-2);
-  border-radius: 999px;
-  background: var(--cor-destaque-suave);
+  color: var(--cor-texto-secundario);
+  transition:
+    transform var(--transicao-lenta),
+    color var(--transicao);
+}
+
+.cartao:hover .cartaoSeta {
   color: var(--cor-destaque);
-  font-size: var(--texto-xs);
-  font-weight: 600;
+  transform: translateX(3px);
+}
+
+.cartaoSelos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
 }
 
 .cartaoAcoes {

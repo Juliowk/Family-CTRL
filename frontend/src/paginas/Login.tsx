@@ -8,7 +8,7 @@ import { Campo } from '../components/Campo';
 import { AvisoServidorAcordando } from '../components/Estados';
 import form from '../components/Formulario.module.css';
 import { useAuth } from '../estado/auth';
-import estilos from './Paginas.module.css';
+import { MolduraAuth } from './MolduraAuth';
 
 export function Login() {
   const { entrar } = useAuth();
@@ -25,11 +25,16 @@ export function Login() {
   }
 
   return (
-    <div className={estilos.pagina}>
-      <div className={estilos.cabecalho}>
-        <h1>Entrar</h1>
-        <p className={estilos.subtitulo}>Bom te ver de novo.</p>
-      </div>
+    <MolduraAuth
+      rotulo="Acesse sua conta"
+      titulo="Entrar"
+      subtitulo="Acesse as listas da sua família."
+      rodape={
+        <>
+          Ainda não tem conta? <Link to="/cadastro">Criar conta</Link>
+        </>
+      }
+    >
       <form className={form.formulario} onSubmit={enviar} noValidate>
         <Campo
           rotulo="E-mail"
@@ -68,9 +73,6 @@ export function Login() {
         </Botao>
         <AvisoServidorAcordando ativo={login.isPending} />
       </form>
-      <p className={estilos.rodapeForm}>
-        Ainda não tem conta? <Link to="/cadastro">Criar conta</Link>
-      </p>
-    </div>
+    </MolduraAuth>
   );
 }

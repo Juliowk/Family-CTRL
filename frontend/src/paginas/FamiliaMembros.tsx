@@ -1,14 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { familiasApi } from '../api/endpoints';
 import type { FamiliaDetalhe, Membro, Papel } from '../api/tipos';
 import { Botao } from '../components/Botao';
+import { Avatar } from '../components/Avatar';
+import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Card } from '../components/Card';
 import { ConfirmarDialogo } from '../components/ConfirmarDialogo';
 import { Carregando } from '../components/Estados';
+import form from '../components/Formulario.module.css';
+import { IconeCheck, IconeCopiar, IconeEditar } from '../components/Icones';
 import { ModalNome } from '../components/ModalNome';
+import { Selo } from '../components/Selo';
 import { useAuth } from '../estado/auth';
 import { chaves } from '../estado/chaves';
 import { esquecerFamiliaAtual } from '../estado/familiaAtual';
@@ -105,28 +110,36 @@ export function FamiliaMembros() {
 
   return (
     <div className={paginas.pagina}>
-      <div className={paginas.cabecalho}>
-        <div className={paginas.cabecalhoLinha}>
-          <h1>{dados.nome}</h1>
-          {souAdmin && (
-            <Botao variante="fantasma" pequeno onClick={() => setRenomeando(true)}>
+      <CabecalhoPagina
+        trilha={[
+          { rotulo: 'Famílias', para: '/familias' },
+          { rotulo: dados.nome, para: `/familias/${familiaId}` },
+        ]}
+        rotulo="Membros e convite"
+        titulo={dados.nome}
+        descricao={`${dados.membros.length} ${dados.membros.length === 1 ? 'membro' : 'membros'}`}
+        selos={souAdmin && <Selo tom="destaque">Você é ADMIN</Selo>}
+        acoes={
+          souAdmin && (
+            <Botao pequeno onClick={() => setRenomeando(true)}>
+              <IconeEditar tamanho={16} />
               Renomear
             </Botao>
-          )}
-        </div>
-        <p className={paginas.subtitulo}>
-          {dados.membros.length} {dados.membros.length === 1 ? 'membro' : 'membros'}
-        </p>
-      </div>
+          )
+        }
+      />
 
       <Card className={estilos.convite}>
-        <h2 className={paginas.secaoTitulo}>Código de convite</h2>
-        <p className={estilos.codigo}>{dados.codigoConvite}</p>
-        <p className={paginas.subtitulo}>
-          Quem tiver este código pode entrar na família pela tela “Suas famílias”.
-        </p>
+        <div className={estilos.conviteTexto}>
+          <h2 className={paginas.rotulo}>Código de convite</h2>
+          <p className={estilos.codigo}>{dados.codigoConvite}</p>
+          <p className={paginas.subtitulo}>
+            Quem tiver este código pode entrar na família pela tela “Suas famílias”.
+          </p>
+        </div>
         <div className={cartoes.cartaoAcoes}>
           <Botao variante="primario" onClick={copiarCodigo}>
+            {copiado ? <IconeCheck tamanho={18} /> : <IconeCopiar tamanho={18} />}
             {copiado ? 'Copiado!' : 'Copiar código'}
           </Botao>
           {souAdmin && (
@@ -143,24 +156,25 @@ export function FamiliaMembros() {
           Membros
         </h2>
         {alterarPapel.isError && (
-          <p className={estilos.erro} role="alert">
+          <p className={form.erro} role="alert">
             {mensagemDe(alterarPapel.error)}
           </p>
         )}
-        <ul className={paginas.lista}>
+        <ul className={estilos.membros}>
           {dados.membros.map((membro) => {
             const souEu = membro.usuarioId === usuario?.id;
             return (
               <li key={membro.usuarioId} className={estilos.membro}>
                 <div className={estilos.membroInfo}>
-                  <div className={cartoes.cartaoTopo}>
-                    <span className={cartoes.cartaoTitulo}>
+                  <Avatar nome={membro.nome} />
+                  <div className={estilos.membroTexto}>
+                    <span className={estilos.membroNome}>
                       {membro.nome}
                       {souEu && <span className={paginas.subtitulo}> (você)</span>}
                     </span>
-                    {membro.papel === 'ADMIN' && <span className={cartoes.selo}>ADMIN</span>}
+                    <span className={cartoes.cartaoMeta}>{membro.email}</span>
                   </div>
-                  <span className={cartoes.cartaoMeta}>{membro.email}</span>
+                  {membro.papel === 'ADMIN' && <Selo tom="destaque">ADMIN</Selo>}
                 </div>
                 {souAdmin && !souEu && (
                   <div className={cartoes.cartaoAcoes}>
@@ -194,14 +208,17 @@ export function FamiliaMembros() {
         </ul>
       </section>
 
-      <div className={estilos.rodape}>
-        <Link to="/familias" className={paginas.linkDiscreto}>
-          Trocar de família
-        </Link>
+      <section className={paginas.zonaRisco} aria-labelledby="titulo-sair">
+        <div className={paginas.zonaRiscoTexto}>
+          <h2 id="titulo-sair">Sair da família</h2>
+          <p className={paginas.subtitulo}>
+            Você perde o acesso às listas. Para voltar, precisará de um novo convite.
+          </p>
+        </div>
         <Botao variante="perigo" onClick={() => setConfirmacao({ tipo: 'sair' })}>
           Sair da família
         </Botao>
-      </div>
+      </section>
 
       <ModalNome
         aberto={renomeando}

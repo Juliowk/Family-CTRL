@@ -8,7 +8,7 @@ import { Campo } from '../components/Campo';
 import { AvisoServidorAcordando } from '../components/Estados';
 import form from '../components/Formulario.module.css';
 import { useAuth } from '../estado/auth';
-import estilos from './Paginas.module.css';
+import { MolduraAuth } from './MolduraAuth';
 
 const SENHA_MINIMA = 8;
 
@@ -45,11 +45,16 @@ export function Cadastro() {
   const erroDe = (campo: string) => errosLocais[campo] ?? erroApi?.erroDoCampo(campo);
 
   return (
-    <div className={estilos.pagina}>
-      <div className={estilos.cabecalho}>
-        <h1>Criar conta</h1>
-        <p className={estilos.subtitulo}>Leva menos de um minuto.</p>
-      </div>
+    <MolduraAuth
+      rotulo="Comece agora"
+      titulo="Criar conta"
+      subtitulo="Leva menos de um minuto."
+      rodape={
+        <>
+          Já tem conta? <Link to="/login">Entrar</Link>
+        </>
+      }
+    >
       <form className={form.formulario} onSubmit={enviar} noValidate>
         <Campo
           rotulo="Nome"
@@ -98,9 +103,6 @@ export function Cadastro() {
         </Botao>
         <AvisoServidorAcordando ativo={cadastro.isPending} />
       </form>
-      <p className={estilos.rodapeForm}>
-        Já tem conta? <Link to="/login">Entrar</Link>
-      </p>
-    </div>
+    </MolduraAuth>
   );
 }

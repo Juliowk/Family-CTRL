@@ -1,15 +1,45 @@
+/* Código de convite: o dado principal da tela, em fonte mono grande */
 .convite {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
+  gap: var(--espaco-5);
+}
+
+.conviteTexto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
 }
 
 .codigo {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
-  font-size: var(--texto-2xl);
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-numero);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  color: var(--cor-destaque);
   overflow-wrap: anywhere;
+}
+
+@media (min-width: 48rem) {
+  .convite {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .convite > :last-of-type {
+    flex-shrink: 0;
+  }
+}
+
+/* Membros: um bloco único com linhas divididas (mais leve que um card por pessoa) */
+.membros {
+  display: flex;
+  flex-direction: column;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
 }
 
 .membro {
@@ -17,35 +47,32 @@
   flex-direction: column;
   gap: var(--espaco-3);
   padding: var(--espaco-4);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-lg);
+}
+
+.membro + .membro {
+  border-top: 1px solid var(--cor-borda);
 }
 
 .membroInfo {
   display: flex;
-  flex-direction: column;
-  gap: var(--espaco-1);
+  align-items: center;
+  gap: var(--espaco-3);
   min-width: 0;
 }
 
-.membroInfo span {
+.membroTexto {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.membroTexto span {
   overflow-wrap: anywhere;
 }
 
-.erro {
-  color: var(--cor-perigo);
-  font-size: var(--texto-sm);
-}
-
-.rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--espaco-3);
-  padding-top: var(--espaco-4);
-  border-top: 1px solid var(--cor-borda);
+.membroNome {
+  font-weight: var(--peso-forte);
 }
 
 @media (min-width: 40rem) {
@@ -53,5 +80,10 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    padding: var(--espaco-4) var(--espaco-5);
+  }
+
+  .membroInfo {
+    flex: 1;
   }
 }
