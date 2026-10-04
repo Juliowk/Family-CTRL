@@ -1,5 +1,6 @@
 package br.com.familyctrl.infra;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -13,6 +14,8 @@ import java.time.Instant;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -76,6 +79,23 @@ class SegurancaInfraTest extends IntegracaoTest {
 			.header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization"))
 			.andExpect(status().isOk())
 			.andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"));
+	}
+
+	/**
+	 * O navegador faz o preflight (OPTIONS) antes de PUT, PATCH e DELETE. Todo método usado pelo
+	 * front precisa estar liberado, senão a chamada nem chega ao controller (e o backend não loga
+	 * nada). Foi assim que um PUT novo quebrou sem nenhum teste falhar.
+	 */
+	@ParameterizedTest
+	@ValueSource(strings = { "GET", "POST", "PUT", "PATCH", "DELETE" })
+	void corsPermiteTodosOsMetodosUsadosPeloFront(String metodo) throws Exception {
+		mvc.perform(options("/api/itens/1/pego").header(HttpHeaders.ORIGIN, "http://localhost:5173")
+			.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, metodo)
+			.header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization, Content-Type"))
+			.andExpect(status().isOk())
+			.andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"))
+			.andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+					containsString(metodo)));
 	}
 
 	@Test

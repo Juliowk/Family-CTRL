@@ -75,7 +75,7 @@ Ao final:
 - Origens permitidas via variável `CORS_ALLOWED_ORIGINS` (lista separada por vírgula).
   - Local: `http://localhost:5173`
   - Produção: `https://<usuario>.github.io`
-- Métodos: GET, POST, PATCH, DELETE, OPTIONS. Header `Authorization` e `Content-Type` permitidos. Sem credenciais (cookies).
+- Métodos: GET, POST, PUT, PATCH, DELETE, OPTIONS. Header `Authorization` e `Content-Type` permitidos. Sem credenciais (cookies).
 
 ## Arquitetura do backend
 - Monólito modular. Sem microsserviços.

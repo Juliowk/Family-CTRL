@@ -249,7 +249,7 @@ para permitir revogação.
 
 - **CORS:** o navegador bloqueia chamadas de `juliowk.github.io` para `herokuapp.com`, a não ser que
   a API autorize explicitamente. O backend libera **apenas** as origens de `CORS_ALLOWED_ORIGINS`,
-  os métodos `GET, POST, PATCH, DELETE, OPTIONS` e os headers `Authorization` e `Content-Type`,
+  os métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS` e os headers `Authorization` e `Content-Type`,
   **sem credenciais** (cookies). Em desenvolvimento, `http://localhost:5173`.
 - **CSRF desabilitado:** o ataque CSRF funciona porque o navegador envia cookies automaticamente
   para o site-alvo. Como a API não usa cookies (o token vai num header que só o nosso JavaScript

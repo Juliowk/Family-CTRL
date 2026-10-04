@@ -65,7 +65,7 @@ class SegurancaConfig {
 	CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(props.allowedOrigins());
-		config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		config.setAllowCredentials(false);
 		config.setMaxAge(3600L);
