@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import br.com.familyctrl.auth.UsuarioService;
 import br.com.familyctrl.infra.erro.AcessoNegadoException;
@@ -40,7 +41,8 @@ class FamiliaServiceTest {
 	void setUp() {
 		familias = mock(FamiliaRepository.class);
 		membros = mock(MembroFamiliaRepository.class);
-		service = new FamiliaService(familias, membros, mock(UsuarioService.class), new GeradorCodigoConvite());
+		service = new FamiliaService(familias, membros, mock(UsuarioService.class), new GeradorCodigoConvite(),
+				mock(ApplicationEventPublisher.class));
 	}
 
 	private MembroFamilia membro(Long usuarioId, Papel papel) {

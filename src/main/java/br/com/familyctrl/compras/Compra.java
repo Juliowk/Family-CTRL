@@ -72,6 +72,12 @@ class Compra {
 
 	Compra(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
 			BigDecimal valorVariavel, Long finalizadaPor, List<CompraItem> itens) {
+		this(familiaId, listaId, listaNome, mercado, dataCompra, valorVariavel, finalizadaPor, Instant.now(), itens);
+	}
+
+	/** Com o momento da finalização explícito: usado pelo histórico da lista de exemplo. */
+	Compra(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
+			BigDecimal valorVariavel, Long finalizadaPor, Instant finalizadaEm, List<CompraItem> itens) {
 		this.familiaId = familiaId;
 		this.listaId = listaId;
 		this.listaNome = listaNome;
@@ -79,7 +85,7 @@ class Compra {
 		this.dataCompra = dataCompra;
 		this.valorVariavel = valorVariavel;
 		this.finalizadaPor = finalizadaPor;
-		this.finalizadaEm = Instant.now();
+		this.finalizadaEm = finalizadaEm;
 		this.itens.addAll(itens);
 		this.valorItens = itens.stream()
 			.map(CompraItem::getSubtotal)

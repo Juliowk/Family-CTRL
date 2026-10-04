@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +42,15 @@ public class FamiliaService {
 
 	private final GeradorCodigoConvite geradorCodigo;
 
+	private final ApplicationEventPublisher eventos;
+
 	FamiliaService(FamiliaRepository familias, MembroFamiliaRepository membros, UsuarioService usuarioService,
-			GeradorCodigoConvite geradorCodigo) {
+			GeradorCodigoConvite geradorCodigo, ApplicationEventPublisher eventos) {
 		this.familias = familias;
 		this.membros = membros;
 		this.usuarioService = usuarioService;
 		this.geradorCodigo = geradorCodigo;
+		this.eventos = eventos;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -106,10 +110,14 @@ public class FamiliaService {
 	// Criar / entrar
 	// ---------------------------------------------------------------------------------------------
 
-	/** Cria a família; quem cria vira ADMIN. */
+	/**
+	 * Cria a família; quem cria vira ADMIN. Publica {@link FamiliaCriada} para os outros módulos
+	 * prepararem o que a família nova precisa (ex.: a lista de exemplo).
+	 */
 	public FamiliaResumo criar(Long usuarioId, String nome) {
 		Familia familia = familias.save(new Familia(nome.trim(), novoCodigoUnico()));
 		membros.save(new MembroFamilia(familia.getId(), usuarioId, Papel.ADMIN));
+		eventos.publishEvent(new FamiliaCriada(familia.getId(), usuarioId));
 		return new FamiliaResumo(familia.getId(), familia.getNome(), Papel.ADMIN, 1);
 	}
 

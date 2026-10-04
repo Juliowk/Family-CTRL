@@ -75,6 +75,23 @@ categoria de um item) e excluir uma categoria precisa mover os itens dela para "
 solução é um **evento**: `CategoriaService` publica `CategoriaExcluida` e o `ItemService` escuta
 (`@EventListener`, na mesma transação). Categorias não conhece itens, e não há ciclo.
 
+A lista de exemplo usa a mesma ideia. Toda família nova ganha a lista **"Exemplo Visual"**
+(itens em todas as categorias, alguns já pegos) e um histórico de **15 compras concluídas**, para
+quem acabou de chegar ver o que o sistema oferece. Quem cria isso é o módulo `compras`
+(`ExemploVisual`), que precisa de listas, itens e categorias; mas é a `FamiliaService` que sabe
+quando uma família nasce, e `familia` está na base do grafo (não pode depender de `compras`).
+Por isso `FamiliaService.criar` publica `FamiliaCriada` e o `ExemploVisual` escuta, na mesma
+transação: se o exemplo falhar, a família não fica criada pela metade.
+
+- Os dados variam entre as compras (itens, quantidades, preços, marcas, mercados e datas, de
+  ~7 a 11 dias entre uma ida e outra, a mais recente ontem), mas vêm de um `Random` com semente
+  fixa por família: o mesmo exemplo sempre, o que facilita reproduzir um problema.
+- Pode ser desligado com `familyctrl.exemplo-visual.ativo=false`. O perfil de teste desliga: as
+  famílias dos outros testes começam vazias (e a suíte não grava ~700 linhas a cada família).
+  O `ExemploVisualTest` cria o ouvinte ligado na mão para testar o exemplo.
+- É uma lista comum: dá para editar, usar ou excluir. As compras concluídas continuam no histórico
+  mesmo se a lista for excluída (como qualquer compra).
+
 ## 3. API REST
 
 Prefixo `/api`. Corpo em JSON. Erros em ProblemDetail (seção 7).
@@ -329,6 +346,13 @@ para permitir revogação.
   seguida. Se a chamada falhar, o estado anterior é restaurado e uma mensagem aparece. Marcar não
   é otimista porque passa por um formulário (quantidade, preço, marca) e só vale ao confirmar.
 - **Família atual** guardada no `localStorage`: o app abre direto na última família usada.
+- **Tela inicial da família ("ctrl") com cards de funcionalidades.** O Family Ctrl terá várias
+  funcionalidades além das listas; cada uma é um card. Escolher um card troca a seção dos cards
+  pela funcionalidade, na mesma página (sem recarregar nem ir para outra rota). A funcionalidade
+  aberta fica na URL (`#/familias/10?ctrl=listas`): o botão "voltar" do navegador fecha a
+  funcionalidade, e voltar de uma lista reabre a seção de listas. O item "ctrl" da navegação leva
+  à tela sem o parâmetro, ou seja, aos cards. Novas funcionalidades entram no array
+  `FUNCIONALIDADES` de `FamiliaInicio.tsx` e no tipo `Funcionalidade` de `rotasFamilia.ts`.
 - **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: alvos de
   toque de no mínimo 44 px; o checkbox de cada item tem 56 px de largura de toque.
 - **Design system** (detalhado abaixo): a linguagem visual e o padrão de cores seguem os da
