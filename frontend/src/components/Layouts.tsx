@@ -119,8 +119,34 @@ export function LayoutAutenticado() {
     );
   }
 
-  const inicio = familiaAtual ? `/familias/${familiaAtual}` : '/familias';
-  const membros = familiaAtual ? `/familias/${familiaAtual}/membros` : '/familias';
+  // Sem família escolhida (logo após o login ou na tela de escolha), não há listas nem membros
+  // para navegar: só o topo com a conta no canto superior direito
+  if (familiaAtual === null || pathname === '/familias') {
+    return (
+      <div className={[estilos.app, estilos.appSimples].join(' ')}>
+        <header className={estilos.topo}>
+          <Link to="/inicio" className={estilos.linkMarca}>
+            <Marca />
+          </Link>
+          <div className={estilos.topoAcoes}>
+            <AlternarTema />
+            <NavLink to="/conta" className={estilos.topoConta}>
+              <Avatar nome={usuario.nome} pequeno />
+              <span className="sr-only">Conta</span>
+            </NavLink>
+          </div>
+        </header>
+        <main className={estilos.conteudo}>
+          <div className={estilos.conteudoInterno}>
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const inicio = `/familias/${familiaAtual}`;
+  const membros = `/familias/${familiaAtual}/membros`;
   const nomeFamilia = familia.data?.nome;
 
   return (
@@ -141,12 +167,10 @@ export function LayoutAutenticado() {
             <IconeFamilia tamanho={20} />
             <span>Membros e convite</span>
           </NavLink>
-          {familiaAtual && (
-            <NavLink to={`/familias/${familiaAtual}/categorias`} end className={classeLink}>
-              <IconeEtiqueta tamanho={20} />
-              <span>Categorias</span>
-            </NavLink>
-          )}
+          <NavLink to={`/familias/${familiaAtual}/categorias`} end className={classeLink}>
+            <IconeEtiqueta tamanho={20} />
+            <span>Categorias</span>
+          </NavLink>
           <NavLink to="/familias" end className={classeLink}>
             <IconeTrocar tamanho={20} />
             <span>Trocar família</span>

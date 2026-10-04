@@ -80,6 +80,28 @@ describe('cadastro', () => {
   });
 });
 
+describe('navegação', () => {
+  it('sem família escolhida mostra só a conta, sem a navegação da família', async () => {
+    criarApiFalsa();
+    renderizarApp('/familias', { logado: true });
+
+    expect(await screen.findByRole('heading', { name: 'Suas famílias' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Conta' })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Navegação rápida' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('navigation', { name: 'Navegação principal' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('com família escolhida mostra a navegação da família', async () => {
+    criarApiFalsa();
+    renderizarApp('/familias/10', { logado: true });
+
+    expect(await screen.findByRole('heading', { name: 'Casa da Ana' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Navegação rápida' })).toBeInTheDocument();
+  });
+});
+
 describe('listas', () => {
   it('cria uma lista e abre o planejamento dela', async () => {
     const { chamadas } = criarApiFalsa();

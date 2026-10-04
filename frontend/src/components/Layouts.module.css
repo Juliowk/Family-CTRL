@@ -254,6 +254,25 @@
   flex-shrink: 0;
 }
 
+/* Conta no canto superior direito (tela sem família escolhida) */
+.topoConta {
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+.topoConta[aria-current='page'] {
+  box-shadow: 0 0 0 2px var(--cor-destaque);
+}
+
+/* Sem família escolhida não há barra inferior: o conteúdo não precisa de folga embaixo */
+.appSimples .conteudo {
+  padding-bottom: calc(var(--espaco-7) + env(safe-area-inset-bottom));
+}
+
 /* ---------- Desktop: barra lateral escura ---------- */
 
 @media (min-width: 64rem) {
@@ -404,6 +423,20 @@
   }
 
   .conteudo {
+    padding: var(--espaco-7) var(--espaco-7) var(--espaco-8);
+  }
+
+  /* Sem família escolhida: só o topo, sem barra lateral */
+  .appSimples {
+    display: block;
+  }
+
+  .appSimples .topo {
+    display: flex;
+    padding: 0 var(--espaco-6);
+  }
+
+  .appSimples .conteudo {
     padding: var(--espaco-7) var(--espaco-7) var(--espaco-8);
   }
 }

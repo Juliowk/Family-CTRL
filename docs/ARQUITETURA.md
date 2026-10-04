@@ -368,7 +368,9 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
   no rodapé (a lateral é sempre escura, por isso tem tokens próprios de destaque). Celular e
   tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
   Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
-  item "Listas" continua ativo.
+  item "Listas" continua ativo. Sem família escolhida (logo após o login ou na tela "Suas
+  famílias") não há listas nem membros para navegar: some a barra lateral/inferior e fica só o
+  topo, com o tema e a conta (avatar) no canto superior direito.
 - **Filtros e abas na URL.** "Listas / Concluídas" é um grupo de chips que grava
   `?ver=concluidas`, e as abas da lista são rotas (`/listas/:id/planejar` e `/comprar`):
   recarregar ou compartilhar o link abre a mesma visão. O título da seção continua "Listas" nas
