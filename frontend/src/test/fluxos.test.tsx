@@ -254,8 +254,10 @@ describe('comprar', () => {
     expect(
       await screen.findByRole('heading', { name: 'Itens com valor do caixa' }),
     ).toBeInTheDocument();
+    // Sem o valor dos itens sem preço, o valor final ainda não é conhecido
+    expect(screen.getByLabelText('Valor final pago (R$)')).toHaveValue('');
     await usuario.type(screen.getByLabelText('Valor dos itens sem preço (R$)'), '10,00');
-    expect(screen.getByText(/41,52/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Valor final pago (R$)')).toHaveValue('41,52');
     await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
     await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
 
@@ -272,6 +274,46 @@ describe('comprar', () => {
         }),
       }),
     );
+  });
+
+  it('o valor final do cupom calcula o valor dos itens sem preço', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    const pegoEm = new Date().toISOString();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm, preco: 7.88, quantidadePega: 4 }),
+      novoItem({ id: 2, nome: 'Frutas', categoriaId: 2, pego: true, pegoEm }),
+    );
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    await usuario.type(await screen.findByLabelText('Valor final pago (R$)'), '50,00');
+    expect(screen.getByLabelText('Valor dos itens sem preço (R$)')).toHaveValue('18,48');
+    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        caminho: '/api/listas/100/compras',
+        corpo: expect.objectContaining({ valorVariavel: 18.48 }),
+      }),
+    );
+  });
+
+  it('com todos os itens com preço, o valor final já vem preenchido e não aceita menos', async () => {
+    const { estado } = criarApiFalsa();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm: new Date().toISOString(), preco: 7.88 }),
+    );
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    const campo = await screen.findByLabelText('Valor final pago (R$)');
+    expect(campo).toHaveValue('7,88');
+    await usuario.clear(campo);
+    await usuario.type(campo, '5,00');
+    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    expect(screen.getByText(/não pode ser menor que o dos itens com preço/)).toBeInTheDocument();
   });
 });
 

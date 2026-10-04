@@ -124,7 +124,7 @@ Ao final:
 - Item pego vai para o fim da sua categoria, com destaque simples além do check
 - Itens não planejados podem ser adicionados durante a compra
 - Total parcial calculado ao vivo; "Desmarcar todos" (com confirmação) apaga quantidades, preços e marcas
-- Finalizar compra: valor variável (itens sem preço), mercado e data; pergunta se os itens não planejados viram fixos; a lista volta zerada
+- Finalizar compra: valor final pago (do cupom) ligado ao valor variável (itens sem preço; um calcula o outro), mercado e data; pergunta se os itens não planejados viram fixos; a lista volta zerada
 
 ### Autorização (obrigatório)
 - Todo acesso a família, lista ou item verifica no backend se o usuário autenticado é membro daquela família.

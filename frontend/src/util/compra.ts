@@ -25,6 +25,12 @@ export function lerDecimal(texto: string): number | undefined {
   return Number.isFinite(numero) ? numero : undefined;
 }
 
+/** Arredonda para centavos (evita 41.519999 nas contas com ponto flutuante). */
+export const centavos = (valor: number) => Math.round(valor * 100) / 100;
+
+/** Valor em dinheiro para preencher um campo (41.5 → "41,50"). */
+export const paraCampoDinheiro = (valor: number) => valor.toFixed(2).replace('.', ',');
+
 /** Número para preencher um campo de texto em pt-BR (7.5 → "7,5"). */
 export const paraCampo = (valor: number | null | undefined) =>
   valor === null || valor === undefined ? '' : String(valor).replace('.', ',');
@@ -44,9 +50,9 @@ export function subtotal(
   const qtd = quantidade ?? 1;
   // Em inteiros (centavos × milésimos) para não sofrer com o arredondamento do ponto flutuante:
   // 6,90 × 1,255 tem de dar 8,66, como no BigDecimal do backend
-  const centavos = Math.round(preco * 100);
+  const precoEmCentavos = Math.round(preco * 100);
   const milesimos = Math.round(qtd * 1000);
-  return Math.round((centavos * milesimos) / 1000) / 100;
+  return Math.round((precoEmCentavos * milesimos) / 1000) / 100;
 }
 
 /**

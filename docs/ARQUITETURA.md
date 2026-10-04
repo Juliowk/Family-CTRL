@@ -182,9 +182,13 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
    preço total, marca, todos opcionais) e o item só fica marcado ao confirmar. O item pego vai para o fim
    da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
    soma o **total parcial** (`util/compra.ts`) e mostra quantos itens estão sem preço.
-3. **Finalizar**: o usuário informa o **valor variável** (itens cujo preço só aparece no caixa,
-   como frutas e verduras), o mercado e a data, e escolhe quais itens não planejados ficam na
-   lista. Numa transação, o backend grava a compra (recalculando o valor dos itens com
+3. **Finalizar**: o usuário informa o **valor final pago** (o total do cupom), o mercado e a
+   data, e escolhe quais itens não planejados ficam na lista. O valor final e o **valor variável**
+   (itens cujo preço só aparece no caixa, como frutas e verduras) andam juntos:
+   final = itens com preço + variável. Dá para digitar qualquer um dos dois e o outro é
+   calculado; sem itens sem preço, o final já vem preenchido e uma diferença aparece como
+   "diferença no caixa". O final não pode ser menor que o valor dos itens com preço. Numa
+   transação, o backend grava a compra (recalculando o valor dos itens com
    `Valores.subtotal`, a mesma regra do front, sem confiar no total enviado), zera a lista e
    remove os extras não mantidos.
 
