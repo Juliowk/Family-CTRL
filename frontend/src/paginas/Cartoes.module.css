@@ -95,3 +95,12 @@
   flex-wrap: wrap;
   gap: var(--espaco-2);
 }
+
+/* Valor em dinheiro no canto do card (compras concluídas) */
+.cartaoValor {
+  flex-shrink: 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-titulo);
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-destaque);
+}

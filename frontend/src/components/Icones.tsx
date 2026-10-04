@@ -141,3 +141,28 @@ export const IconeLua = (p: Props) => (
     <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
   </Svg>
 );
+
+export const IconeSubir = (p: Props) => (
+  <Svg {...p}>
+    <path d="M6 15l6-6 6 6" />
+  </Svg>
+);
+
+export const IconeDescer = (p: Props) => (
+  <Svg {...p}>
+    <path d="M6 9l6 6 6-6" />
+  </Svg>
+);
+
+export const IconeLixeira = (p: Props) => (
+  <Svg {...p}>
+    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+  </Svg>
+);
+
+export const IconeEtiqueta = (p: Props) => (
+  <Svg {...p}>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9z" />
+    <path d="M8 8h.01" />
+  </Svg>
+);

@@ -38,14 +38,22 @@ export interface FamiliaDetalhe {
   membros: Membro[];
 }
 
+export interface Categoria {
+  id: number;
+  nome: string;
+  ordem: number;
+  /** A categoria "Outros": não pode ser excluída nem renomeada. */
+  fixa: boolean;
+}
+
 export interface Lista {
   id: number;
   familiaId: number;
   nome: string;
-  arquivada: boolean;
   criadaEm: string;
   totalItens: number;
-  itensComprados: number;
+  /** > 0 indica uma compra em andamento. */
+  itensPegos: number;
 }
 
 export interface Pessoa {
@@ -53,14 +61,26 @@ export interface Pessoa {
   nome: string | null;
 }
 
+export type TipoPreco = 'UNIDADE' | 'KG';
+
+/** Item: planejamento (nome, categoria, quantidade desejada) + estado da compra em andamento. */
 export interface Item {
   id: number;
   listaId: number;
+  categoriaId: number;
   nome: string;
-  quantidade: string | null;
-  observacao: string | null;
-  comprado: boolean;
-  compradoPor: Pessoa | null;
+  quantidadePlanejada: string | null;
+  pego: boolean;
+  pegoEm: string | null;
+  pegoPor: Pessoa | null;
+  quantidadePega: number | null;
+  tipoPreco: TipoPreco;
+  preco: number | null;
+  /** Nulo se não foi pego ou não tem preço (valor descoberto no caixa). */
+  subtotal: number | null;
+  marca: string | null;
+  /** Não planejado: adicionado durante a compra. */
+  extra: boolean;
   adicionadoPor: Pessoa;
   criadoEm: string;
   atualizadoEm: string;
@@ -70,7 +90,51 @@ export interface ListaDetalhe {
   id: number;
   familiaId: number;
   nome: string;
-  arquivada: boolean;
   criadaEm: string;
+  categorias: Categoria[];
   itens: Item[];
+}
+
+export interface CompraResumo {
+  id: number;
+  listaId: number | null;
+  listaNome: string;
+  mercado: string;
+  /** AAAA-MM-DD */
+  dataCompra: string;
+  valorItens: number;
+  valorVariavel: number;
+  valorTotal: number;
+  totalItens: number;
+  itensPegos: number;
+}
+
+export interface CompraItem {
+  id: number;
+  nome: string;
+  categoria: string;
+  categoriaOrdem: number;
+  quantidadePlanejada: string | null;
+  pego: boolean;
+  quantidadePega: number | null;
+  tipoPreco: TipoPreco;
+  preco: number | null;
+  subtotal: number | null;
+  marca: string | null;
+  extra: boolean;
+}
+
+export interface CompraDetalhe extends CompraResumo {
+  familiaId: number;
+  finalizadaPor: string | null;
+  finalizadaEm: string;
+  itens: CompraItem[];
+}
+
+export interface ResumoMes {
+  /** AAAA-MM */
+  mes: string;
+  gasto: number;
+  compras: number;
+  ultimaCompra: CompraResumo | null;
 }

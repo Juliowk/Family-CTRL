@@ -1,0 +1,123 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.titulo {
+  font-size: var(--texto-md);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0;
+}
+
+.texto {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.resumo,
+.onde {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.linhas {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) 0;
+}
+
+.linha + .linha {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.linha dt {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  color: var(--cor-texto-secundario);
+}
+
+.linha dd {
+  margin: 0;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+.contagem {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 var(--espaco-2);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-2);
+  font-size: var(--texto-rotulo);
+  font-weight: var(--peso-forte);
+}
+
+/* Total: o dado principal da tela */
+.total dt {
+  color: var(--cor-texto);
+  font-weight: var(--peso-forte);
+}
+
+.total dd {
+  font-size: var(--texto-numero);
+  font-weight: var(--peso-titulo);
+  letter-spacing: -0.03em;
+  color: var(--cor-destaque);
+}
+
+/* Valor variável em destaque: fundo âmbar suave + filete (estado pela forma, não só pela cor) */
+.variavel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-left: 3px solid var(--cor-atencao);
+  border-radius: var(--raio);
+  background: var(--cor-atencao-fundo);
+}
+
+@media (min-width: 40rem) {
+  .variavel {
+    padding: var(--espaco-5);
+  }
+}
+
+.semPreco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.semPreco li {
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  font-size: var(--texto-sm);
+}
+
+.extras {
+  display: flex;
+  flex-direction: column;
+}
+
+.acoes {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}

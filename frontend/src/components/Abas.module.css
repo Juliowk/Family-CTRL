@@ -1,0 +1,47 @@
+/* Abas sublinhadas: separam "planejar" de "comprar" sem parecer botões de ação */
+.abas {
+  display: flex;
+  gap: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+  overflow-x: auto;
+}
+
+.aba {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--altura-campo);
+  padding: 0 var(--espaco-4);
+  color: var(--cor-texto-secundario);
+  font-weight: var(--peso-forte);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--transicao);
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.ativa,
+.ativa:hover {
+  color: var(--cor-destaque);
+}
+
+.ativa::after {
+  content: '';
+  position: absolute;
+  left: var(--espaco-2);
+  right: var(--espaco-2);
+  bottom: -1px;
+  height: 3px;
+  border-radius: var(--raio-pilula) var(--raio-pilula) 0 0;
+  background: currentColor;
+}
+
+@media (max-width: 30rem) {
+  .aba {
+    flex: 1;
+    justify-content: center;
+  }
+}

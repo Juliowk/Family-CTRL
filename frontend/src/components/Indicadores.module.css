@@ -5,6 +5,11 @@
   margin: 0;
 }
 
+/* Quantidade ímpar no celular: o primeiro (o dado principal) ocupa a linha toda */
+.indicador:first-child:nth-last-child(odd) {
+  grid-column: 1 / -1;
+}
+
 /* Número em cima, rótulo embaixo (o <dt> vem antes no HTML para leitores de tela) */
 .indicador {
   display: flex;
@@ -32,6 +37,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Valor em texto (ex.: data e mercado da última compra): menor que um número */
+.texto {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
+  line-height: var(--entrelinha-titulo);
+  overflow-wrap: anywhere;
+}
+
 .destaque {
   color: var(--cor-destaque);
 }
@@ -39,5 +53,9 @@
 @media (min-width: 48rem) {
   .indicadores {
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+
+  .indicador:first-child:nth-last-child(odd) {
+    grid-column: auto;
   }
 }

@@ -8,7 +8,7 @@ import { AlternarTema } from './AlternarTema';
 import { Avatar } from './Avatar';
 import { LinkBotao } from './Botao';
 import { Carregando, MensagemErro } from './Estados';
-import { IconeConta, IconeFamilia, IconeLista, IconeTrocar } from './Icones';
+import { IconeConta, IconeEtiqueta, IconeFamilia, IconeLista, IconeTrocar } from './Icones';
 import estilos from './Layouts.module.css';
 
 const REPOSITORIO = 'https://github.com/Juliowk/Family-CTRL';
@@ -91,7 +91,9 @@ const classeLinkListas =
 export function LayoutAutenticado() {
   const { autenticado, usuario, carregandoUsuario, erroUsuario, recarregarUsuario } = useAuth();
   const [familiaAtual] = useFamiliaAtual();
-  const dentroDeLista = useLocation().pathname.startsWith('/listas/');
+  const { pathname } = useLocation();
+  // Lista, finalização e compra concluída são "filhas" da tela de listas
+  const dentroDeLista = pathname.startsWith('/listas/') || pathname.startsWith('/compras/');
   // Mesmo cache das telas da família: normalmente já está carregado e não gera requisição
   const familia = useQuery({
     queryKey: chaves.familia(familiaAtual ?? 0),
@@ -139,6 +141,12 @@ export function LayoutAutenticado() {
             <IconeFamilia tamanho={20} />
             <span>Membros e convite</span>
           </NavLink>
+          {familiaAtual && (
+            <NavLink to={`/familias/${familiaAtual}/categorias`} end className={classeLink}>
+              <IconeEtiqueta tamanho={20} />
+              <span>Categorias</span>
+            </NavLink>
+          )}
           <NavLink to="/familias" end className={classeLink}>
             <IconeTrocar tamanho={20} />
             <span>Trocar família</span>

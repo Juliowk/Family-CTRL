@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { lerToken } from '../api/token';
-import { criarApiFalsa, SENHA_CORRETA } from './apiFalsa';
+import { criarApiFalsa, novoItem, SENHA_CORRETA } from './apiFalsa';
 import { renderizarApp } from './renderizar';
 
 describe('login', () => {
@@ -81,7 +81,7 @@ describe('cadastro', () => {
 });
 
 describe('listas', () => {
-  it('cria uma lista e abre a tela dela', async () => {
+  it('cria uma lista e abre o planejamento dela', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/familias/10', { logado: true });
 
@@ -92,7 +92,7 @@ describe('listas', () => {
     await usuario.click(screen.getByRole('button', { name: 'Criar lista' }));
 
     expect(await screen.findByRole('heading', { name: 'Feira' })).toBeInTheDocument();
-    expect(screen.getByText('Nenhum item ainda')).toBeInTheDocument();
+    expect(screen.getByText('Nenhum item planejado')).toBeInTheDocument();
     expect(chamadas).toContainEqual(
       expect.objectContaining({
         metodo: 'POST',
@@ -111,54 +111,129 @@ describe('listas', () => {
   });
 });
 
-describe('itens', () => {
-  it('adiciona um item e marca como comprado com um toque', async () => {
+describe('planejar', () => {
+  it('adiciona item com categoria e quantidade, agrupado pela categoria', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/listas/100', { logado: true });
 
-    expect(await screen.findByRole('heading', { name: 'Mercado' })).toBeInTheDocument();
-
-    await usuario.type(screen.getByLabelText('Novo item'), 'Leite');
+    // Sem aba na URL, a lista abre no planejamento
+    await usuario.type(await screen.findByLabelText('Item'), 'Bananas');
+    await usuario.selectOptions(screen.getByLabelText('Categoria'), 'Hortifrúti e Congelados');
+    await usuario.type(screen.getByLabelText('Quantidade (opcional)'), '1 dúzia');
     await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
 
-    const lista = await screen.findByRole('list', { name: 'Itens da lista' });
-    const botaoItem = within(lista).getByRole('button', { name: /Leite/, pressed: false });
-    expect(screen.getByLabelText('Novo item')).toHaveValue('');
+    const grupo = await screen.findByRole('region', { name: /Hortifrúti e Congelados/ });
+    expect(within(grupo).getByText('Bananas')).toBeInTheDocument();
+    expect(within(grupo).getByText('1 dúzia')).toBeInTheDocument();
+    expect(screen.getByLabelText('Item')).toHaveValue('');
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'POST',
+        caminho: '/api/listas/100/itens',
+        corpo: { nome: 'Bananas', categoriaId: 2, quantidadePlanejada: '1 dúzia' },
+      }),
+    );
+  });
+});
 
-    await usuario.click(botaoItem);
+describe('comprar', () => {
+  it('marca um item pelo formulário e atualiza o total parcial', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite', quantidadePlanejada: '2 un' }));
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
-    // Atualização otimista: muda antes mesmo da resposta da API
-    expect(within(lista).getByRole('button', { name: /Leite/, pressed: true })).toBeInTheDocument();
-    expect(await within(lista).findByText('Comprado por Ana')).toBeInTheDocument();
-    expect(screen.getByText('1 de 1 comprados')).toBeInTheDocument();
-    await waitFor(() =>
-      expect(chamadas).toContainEqual(
-        expect.objectContaining({ metodo: 'PATCH', corpo: { comprado: true } }),
-      ),
+    // O checkbox só abre o formulário: o item fica marcado ao confirmar
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Leite' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
+    expect(within(dialogo).getByLabelText('Quantidade')).toHaveValue('2');
+    await usuario.type(within(dialogo).getByLabelText('Preço da unidade (R$)'), '6,50');
+    await usuario.type(within(dialogo).getByLabelText('Marca (opcional)'), 'Itambé');
+    expect(within(dialogo).getByText(/13,00/)).toBeInTheDocument();
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    expect(await screen.findByRole('checkbox', { name: 'Desmarcar Leite' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    const total = screen.getByRole('region', { name: 'Total da compra' });
+    expect(within(total).getByText(/13,00/)).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'PUT',
+        caminho: '/api/itens/1/pego',
+        corpo: { tipoPreco: 'UNIDADE', quantidadePega: 2, preco: 6.5, marca: 'Itambé' },
+      }),
     );
   });
 
-  it('desfaz a marcação se a API falhar', async () => {
+  it('desmarcar todos pede confirmação e zera a compra', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm: new Date().toISOString(), preco: 7 }),
+    );
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.click(await screen.findByRole('button', { name: 'Desmarcar todos' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Desmarcar todos os itens?' });
+    expect(dialogo).toHaveTextContent(/preços e marcas informados nesta compra serão apagados/);
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Desmarcar todos' }));
+
+    expect(await screen.findByRole('checkbox', { name: 'Pegar Pão' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({ metodo: 'POST', caminho: '/api/listas/100/desmarcar-todos' }),
+    );
+  });
+
+  it('desfaz o desmarcar se a API falhar', async () => {
     const { estado } = criarApiFalsa();
-    estado.itens.push({
-      id: 1,
-      listaId: 100,
-      nome: 'Pão',
-      quantidade: '6',
-      observacao: null,
-      comprado: false,
-      compradoPor: null,
-      adicionadoPor: { id: 1, nome: 'Ana' },
-      criadoEm: new Date().toISOString(),
-      atualizadoEm: new Date().toISOString(),
-    });
-    estado.falharAtualizacaoDeItem = true;
-    const { usuario } = renderizarApp('/listas/100', { logado: true });
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm: new Date().toISOString() }),
+    );
+    estado.falharDesmarcar = true;
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
-    await usuario.click(await screen.findByRole('button', { name: /Pão/, pressed: false }));
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Desmarcar Pão' }));
 
-    expect(await screen.findByText(/Não foi possível atualizar o item/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Pão/, pressed: false })).toBeInTheDocument();
+    expect(await screen.findByText(/Não foi possível desmarcar o item/)).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Desmarcar Pão' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+  });
+
+  it('finaliza informando o valor dos itens sem preço, o mercado e a data', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    const pegoEm = new Date().toISOString();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm, preco: 7.88, quantidadePega: 4 }),
+      novoItem({ id: 2, nome: 'Frutas', categoriaId: 2, pego: true, pegoEm }),
+    );
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    expect(
+      await screen.findByRole('heading', { name: 'Itens com valor do caixa' }),
+    ).toBeInTheDocument();
+    await usuario.type(screen.getByLabelText('Valor dos itens sem preço (R$)'), '10,00');
+    expect(screen.getByText(/41,52/)).toBeInTheDocument();
+    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Mercado' })).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'POST',
+        caminho: '/api/listas/100/compras',
+        corpo: expect.objectContaining({
+          mercado: 'Atacadão',
+          valorVariavel: 10,
+          extrasMantidos: [],
+        }),
+      }),
+    );
   });
 });
 

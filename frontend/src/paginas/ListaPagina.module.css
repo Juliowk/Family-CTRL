@@ -1,31 +1,69 @@
-/* Card do topo: progresso + formulário de novo item */
-.resumo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-5);
-}
+/* Tela da lista (abas Planejar e Comprar) e formulário de pegar */
 
-.novoItem {
+.opcoes {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-2);
-  padding-top: var(--espaco-5);
-  border-top: 1px solid var(--cor-borda);
 }
 
-.maisDetalhes {
-  align-self: flex-start;
-}
+/* ---------- Planejar: formulário ---------- */
 
-.detalhes {
+.formItem {
   display: grid;
-  gap: var(--espaco-3);
+  gap: var(--espaco-4);
+  align-items: end;
 }
 
 @media (min-width: 40rem) {
-  .detalhes {
-    grid-template-columns: 1fr 2fr;
+  .formItem {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
+
+  .formNome {
+    grid-column: 1 / -1;
+  }
+
+  .formBotao {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+/* ---------- Grupos por categoria ---------- */
+
+.grupos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.grupoTitulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--texto-rotulo);
+  font-weight: var(--peso-forte);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+}
+
+.grupoContagem {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 var(--espaco-2);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
 .itens {
@@ -38,71 +76,14 @@
 }
 
 .item {
+  position: relative;
   display: flex;
   align-items: stretch;
+  transition: background-color var(--transicao);
 }
 
 .item + .item {
   border-top: 1px solid var(--cor-borda);
-}
-
-/* A linha inteira é o alvo de toque: marcar como comprado é um toque só */
-.alternar {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  min-width: 0;
-  min-height: 3.5rem;
-  padding: var(--espaco-3) var(--espaco-4);
-  background: none;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--transicao);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.alternar:hover {
-  background: var(--cor-superficie-2);
-}
-
-.alternar:focus-visible {
-  outline-offset: -2px;
-}
-
-.marcador {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--cor-texto-secundario);
-  border-radius: 50%;
-  color: var(--cor-primaria-texto);
-  transition:
-    background-color var(--transicao),
-    border-color var(--transicao),
-    transform var(--transicao);
-}
-
-.alternar:hover .marcador {
-  border-color: var(--cor-destaque);
-}
-
-.alternar:active .marcador {
-  transform: scale(0.9);
-}
-
-.item[data-comprado='true'] .marcador {
-  background: var(--cor-primaria);
-  border-color: var(--cor-primaria);
-}
-
-.itemTexto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
 }
 
 .itemNome {
@@ -110,20 +91,21 @@
   overflow-wrap: anywhere;
 }
 
-.item[data-comprado='true'] .itemNome {
-  color: var(--cor-texto-secundario);
-  text-decoration: line-through;
-}
-
-.itemQuantidade {
-  color: var(--cor-texto-secundario);
-  font-weight: var(--peso-normal);
-}
-
 .itemDetalhe {
   font-size: var(--texto-xs);
   color: var(--cor-texto-secundario);
   overflow-wrap: anywhere;
+}
+
+/* Linha do planejamento */
+.planejado {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 3.5rem;
+  padding: var(--espaco-3) var(--espaco-4);
 }
 
 .editar {
@@ -140,32 +122,215 @@
 }
 
 .editar:hover {
-  color: var(--cor-texto);
+  color: var(--cor-destaque);
 }
 
-.editar:focus-visible {
+.editar:focus-visible,
+.checkbox:focus-visible,
+.conteudo:focus-visible {
   outline-offset: -2px;
 }
 
-.opcoes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+.rodapeAba {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
 }
 
-.acoesItem {
+.acoesModal {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--espaco-2);
 }
 
-.limpar {
+/* ---------- Comprar: linhas com checkbox ---------- */
+
+.ferramentas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.botaoExtraSozinho {
   align-self: center;
 }
 
-@media (min-width: 40rem) {
-  .alternar {
-    padding: var(--espaco-3) var(--espaco-5);
+/* Checkbox: alvo de 56px de largura, a caixa visível tem 24px */
+.checkbox {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.caixa {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
+  color: var(--cor-primaria-texto);
+  transition:
+    background-color var(--transicao),
+    border-color var(--transicao),
+    transform var(--transicao);
+}
+
+.checkbox:hover .caixa {
+  border-color: var(--cor-destaque);
+}
+
+.checkbox:active .caixa {
+  transform: scale(0.9);
+}
+
+.conteudo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  min-width: 0;
+  min-height: 3.5rem;
+  padding: var(--espaco-3) var(--espaco-4) var(--espaco-3) 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.valor {
+  flex-shrink: 0;
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Item pego: caixa marcada + fundo verde suave + filete à esquerda (destaque simples) */
+.item[data-pego='true'] {
+  background: var(--cor-sucesso-fundo);
+}
+
+.item[data-pego='true']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--cor-sucesso);
+}
+
+.item[data-pego='true'] .caixa {
+  background: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+}
+
+.item[data-pego='true'] .itemNome {
+  color: var(--cor-texto-secundario);
+}
+
+/* ---------- Barra do total (fixa embaixo, acima da navegação do celular) ---------- */
+
+.barraTotal {
+  position: sticky;
+  bottom: calc(var(--altura-barra-inferior) + env(safe-area-inset-bottom) + var(--espaco-2));
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-3) var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra-flutuante);
+}
+
+.barraTotalTextos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barraTotalRotulo {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-secundario);
+}
+
+.barraTotalValor {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-titulo);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--cor-destaque);
+}
+
+.barraTotalAviso {
+  font-size: var(--texto-xs);
+  color: var(--cor-atencao);
+}
+
+@media (min-width: 64rem) {
+  .barraTotal {
+    bottom: var(--espaco-4);
   }
+}
+
+/* ---------- Formulário de pegar ---------- */
+
+.planejadoInfo {
+  margin-top: calc(-1 * var(--espaco-2));
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.precoPor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.precoPorRotulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+}
+
+.duasColunas {
+  display: grid;
+  gap: var(--espaco-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.previa {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-2);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.previa strong {
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Compra concluída: valor à direita da linha */
+.valorConcluido {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-right: var(--espaco-4);
 }

@@ -59,7 +59,7 @@ export function definirAoNaoAutorizado(callback: AoNaoAutorizado): void {
 }
 
 interface Opcoes {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
 }
 

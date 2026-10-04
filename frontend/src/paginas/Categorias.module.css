@@ -1,0 +1,82 @@
+.categorias {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  overflow: hidden;
+}
+
+.categoria {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  min-height: 3.5rem;
+  padding: var(--espaco-1) var(--espaco-2) var(--espaco-1) var(--espaco-4);
+}
+
+.categoria + .categoria {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.nome {
+  min-width: 0;
+  font-weight: var(--peso-medio);
+  overflow-wrap: anywhere;
+}
+
+.categoria:last-child {
+  padding-right: var(--espaco-4);
+}
+
+.acoes {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.icone {
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition:
+    color var(--transicao),
+    background-color var(--transicao);
+}
+
+.icone:hover:not(:disabled) {
+  color: var(--cor-texto);
+  background: var(--cor-superficie-2);
+}
+
+.icone:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.perigo:hover:not(:disabled) {
+  color: var(--cor-perigo);
+  background: var(--cor-perigo-fundo);
+}
+
+/* No celular estreito, as ações quebram para baixo do nome */
+@media (max-width: 26rem) {
+  .categoria {
+    flex-wrap: wrap;
+    padding-top: var(--espaco-2);
+    padding-bottom: var(--espaco-2);
+  }
+
+  .acoes {
+    margin-left: auto;
+  }
+}
