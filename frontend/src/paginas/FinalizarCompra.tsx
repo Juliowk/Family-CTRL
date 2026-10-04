@@ -24,6 +24,7 @@ import {
 } from '../util/compra';
 import estilos from './FinalizarCompra.module.css';
 import paginas from './Paginas.module.css';
+import { rotaListas } from './rotasFamilia';
 
 const temValor = (item: Item) =>
   subtotal(item.tipoPreco, item.preco, item.quantidadePega) !== undefined;
@@ -110,7 +111,7 @@ export function FinalizarCompra() {
   const diferenca = valorFinal !== undefined ? centavos(valorFinal - valorItens) : undefined;
 
   const trilha = [
-    { rotulo: familia.data?.nome ?? 'Listas', para: `/familias/${dados.familiaId}` },
+    { rotulo: familia.data?.nome ?? 'Listas', para: rotaListas(dados.familiaId) },
     { rotulo: dados.nome, para: `/listas/${dados.id}/comprar` },
   ];
 

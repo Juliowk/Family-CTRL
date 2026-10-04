@@ -6,46 +6,37 @@ import { comprasApi, listasApi } from '../api/endpoints';
 import type { CompraResumo, Lista } from '../api/tipos';
 import { AbasPainel } from '../components/AbasPainel';
 import { Botao } from '../components/Botao';
-import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { Carregando, EstadoVazio, MensagemErro } from '../components/Estados';
 import { FiltroChips } from '../components/FiltroChips';
 import form from '../components/Formulario.module.css';
 import { IconeArquivo, IconeCarrinho, IconeSeta } from '../components/Icones';
-import { Indicadores } from '../components/Indicadores';
 import { Progresso } from '../components/Progresso';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
-import { formatarData, formatarDinheiro, mesAtual } from '../util/compra';
+import { formatarData, formatarDinheiro } from '../util/compra';
 import cartoes from './Cartoes.module.css';
-import { ErroFamilia } from './FamiliaNaoEncontrada';
 import { ImportarLista } from './ImportarLista';
 import estilos from './Paginas.module.css';
-import { useFamiliaDaRota } from './useFamiliaDaRota';
 
 type Visao = 'listas' | 'concluidas';
 
-/** Tela inicial da família: gasto do mês, listas (planejamento) e compras concluídas. */
-export function FamiliaListas() {
+/**
+ * Funcionalidade "Listas de compras", aberta na tela inicial da família: listas (planejamento),
+ * compras concluídas e criação de listas.
+ */
+export function FuncionalidadeListas({ familiaId }: { familiaId: number }) {
   const queryClient = useQueryClient();
   const navegar = useNavigate();
-  const { familiaId, familia } = useFamiliaDaRota();
   // A visão fica na URL (?ver=concluidas): recarregar ou compartilhar o link abre igual
   const [parametros, setParametros] = useSearchParams();
   const visao: Visao = parametros.get('ver') === 'concluidas' ? 'concluidas' : 'listas';
   const [nome, setNome] = useState('');
-  const mes = mesAtual();
 
   const listas = useQuery({
     queryKey: chaves.listas(familiaId),
     queryFn: () => listasApi.listar(familiaId),
-    enabled: familia.isSuccess,
-  });
-  const resumo = useQuery({
-    queryKey: chaves.resumo(familiaId, mes),
-    queryFn: () => comprasApi.resumo(familiaId, mes),
-    enabled: familia.isSuccess,
   });
 
   const criar = useMutation({
@@ -63,44 +54,23 @@ export function FamiliaListas() {
   }
 
   function mudarVisao(nova: Visao) {
-    setParametros(nova === 'concluidas' ? { ver: 'concluidas' } : {}, { replace: true });
+    // Mantém os outros parâmetros (a funcionalidade aberta) e troca só a visão
+    setParametros(
+      (atuais) => {
+        const novos = new URLSearchParams(atuais);
+        if (nova === 'concluidas') novos.set('ver', 'concluidas');
+        else novos.delete('ver');
+        return novos;
+      },
+      { replace: true },
+    );
   }
-
-  if (familia.isPending) return <Carregando />;
-  if (familia.isError) {
-    return <ErroFamilia erro={familia.error} aoTentarDeNovo={() => void familia.refetch()} />;
-  }
-
-  const ultima = resumo.data?.ultimaCompra;
 
   return (
-    <div className={estilos.pagina}>
-      <CabecalhoPagina
-        trilha={[{ rotulo: 'Famílias', para: '/familias' }]}
-        rotulo="Família"
-        titulo={familia.data.nome}
-        descricao="Planeje as listas em casa e acompanhe a compra no mercado."
-      />
-
-      <Indicadores
-        rotulo="Resumo do mês"
-        itens={[
-          { rotulo: 'Gasto no mês', valor: resumo.data?.gasto, dinheiro: true, destaque: true },
-          { rotulo: 'Compras no mês', valor: resumo.data?.compras },
-          {
-            rotulo: 'Última compra',
-            valor: resumo.isPending
-              ? undefined
-              : ultima
-                ? `${formatarData(ultima.dataCompra)} · ${ultima.mercado}`
-                : 'Nenhuma ainda',
-          },
-        ]}
-      />
-
+    <>
       <section className={estilos.secao} aria-labelledby="titulo-listas">
         <div className={estilos.secaoCabecalho}>
-          <h2 id="titulo-listas" className={estilos.secaoTitulo}>
+          <h2 id="titulo-listas" className={estilos.secaoTitulo} tabIndex={-1}>
             Listas
           </h2>
           <FiltroChips
@@ -166,7 +136,7 @@ export function FamiliaListas() {
           />
         </Card>
       </section>
-    </div>
+    </>
   );
 }
 

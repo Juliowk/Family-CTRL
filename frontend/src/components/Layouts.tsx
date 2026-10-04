@@ -8,7 +8,7 @@ import { AlternarTema } from './AlternarTema';
 import { Avatar } from './Avatar';
 import { LinkBotao } from './Botao';
 import { Carregando, MensagemErro } from './Estados';
-import { IconeConta, IconeEtiqueta, IconeFamilia, IconeLista, IconeTrocar } from './Icones';
+import { IconeConta, IconeCtrl, IconeEtiqueta, IconeFamilia, IconeTrocar } from './Icones';
 import estilos from './Layouts.module.css';
 
 const REPOSITORIO = 'https://github.com/Juliowk/Family-CTRL';
@@ -77,8 +77,11 @@ export function LayoutPublico() {
 const classeLink = ({ isActive }: { isActive: boolean }) =>
   [estilos.navLink, isActive && estilos.navLinkAtivo].filter(Boolean).join(' ');
 
-/** "Listas" continua ativo dentro de uma lista (/listas/:id), que é filha da tela de listas. */
-const classeLinkListas =
+/**
+ * "ctrl" (tela inicial da família, com as funcionalidades) continua ativo dentro de uma lista ou
+ * compra, que são filhas da funcionalidade de listas.
+ */
+const classeLinkCtrl =
   (dentroDeLista: boolean) =>
   ({ isActive }: { isActive: boolean }) =>
     classeLink({ isActive: isActive || dentroDeLista });
@@ -92,7 +95,7 @@ export function LayoutAutenticado() {
   const { autenticado, usuario, carregandoUsuario, erroUsuario, recarregarUsuario } = useAuth();
   const [familiaAtual] = useFamiliaAtual();
   const { pathname } = useLocation();
-  // Lista, finalização e compra concluída são "filhas" da tela de listas
+  // Lista, finalização e compra concluída são "filhas" da tela inicial da família
   const dentroDeLista = pathname.startsWith('/listas/') || pathname.startsWith('/compras/');
   // Mesmo cache das telas da família: normalmente já está carregado e não gera requisição
   const familia = useQuery({
@@ -159,9 +162,9 @@ export function LayoutAutenticado() {
         <nav className={estilos.lateralNav} aria-label="Navegação principal">
           <p className={estilos.lateralRotulo}>Família</p>
           {nomeFamilia && <p className={estilos.lateralFamilia}>{nomeFamilia}</p>}
-          <NavLink to={inicio} end className={classeLinkListas(dentroDeLista)}>
-            <IconeLista tamanho={20} />
-            <span>Listas</span>
+          <NavLink to={inicio} end className={classeLinkCtrl(dentroDeLista)}>
+            <IconeCtrl tamanho={20} />
+            <span>ctrl</span>
           </NavLink>
           <NavLink to={membros} end className={classeLink}>
             <IconeFamilia tamanho={20} />
@@ -213,9 +216,9 @@ export function LayoutAutenticado() {
       </main>
 
       <nav className={estilos.barraInferior} aria-label="Navegação rápida">
-        <NavLink to={inicio} end className={classeLinkListas(dentroDeLista)}>
-          <IconeLista />
-          <span>Listas</span>
+        <NavLink to={inicio} end className={classeLinkCtrl(dentroDeLista)}>
+          <IconeCtrl />
+          <span>ctrl</span>
         </NavLink>
         <NavLink to={membros} end className={classeLink}>
           <IconeFamilia />

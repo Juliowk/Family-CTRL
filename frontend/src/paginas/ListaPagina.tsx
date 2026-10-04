@@ -16,6 +16,7 @@ import { ListaComprar } from './ListaComprar';
 import estilos from './ListaPagina.module.css';
 import { ListaPlanejar } from './ListaPlanejar';
 import paginas from './Paginas.module.css';
+import { rotaListas } from './rotasFamilia';
 
 const mensagemDe = (erro: unknown) => (erro instanceof ApiError ? erro.message : undefined);
 
@@ -60,7 +61,7 @@ export function ListaPagina() {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: chaves.lista(listaId) });
       void queryClient.invalidateQueries({ queryKey: chaves.todasListas });
-      navegar(familiaIdDaLista ? `/familias/${familiaIdDaLista}` : '/familias');
+      navegar(familiaIdDaLista ? rotaListas(familiaIdDaLista) : '/familias');
     },
   });
 
@@ -88,7 +89,7 @@ export function ListaPagina() {
   return (
     <div className={[paginas.pagina, paginas.estreita].join(' ')}>
       <CabecalhoPagina
-        trilha={[{ rotulo: familia.data?.nome ?? 'Listas', para: `/familias/${dados.familiaId}` }]}
+        trilha={[{ rotulo: familia.data?.nome ?? 'Listas', para: rotaListas(dados.familiaId) }]}
         rotulo="Lista de compras"
         titulo={dados.nome}
         acoes={

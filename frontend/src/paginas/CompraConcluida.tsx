@@ -15,6 +15,7 @@ import { chaves } from '../estado/chaves';
 import { descreverPego, formatarData, formatarDinheiro } from '../util/compra';
 import listaEstilos from './ListaPagina.module.css';
 import paginas from './Paginas.module.css';
+import { rotaListas } from './rotasFamilia';
 
 function detalhe(item: CompraItem) {
   if (!item.pego) return item.quantidadePlanejada ? `Planejado: ${item.quantidadePlanejada}` : '';
@@ -76,7 +77,7 @@ export function CompraConcluida() {
         trilha={[
           {
             rotulo: familia.data?.nome ?? 'Compras',
-            para: `/familias/${dados.familiaId}?ver=concluidas`,
+            para: rotaListas(dados.familiaId, true),
           },
         ]}
         rotulo="Compra concluída"

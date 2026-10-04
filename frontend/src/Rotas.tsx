@@ -5,7 +5,7 @@ import { Cadastro } from './paginas/Cadastro';
 import { Categorias } from './paginas/Categorias';
 import { CompraConcluida } from './paginas/CompraConcluida';
 import { Conta } from './paginas/Conta';
-import { FamiliaListas } from './paginas/FamiliaListas';
+import { FamiliaInicio } from './paginas/FamiliaInicio';
 import { FamiliaMembros } from './paginas/FamiliaMembros';
 import { Familias } from './paginas/Familias';
 import { FinalizarCompra } from './paginas/FinalizarCompra';
@@ -31,7 +31,7 @@ export function Rotas() {
       <Route element={<LayoutAutenticado />}>
         <Route path="inicio" element={<Inicio />} />
         <Route path="familias" element={<Familias />} />
-        <Route path="familias/:familiaId" element={<FamiliaListas />} />
+        <Route path="familias/:familiaId" element={<FamiliaInicio />} />
         <Route path="familias/:familiaId/membros" element={<FamiliaMembros />} />
         <Route path="familias/:familiaId/categorias" element={<Categorias />} />
         {/* Sem aba na URL, a lista abre em "planejar" */}

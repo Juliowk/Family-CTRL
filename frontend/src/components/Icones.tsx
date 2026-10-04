@@ -166,3 +166,13 @@ export const IconeEtiqueta = (p: Props) => (
     <path d="M8 8h.01" />
   </Svg>
 );
+
+/** "ctrl": painel com as funcionalidades da família (grade 2×2). */
+export const IconeCtrl = (p: Props) => (
+  <Svg {...p}>
+    <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+    <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+    <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+    <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+  </Svg>
+);

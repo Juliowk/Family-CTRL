@@ -1,0 +1,51 @@
+/* Tela inicial da família: cards das funcionalidades e a funcionalidade aberta */
+
+/* Card de funcionalidade: é um botão, então zera a aparência padrão do navegador */
+.funcionalidade {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.icone {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--raio);
+  background: var(--cor-destaque-suave);
+  color: var(--cor-destaque);
+}
+
+.descricao {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+/* Troca entre os cards e a funcionalidade: surge rápido, sem chamar atenção */
+.troca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+  animation: surgir var(--transicao-lenta, 200ms) ease-out;
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .troca {
+    animation: none;
+  }
+}
+
+.voltar {
+  align-self: flex-start;
+  margin-bottom: calc(var(--espaco-6) * -0.5);
+}

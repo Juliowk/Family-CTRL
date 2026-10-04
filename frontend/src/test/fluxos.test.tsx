@@ -93,12 +93,50 @@ describe('navegação', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('com família escolhida mostra a navegação da família', async () => {
+  it('com família escolhida mostra a navegação da família, com "ctrl" no início', async () => {
     criarApiFalsa();
     renderizarApp('/familias/10', { logado: true });
 
     expect(await screen.findByRole('heading', { name: 'Casa da Ana' })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: 'Navegação rápida' })).toBeInTheDocument();
+    const barra = screen.getByRole('navigation', { name: 'Navegação rápida' });
+    expect(within(barra).getByRole('link', { name: 'ctrl' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(barra).queryByRole('link', { name: 'Listas' })).not.toBeInTheDocument();
+  });
+});
+
+describe('funcionalidades', () => {
+  it('mostra os cards e troca pela funcionalidade escolhida, na mesma página', async () => {
+    criarApiFalsa();
+    const { usuario } = renderizarApp('/familias/10', { logado: true });
+
+    expect(await screen.findByRole('heading', { name: 'Funcionalidades' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Listas' })).not.toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: /Listas de compras/ }));
+
+    // A seção dos cards dá lugar às listas; a família continua na tela
+    expect(await screen.findByRole('heading', { name: 'Listas' })).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Casa da Ana' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Funcionalidades' })).not.toBeInTheDocument();
+    expect(await screen.findByText('Mercado')).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Funcionalidades' }));
+    expect(await screen.findByRole('heading', { name: 'Funcionalidades' })).toHaveFocus();
+    expect(screen.queryByRole('heading', { name: 'Listas' })).not.toBeInTheDocument();
+  });
+
+  it('o "ctrl" da barra volta para os cards', async () => {
+    criarApiFalsa();
+    const { usuario } = renderizarApp('/familias/10?ctrl=listas', { logado: true });
+
+    expect(await screen.findByRole('heading', { name: 'Listas' })).toBeInTheDocument();
+    const barra = screen.getByRole('navigation', { name: 'Navegação rápida' });
+    await usuario.click(within(barra).getByRole('link', { name: 'ctrl' }));
+
+    expect(await screen.findByRole('heading', { name: 'Funcionalidades' })).toBeInTheDocument();
   });
 });
 
@@ -108,6 +146,7 @@ describe('listas', () => {
     const { usuario } = renderizarApp('/familias/10', { logado: true });
 
     expect(await screen.findByRole('heading', { name: 'Casa da Ana' })).toBeInTheDocument();
+    await usuario.click(await screen.findByRole('button', { name: /Listas de compras/ }));
     expect(await screen.findByText('Mercado')).toBeInTheDocument();
 
     await usuario.type(screen.getByLabelText('Nome da nova lista'), 'Feira');
@@ -126,7 +165,7 @@ describe('listas', () => {
 
   it('importa uma lista colada em CSV', async () => {
     const { chamadas } = criarApiFalsa();
-    const { usuario } = renderizarApp('/familias/10', { logado: true });
+    const { usuario } = renderizarApp('/familias/10?ctrl=listas', { logado: true });
 
     await usuario.click(await screen.findByRole('tab', { name: 'Importar' }));
     expect(await screen.findByRole('button', { name: 'Copiar prompt' })).toBeInTheDocument();
@@ -161,7 +200,7 @@ describe('listas', () => {
   it('mostra estado vazio quando a família não tem listas', async () => {
     const { estado } = criarApiFalsa();
     estado.listas = [];
-    renderizarApp('/familias/10', { logado: true });
+    renderizarApp('/familias/10?ctrl=listas', { logado: true });
 
     expect(await screen.findByText('Nenhuma lista ainda')).toBeInTheDocument();
   });

@@ -82,6 +82,11 @@ ul {
   outline-offset: 2px;
 }
 
+/* Títulos que recebem o foco por código (ao trocar de seção) não precisam do contorno */
+[tabindex='-1']:focus {
+  outline: none;
+}
+
 /* Conteúdo só para leitores de tela */
 .sr-only {
   position: absolute;
