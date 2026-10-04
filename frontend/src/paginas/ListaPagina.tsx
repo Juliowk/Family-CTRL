@@ -66,7 +66,7 @@ export function ListaPagina() {
   });
 
   if (aba !== 'planejar' && aba !== 'comprar') {
-    return <Navigate to={`/listas/${parametro}/planejar`} replace />;
+    return <Navigate to={`/listas/${parametro}/comprar`} replace />;
   }
   if (lista.isPending) return <Carregando linhas={5} />;
   if (lista.isError) {

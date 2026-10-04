@@ -34,7 +34,7 @@ export function Rotas() {
         <Route path="familias/:familiaId" element={<FamiliaInicio />} />
         <Route path="familias/:familiaId/membros" element={<FamiliaMembros />} />
         <Route path="familias/:familiaId/categorias" element={<Categorias />} />
-        {/* Sem aba na URL, a lista abre em "planejar" */}
+        {/* Sem aba na URL, a lista abre em "comprar" (uso principal, no mercado) */}
         <Route path="listas/:listaId" element={<ListaPagina />} />
         <Route path="listas/:listaId/finalizar" element={<FinalizarCompra />} />
         <Route path="listas/:listaId/:aba" element={<ListaPagina />} />
