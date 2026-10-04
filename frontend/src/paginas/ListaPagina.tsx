@@ -102,8 +102,8 @@ export function ListaPagina() {
       <Abas
         rotulo="Etapas da lista"
         abas={[
-          { rotulo: 'Planejar', para: `/listas/${listaId}/planejar` },
           { rotulo: 'Comprar', para: `/listas/${listaId}/comprar` },
+          { rotulo: 'Planejar', para: `/listas/${listaId}/planejar` },
         ]}
       />
 

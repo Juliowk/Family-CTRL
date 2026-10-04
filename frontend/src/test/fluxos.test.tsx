@@ -128,7 +128,7 @@ describe('listas', () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/familias/10', { logado: true });
 
-    await usuario.click(await screen.findByRole('tab', { name: 'Importar CSV' }));
+    await usuario.click(await screen.findByRole('tab', { name: 'Importar' }));
     expect(await screen.findByRole('button', { name: 'Copiar prompt' })).toBeInTheDocument();
 
     await usuario.type(screen.getByLabelText('Nome da lista importada'), 'Feira');

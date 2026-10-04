@@ -4,6 +4,8 @@
   gap: var(--espaco-2);
   border-bottom: 1px solid var(--cor-borda);
   overflow-x: auto;
+  /* Sem isso, overflow-x: auto também liga a rolagem vertical (barra cinza à direita) */
+  overflow-y: hidden;
 }
 
 .aba {
@@ -33,7 +35,7 @@
   position: absolute;
   left: var(--espaco-2);
   right: var(--espaco-2);
-  bottom: -1px;
+  bottom: 0;
   height: 3px;
   border-radius: var(--raio-pilula) var(--raio-pilula) 0 0;
   background: currentColor;

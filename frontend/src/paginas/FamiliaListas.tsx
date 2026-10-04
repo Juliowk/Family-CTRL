@@ -161,7 +161,7 @@ export function FamiliaListas() {
                   </form>
                 ),
               },
-              { rotulo: 'Importar CSV', conteudo: <ImportarLista familiaId={familiaId} /> },
+              { rotulo: 'Importar', conteudo: <ImportarLista familiaId={familiaId} /> },
             ]}
           />
         </Card>

@@ -376,7 +376,7 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
   recarregar ou compartilhar o link abre a mesma visão. O título da seção continua "Listas" nas
   duas visões: só o conteúdo muda.
 - **Abas dentro de card** (`AbasPainel`): "Entrar com código / Criar família" e "Nova lista /
-  Importar CSV" são caminhos alternativos para a mesma tarefa, então ficam num único card com
+  Importar" são caminhos alternativos para a mesma tarefa, então ficam num único card com
   abas (padrão ARIA, setas trocam de aba) e não mudam a URL. Os painéis ficam montados e só
   escondidos, para trocar de aba não apagar o que foi digitado.
 - **Importar lista de CSV.** O usuário cola um texto CSV (`nome;categoria;quantidade`), muitas
