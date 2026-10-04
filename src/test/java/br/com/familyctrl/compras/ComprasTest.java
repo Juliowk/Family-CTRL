@@ -54,7 +54,8 @@ class ComprasTest extends IntegracaoTest {
 
 	private long item(String nome, long categoria) throws Exception {
 		return lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens"))
-			.content("{\"nome\":\"" + nome + "\",\"categoriaId\":" + categoria + "}")).andReturn(), "$.id");
+			.content("{\"nome\":\"" + nome + "\",\"categoriaId\":" + categoria + ",\"medida\":\"UNIDADE\"}"))
+			.andReturn(), "$.id");
 	}
 
 	private void pegar(long item, String json) throws Exception {

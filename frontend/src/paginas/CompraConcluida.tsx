@@ -84,9 +84,12 @@ export function CompraConcluida() {
         titulo={dados.listaNome}
         descricao={`${formatarData(dados.dataCompra)} · ${dados.mercado}${dados.finalizadaPor ? ` · finalizada por ${dados.finalizadaPor}` : ''}`}
         selos={
-          <Selo tom="sucesso" ponto>
-            Concluída
-          </Selo>
+          <>
+            <Selo tom="sucesso" ponto>
+              Concluída
+            </Selo>
+            {dados.exemplo && <Selo>Exemplo · fora do resumo do mês</Selo>}
+          </>
         }
       />
 

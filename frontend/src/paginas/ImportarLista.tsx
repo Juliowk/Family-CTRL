@@ -12,10 +12,10 @@ import { chaves } from '../estado/chaves';
 import { lerCsvLista, promptParaIa } from '../util/csvLista';
 import estilos from './ImportarLista.module.css';
 
-const EXEMPLO = `nome;categoria;quantidade
-Arroz;Mercearia e Alimentos Básicos;5 kg
-Banana;Hortifrúti e Congelados;1 dúzia
-Sabonete;Higiene Pessoal;`;
+const EXEMPLO = `nome;categoria;quantidade;medida
+Arroz 5 kg;Mercearia e Alimentos Básicos;1 pacote;un
+Banana;Hortifrúti e Congelados;1,5 kg;kg
+Sabonete;Higiene Pessoal;;un`;
 
 /** Até quantos erros de linha mostrar (o resto vira "e mais N"). */
 const ERROS_VISIVEIS = 5;
@@ -112,6 +112,10 @@ export function ImportarLista({ familiaId }: { familiaId: number }) {
           <li>
             <strong>nome</strong> é obrigatório. <strong>quantidade</strong> é opcional (até 30
             caracteres).
+          </li>
+          <li>
+            <strong>medida</strong> é <code>un</code> (por unidade) ou <code>kg</code> (por kg). Se
+            ficar vazia, vem da quantidade: “500 g” ou “2 kg” é por kg; o resto, por unidade.
           </li>
           <li>
             <strong>categoria</strong> deve ser uma das categorias da família:{' '}

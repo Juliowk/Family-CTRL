@@ -14,7 +14,8 @@ export function FiltroChips<T extends string>({
 }: {
   rotulo: string;
   opcoes: Opcao<T>[];
-  valor: T;
+  /** Nulo: nenhuma opção escolhida ainda. */
+  valor: T | null;
   aoMudar: (valor: T) => void;
 }) {
   return (

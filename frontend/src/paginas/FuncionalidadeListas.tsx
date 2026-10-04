@@ -210,6 +210,11 @@ function CartaoCompra({ compra }: { compra: CompraResumo }) {
         <span className={cartoes.cartaoValor}>{formatarDinheiro(compra.valorTotal)}</span>
       </div>
       <Progresso comprados={compra.itensPegos} total={compra.totalItens} />
+      {compra.exemplo && (
+        <div className={cartoes.cartaoSelos}>
+          <Selo>Exemplo · fora do resumo do mês</Selo>
+        </div>
+      )}
     </Link>
   );
 }

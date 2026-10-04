@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { itensApi } from '../api/endpoints';
-import type { Categoria, Item, ListaDetalhe } from '../api/tipos';
+import type { Categoria, Item, ListaDetalhe, TipoPreco } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
@@ -12,11 +12,12 @@ import form from '../components/Formulario.module.css';
 import { IconeEditar, IconeLista, IconeMais } from '../components/Icones';
 import { Modal } from '../components/Modal';
 import { SeletorCategoria } from '../components/SeletorCategoria';
-import { agruparPorCategoria } from '../util/compra';
+import { SeletorMedida } from '../components/SeletorMedida';
+import { agruparPorCategoria, rotuloMedida } from '../util/compra';
 import { apagarItem, gravarItem, invalidarResumoDasListas } from './cacheLista';
 import estilos from './ListaPagina.module.css';
 
-/** Aba Planejar: cadastrar o que comprar, com categoria e quantidade desejada. */
+/** Aba Planejar: cadastrar o que comprar, com categoria, medida e quantidade desejada. */
 export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
   const [editando, setEditando] = useState<Item | null>(null);
   const grupos = agruparPorCategoria(lista.categorias, lista.itens, 'planejar');
@@ -46,9 +47,11 @@ export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
                   <li key={item.id} className={estilos.item}>
                     <div className={estilos.planejado}>
                       <span className={estilos.itemNome}>{item.nome}</span>
-                      {item.quantidadePlanejada && (
-                        <span className={estilos.itemDetalhe}>{item.quantidadePlanejada}</span>
-                      )}
+                      <span className={estilos.itemDetalhe}>
+                        {[item.quantidadePlanejada, rotuloMedida(item.medida)]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -89,30 +92,45 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
   const ultimo = lista.itens.at(-1);
   const [nome, setNome] = useState('');
   const [quantidade, setQuantidade] = useState('');
+  // Medida obrigatória e sem padrão: cada item é escolhido de propósito (por unidade ou por kg)
+  const [medida, setMedida] = useState<TipoPreco | null>(null);
+  const [faltaMedida, setFaltaMedida] = useState(false);
   // Começa na categoria do último item adicionado: costuma-se planejar por seção do mercado
   const [categoriaId, setCategoriaId] = useState(
     ultimo?.categoriaId ?? lista.categorias[0]?.id ?? 0,
   );
 
   const adicionar = useMutation({
-    mutationFn: () =>
+    mutationFn: (medidaEscolhida: TipoPreco) =>
       itensApi.adicionar(lista.id, {
         nome: nome.trim(),
         categoriaId,
         quantidadePlanejada: quantidade.trim() || undefined,
+        medida: medidaEscolhida,
       }),
     onSuccess: (item) => {
       gravarItem(queryClient, item);
       invalidarResumoDasListas(queryClient);
       setNome('');
       setQuantidade('');
+      setMedida(null);
     },
   });
   const erro = adicionar.error instanceof ApiError ? adicionar.error : undefined;
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
-    if (nome.trim()) adicionar.mutate();
+    if (!nome.trim()) return;
+    if (!medida) {
+      setFaltaMedida(true);
+      return;
+    }
+    adicionar.mutate(medida);
+  }
+
+  function escolherMedida(nova: TipoPreco) {
+    setMedida(nova);
+    setFaltaMedida(false);
   }
 
   return (
@@ -135,6 +153,13 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
           valor={categoriaId}
           aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
+        />
+        <SeletorMedida
+          valor={medida}
+          aoMudar={escolherMedida}
+          erro={
+            faltaMedida ? 'Escolha a medida: por unidade ou por kg.' : erro?.erroDoCampo('medida')
+          }
         />
         <Campo
           rotulo="Quantidade (opcional)"
@@ -171,6 +196,7 @@ function ModalEditarItem({
   const [nome, setNome] = useState(item.nome);
   const [categoriaId, setCategoriaId] = useState(item.categoriaId);
   const [quantidade, setQuantidade] = useState(item.quantidadePlanejada ?? '');
+  const [medida, setMedida] = useState<TipoPreco>(item.medida);
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
 
   // String vazia apaga a quantidade desejada no backend
@@ -180,6 +206,7 @@ function ModalEditarItem({
         nome: nome.trim(),
         categoriaId,
         quantidadePlanejada: quantidade.trim(),
+        medida,
       }),
     onSuccess: (atualizado) => {
       gravarItem(queryClient, atualizado);
@@ -219,6 +246,7 @@ function ModalEditarItem({
           aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
         />
+        <SeletorMedida valor={medida} aoMudar={setMedida} erro={erro?.erroDoCampo('medida')} />
         <Campo
           rotulo="Quantidade (opcional)"
           placeholder="Ex.: 2 kg"

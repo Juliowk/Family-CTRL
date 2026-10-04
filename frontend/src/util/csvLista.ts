@@ -1,15 +1,19 @@
-import type { Categoria } from '../api/tipos';
+import type { Categoria, TipoPreco } from '../api/tipos';
+import { sugestaoDaQuantidade } from './compra';
 
 /**
  * Leitura de uma lista de compras colada como texto CSV. Formato:
  *
- *   nome;categoria;quantidade
- *   Arroz;Mercearia e Alimentos Básicos;5 kg
+ *   nome;categoria;quantidade;medida
+ *   Arroz;Mercearia e Alimentos Básicos;1 pacote;un
+ *   Carne moída;Açougue, Embutidos e Peixaria;1 kg;kg
  *
  * - O cabeçalho é opcional (reconhecido quando a 1ª coluna da 1ª linha é "nome").
  * - Separador ";" (recomendado, porque "1,5 kg" tem vírgula); "," e tabulação também valem.
  * - Campos com o separador vão entre aspas duplas; aspas dentro do campo viram "".
  * - Categoria vazia ou desconhecida vai para "Outros". Quantidade é opcional.
+ * - Medida: "un" (por unidade) ou "kg" (por kg). Se vier vazia (CSV antigo, de 3 colunas), é
+ *   deduzida da quantidade ("500 g" e "2 kg" são por kg; o resto, por unidade).
  */
 
 export const MAX_ITENS_IMPORTACAO = 300;
@@ -20,7 +24,19 @@ export interface ItemImportado {
   nome: string;
   categoriaId: number;
   quantidadePlanejada?: string;
+  medida: TipoPreco;
 }
+
+const MEDIDAS: Record<string, TipoPreco> = {
+  un: 'UNIDADE',
+  und: 'UNIDADE',
+  unid: 'UNIDADE',
+  unidade: 'UNIDADE',
+  unidades: 'UNIDADE',
+  kg: 'KG',
+  quilo: 'KG',
+  quilos: 'KG',
+};
 
 export interface ErroLinha {
   /** Número da linha no texto colado (começa em 1). */
@@ -92,7 +108,10 @@ export function lerCsvLista(texto: string, categorias: Categoria[]): ResultadoCs
     const linha = bruta.trim();
     // Linhas vazias e as cercas ``` que algumas IAs colocam em volta do CSV são ignoradas
     if (!linha || linha.startsWith('```')) return;
-    const [nome = '', categoria = '', quantidade = ''] = dividir(linha, separador);
+    const [nome = '', categoria = '', quantidade = '', medidaTexto = ''] = dividir(
+      linha,
+      separador,
+    );
 
     if (!cabecalhoVisto) {
       cabecalhoVisto = true;
@@ -116,12 +135,25 @@ export function lerCsvLista(texto: string, categorias: Categoria[]): ResultadoCs
       return;
     }
 
+    const medida = medidaTexto
+      ? MEDIDAS[normalizar(medidaTexto).replace(/\.$/, '')]
+      : (sugestaoDaQuantidade(quantidade).tipo ?? 'UNIDADE');
+    if (!medida) {
+      erros.push({ linha: numero, mensagem: `medida "${medidaTexto}" inválida; use un ou kg.` });
+      return;
+    }
+
     let categoriaId = porNome.get(normalizar(categoria));
     if (categoriaId === undefined) {
       categoriaId = outros;
       if (categoria) desconhecidas.set(normalizar(categoria), categoria);
     }
-    itens.push({ nome, categoriaId, ...(quantidade && { quantidadePlanejada: quantidade }) });
+    itens.push({
+      nome,
+      categoriaId,
+      ...(quantidade && { quantidadePlanejada: quantidade }),
+      medida,
+    });
   });
 
   if (itens.length > MAX_ITENS_IMPORTACAO) {
@@ -141,11 +173,12 @@ export function promptParaIa(categorias: Categoria[]) {
 
 Regras:
 - Responda somente com o CSV, sem explicações e sem bloco de código.
-- A primeira linha deve ser exatamente: nome;categoria;quantidade
+- A primeira linha deve ser exatamente: nome;categoria;quantidade;medida
 - Separe as colunas com ponto e vírgula (;). Uma linha por item.
 - nome: o produto (até ${MAX_NOME} caracteres).
 - categoria: use exatamente um destes nomes: ${nomes}. Se nenhum servir, use Outros.
 - quantidade: opcional, texto curto como "2 kg", "6 un" ou "1 pacote" (até ${MAX_QUANTIDADE} caracteres). Deixe vazio se não houver.
+- medida: obrigatória, "kg" para o que é pesado e pago por peso (carnes, frutas, frios a granel) ou "un" para o que é vendido por unidade ou pacote.
 - Se algum campo tiver ponto e vírgula, coloque-o entre aspas duplas.
 
 Minha lista:

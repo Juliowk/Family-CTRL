@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 /**
  * Item de uma lista. Tem duas partes:
  * <ul>
- * <li>o planejamento (nome, categoria, quantidade desejada), que permanece entre as compras;</li>
+ * <li>o planejamento (nome, categoria, quantidade desejada, medida), que permanece entre as compras;</li>
  * <li>o estado da compra em andamento (pego, quantidade pega, preço, marca), zerado ao finalizar a
  * compra ou ao "desmarcar todos".</li>
  * </ul>
@@ -39,6 +39,11 @@ class Item {
 
 	@Column(name = "quantidade_planejada", length = 30)
 	private String quantidadePlanejada;
+
+	/** Medida planejada (por unidade ou por kg): o "preço por" começa nela ao pegar o item. */
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 10)
+	private TipoPreco medida = TipoPreco.UNIDADE;
 
 	@Column(nullable = false)
 	private boolean pego;
@@ -78,22 +83,28 @@ class Item {
 	protected Item() {
 	}
 
-	Item(Long listaId, Long categoriaId, String nome, String quantidadePlanejada, boolean extra,
+	Item(Long listaId, Long categoriaId, String nome, String quantidadePlanejada, TipoPreco medida, boolean extra,
 			Long adicionadoPor) {
 		this.listaId = listaId;
 		this.categoriaId = categoriaId;
 		this.nome = nome;
 		this.quantidadePlanejada = quantidadePlanejada;
+		this.medida = medida;
+		this.tipoPreco = medida;
 		this.extra = extra;
 		this.adicionadoPor = adicionadoPor;
 		this.criadoEm = Instant.now();
 		this.atualizadoEm = this.criadoEm;
 	}
 
-	void editarPlanejamento(String nome, Long categoriaId, String quantidadePlanejada) {
+	void editarPlanejamento(String nome, Long categoriaId, String quantidadePlanejada, TipoPreco medida) {
 		this.nome = nome;
 		this.categoriaId = categoriaId;
 		this.quantidadePlanejada = quantidadePlanejada;
+		this.medida = medida;
+		if (!pego) {
+			this.tipoPreco = medida;
+		}
 		tocar();
 	}
 
@@ -114,13 +125,13 @@ class Item {
 		tocar();
 	}
 
-	/** Volta ao estado planejado: desmarca e apaga quantidade, preço e marca. */
+	/** Volta ao estado planejado: desmarca, apaga quantidade, preço e marca e volta à medida planejada. */
 	void desmarcar() {
 		this.pego = false;
 		this.pegoPor = null;
 		this.pegoEm = null;
 		this.quantidadePega = null;
-		this.tipoPreco = TipoPreco.UNIDADE;
+		this.tipoPreco = medida;
 		this.preco = null;
 		this.marca = null;
 		tocar();
@@ -158,6 +169,10 @@ class Item {
 
 	String getQuantidadePlanejada() {
 		return quantidadePlanejada;
+	}
+
+	TipoPreco getMedida() {
+		return medida;
 	}
 
 	boolean isPego() {

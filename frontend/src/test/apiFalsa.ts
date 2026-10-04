@@ -60,6 +60,7 @@ export function novoItem(dados: Partial<Item> & { id: number; nome: string }): I
     listaId: 100,
     categoriaId: 1,
     quantidadePlanejada: null,
+    medida: 'UNIDADE',
     pego: false,
     pegoEm: null,
     pegoPor: null,
@@ -238,9 +239,10 @@ export function criarApiFalsa() {
     }
 
     if ((m = rota.match(/^POST \/api\/listas\/(\d+)\/itens$/))) {
-      if (!corpo.nome?.trim()) {
+      if (!corpo.nome?.trim() || !corpo.medida) {
         return problema(400, 'Verifique os campos informados.', [
-          { campo: 'nome', mensagem: 'Informe o nome do item.' },
+          ...(corpo.nome?.trim() ? [] : [{ campo: 'nome', mensagem: 'Informe o nome do item.' }]),
+          ...(corpo.medida ? [] : [{ campo: 'medida', mensagem: 'Escolha a medida.' }]),
         ]);
       }
       const item = novoItem({
@@ -249,6 +251,8 @@ export function criarApiFalsa() {
         nome: corpo.nome,
         categoriaId: corpo.categoriaId,
         quantidadePlanejada: corpo.quantidadePlanejada ?? null,
+        medida: corpo.medida,
+        tipoPreco: corpo.medida,
       });
       estado.itens.push(item);
       return json(201, item);
@@ -301,6 +305,7 @@ export function criarApiFalsa() {
         valorTotal: valorItens + corpo.valorVariavel,
         totalItens: itens.length,
         itensPegos: itens.filter((i) => i.pego).length,
+        exemplo: false,
         finalizadaPor: usuario.nome,
         finalizadaEm: agora,
         itens: itens.map((i) => ({

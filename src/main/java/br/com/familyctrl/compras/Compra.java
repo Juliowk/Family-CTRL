@@ -62,6 +62,10 @@ class Compra {
 	@Column(name = "finalizada_em", nullable = false, updatable = false)
 	private Instant finalizadaEm;
 
+	/** Compra da lista "Exemplo Visual": aparece nas concluídas, mas fica fora do resumo do mês. */
+	@Column(nullable = false, updatable = false)
+	private boolean exemplo;
+
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "compra_id", nullable = false, updatable = false)
 	@OrderBy("categoriaOrdem asc, id asc")
@@ -72,12 +76,14 @@ class Compra {
 
 	Compra(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
 			BigDecimal valorVariavel, Long finalizadaPor, List<CompraItem> itens) {
-		this(familiaId, listaId, listaNome, mercado, dataCompra, valorVariavel, finalizadaPor, Instant.now(), itens);
+		this(familiaId, listaId, listaNome, mercado, dataCompra, valorVariavel, finalizadaPor, Instant.now(), false,
+				itens);
 	}
 
-	/** Com o momento da finalização explícito: usado pelo histórico da lista de exemplo. */
+	/** Com o momento da finalização explícito e a marca de exemplo: usado pela lista de exemplo. */
 	Compra(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
-			BigDecimal valorVariavel, Long finalizadaPor, Instant finalizadaEm, List<CompraItem> itens) {
+			BigDecimal valorVariavel, Long finalizadaPor, Instant finalizadaEm, boolean exemplo,
+			List<CompraItem> itens) {
 		this.familiaId = familiaId;
 		this.listaId = listaId;
 		this.listaNome = listaNome;
@@ -86,6 +92,7 @@ class Compra {
 		this.valorVariavel = valorVariavel;
 		this.finalizadaPor = finalizadaPor;
 		this.finalizadaEm = finalizadaEm;
+		this.exemplo = exemplo;
 		this.itens.addAll(itens);
 		this.valorItens = itens.stream()
 			.map(CompraItem::getSubtotal)
@@ -136,6 +143,10 @@ class Compra {
 
 	Instant getFinalizadaEm() {
 		return finalizadaEm;
+	}
+
+	boolean isExemplo() {
+		return exemplo;
 	}
 
 	List<CompraItem> getItens() {

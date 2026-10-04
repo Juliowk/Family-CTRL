@@ -80,7 +80,7 @@ class CategoriasTest extends IntegracaoTest {
 		long lista = lerId(mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas"))
 			.content("{\"nome\":\"Mercado\"}")).andReturn(), "$.id");
 		long item = lerId(mvc.perform(como(ana, post("/api/listas/" + lista + "/itens"))
-			.content("{\"nome\":\"Pão\",\"categoriaId\":" + padaria + "}")).andReturn(), "$.id");
+			.content("{\"nome\":\"Pão\",\"categoriaId\":" + padaria + ",\"medida\":\"UNIDADE\"}")).andReturn(), "$.id");
 
 		mvc.perform(como(ana, delete("/api/categorias/" + padaria))).andExpect(status().isNoContent());
 

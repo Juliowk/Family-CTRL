@@ -155,3 +155,8 @@ export function mesAtual(agora = new Date()): string {
 export function hoje(agora = new Date()): string {
   return `${mesAtual(agora)}-${String(agora.getDate()).padStart(2, '0')}`;
 }
+
+/** Rótulo curto da medida planejada, para mostrar junto do item ("por kg"). */
+export function rotuloMedida(medida: TipoPreco) {
+  return medida === 'KG' ? 'por kg' : 'por unidade';
+}

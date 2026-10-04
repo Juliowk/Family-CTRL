@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.YearMonth;
 import java.util.List;
 
 import com.jayway.jsonpath.JsonPath;
@@ -107,6 +108,22 @@ class ExemploVisualTest extends IntegracaoTest {
 			.andExpect(jsonPath("$.listaNome").value(ExemploVisual.NOME_LISTA))
 			.andExpect(jsonPath("$.itens[?(@.subtotal != null)]").isNotEmpty())
 			.andExpect(jsonPath("$.itens[?(@.marca != null)]").isNotEmpty());
+	}
+
+	@Test
+	void comprasDoExemploNaoEntramNoResumoDoMes() throws Exception {
+		criarExemplo();
+		// A compra mais recente do exemplo é de ontem: confere este mês e o anterior
+		for (YearMonth mes : List.of(YearMonth.now(), YearMonth.now().minusMonths(1))) {
+			mvc.perform(como(ana, get("/api/familias/" + familiaId + "/compras/resumo?mes=" + mes)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.gasto").value(0))
+				.andExpect(jsonPath("$.compras").value(0))
+				.andExpect(jsonPath("$.ultimaCompra").doesNotExist());
+		}
+		// Mas continuam nas concluídas, marcadas como exemplo
+		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/compras")))
+			.andExpect(jsonPath("$[?(@.exemplo == true)]", hasSize(ExemploVisual.TOTAL_COMPRAS)));
 	}
 
 	@Test

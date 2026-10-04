@@ -96,7 +96,8 @@ public class CompraService {
 
 	/**
 	 * Gasto e número de compras no mês informado (AAAA-MM). O mês vem da tela porque o servidor
-	 * roda em UTC e o "mês atual" é o do usuário.
+	 * roda em UTC e o "mês atual" é o do usuário. As compras de exemplo ficam de fora (inclusive da
+	 * "última compra"), para não assustar quem acabou de chegar com um gasto que não é dele.
 	 */
 	@Transactional(readOnly = true)
 	public ResumoMes resumo(Long familiaId, Long usuarioId, String mes) {
@@ -110,13 +111,11 @@ public class CompraService {
 		}
 		var inicio = anoMes.atDay(1);
 		var fim = anoMes.atEndOfMonth();
-		CompraResumo ultima = compras.findByFamiliaIdOrderByDataCompraDescIdDesc(familiaId)
-			.stream()
-			.findFirst()
+		CompraResumo ultima = compras.findFirstByFamiliaIdAndExemploFalseOrderByDataCompraDescIdDesc(familiaId)
 			.map(c -> resumos(List.of(c)).getFirst())
 			.orElse(null);
 		return new ResumoMes(anoMes.toString(), compras.somarEntre(familiaId, inicio, fim),
-				compras.countByFamiliaIdAndDataCompraBetween(familiaId, inicio, fim), ultima);
+				compras.countByFamiliaIdAndExemploFalseAndDataCompraBetween(familiaId, inicio, fim), ultima);
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -141,7 +140,7 @@ public class CompraService {
 			var contagem = contagens.get(c.getId());
 			return new CompraResumo(c.getId(), c.getListaId(), c.getListaNome(), c.getMercado(), c.getDataCompra(),
 					c.getValorItens(), c.getValorVariavel(), c.getValorTotal(), contagem != null ? contagem.getTotal() : 0,
-					contagem != null ? contagem.getPegos() : 0);
+					contagem != null ? contagem.getPegos() : 0, c.isExemplo());
 		}).toList();
 	}
 
@@ -157,7 +156,7 @@ public class CompraService {
 		long pegos = itens.stream().filter(CompraItemResponse::pego).count();
 		return new CompraDetalhe(compra.getId(), compra.getFamiliaId(), compra.getListaId(), compra.getListaNome(),
 				compra.getMercado(), compra.getDataCompra(), compra.getValorItens(), compra.getValorVariavel(),
-				compra.getValorTotal(), itens.size(), pegos, quem != null ? quem.nome() : null,
+				compra.getValorTotal(), itens.size(), pegos, compra.isExemplo(), quem != null ? quem.nome() : null,
 				compra.getFinalizadaEm(), itens);
 	}
 

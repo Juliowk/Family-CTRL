@@ -71,6 +71,8 @@ export interface Item {
   categoriaId: number;
   nome: string;
   quantidadePlanejada: string | null;
+  /** Medida planejada: o "preço por" começa nela ao pegar o item. */
+  medida: TipoPreco;
   pego: boolean;
   pegoEm: string | null;
   pegoPor: Pessoa | null;
@@ -108,6 +110,8 @@ export interface CompraResumo {
   valorTotal: number;
   totalItens: number;
   itensPegos: number;
+  /** Compra da lista "Exemplo Visual": fica fora do resumo do mês. */
+  exemplo: boolean;
 }
 
 export interface CompraItem {

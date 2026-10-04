@@ -83,7 +83,7 @@ public class ItemService {
 		Long familiaId = familiaDaLista(listaId, usuarioId);
 		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
 		Item item = itens.save(new Item(listaId, request.categoriaId(), request.nome().trim(),
-				vazioParaNulo(request.quantidadePlanejada()), false, usuarioId));
+				vazioParaNulo(request.quantidadePlanejada()), request.medida(), false, usuarioId));
 		return paraResponse(item);
 	}
 
@@ -100,7 +100,7 @@ public class ItemService {
 				throw new ValidacaoException("itens[" + i + "].categoriaId", "Escolha uma categoria válida.");
 			}
 			novos.add(new Item(listaId, request.categoriaId(), request.nome().trim(),
-					vazioParaNulo(request.quantidadePlanejada()), false, usuarioId));
+					vazioParaNulo(request.quantidadePlanejada()), request.medida(), false, usuarioId));
 		}
 		itens.saveAll(novos);
 	}
@@ -116,7 +116,8 @@ public class ItemService {
 		item.editarPlanejamento(request.nome() != null ? request.nome().trim() : item.getNome(),
 				request.categoriaId() != null ? request.categoriaId() : item.getCategoriaId(),
 				request.quantidadePlanejada() != null ? vazioParaNulo(request.quantidadePlanejada())
-						: item.getQuantidadePlanejada());
+						: item.getQuantidadePlanejada(),
+				request.medida() != null ? request.medida() : item.getMedida());
 		return paraResponse(item);
 	}
 
@@ -145,7 +146,8 @@ public class ItemService {
 	public ItemResponse adicionarExtra(Long listaId, Long usuarioId, ExtraRequest request) {
 		Long familiaId = familiaDaLista(listaId, usuarioId);
 		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
-		Item item = new Item(listaId, request.categoriaId(), request.nome().trim(), null, true, usuarioId);
+		Item item = new Item(listaId, request.categoriaId(), request.nome().trim(), null,
+				tipoOuPadrao(request.tipoPreco()), true, usuarioId);
 		item.pegar(request.quantidadePega(), tipoOuPadrao(request.tipoPreco()), request.preco(),
 				vazioParaNulo(request.marca()), usuarioId);
 		return paraResponse(itens.save(item));
@@ -215,7 +217,7 @@ public class ItemService {
 		Map<Long, UsuarioResponse> usuarios = ids.isEmpty() ? Map.of() : usuarioService.buscarPorIds(ids);
 		return lista.stream()
 			.map(i -> new ItemResponse(i.getId(), i.getListaId(), i.getCategoriaId(), i.getNome(),
-					i.getQuantidadePlanejada(), i.isPego(), i.getPegoEm(), pessoa(usuarios, i.getPegoPor()),
+					i.getQuantidadePlanejada(), i.getMedida(), i.isPego(), i.getPegoEm(), pessoa(usuarios, i.getPegoPor()),
 					i.getQuantidadePega(), i.getTipoPreco(), i.getPreco(), i.subtotal(), i.getMarca(), i.isExtra(),
 					pessoa(usuarios, i.getAdicionadoPor()), i.getCriadoEm(), i.getAtualizadoEm()))
 			.toList();

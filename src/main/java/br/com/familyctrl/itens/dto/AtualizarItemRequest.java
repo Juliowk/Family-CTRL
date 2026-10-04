@@ -2,11 +2,14 @@ package br.com.familyctrl.itens.dto;
 
 import jakarta.validation.constraints.Size;
 
+import br.com.familyctrl.itens.TipoPreco;
+
 /**
  * Edição parcial (PATCH) do planejamento de um item. Campos nulos não são alterados.
  * Para apagar a quantidade desejada, envie uma string vazia.
  */
 public record AtualizarItemRequest(
 		@Size(max = 120, message = "O nome deve ter no máximo 120 caracteres.") String nome, Long categoriaId,
-		@Size(max = 30, message = "A quantidade deve ter no máximo 30 caracteres.") String quantidadePlanejada) {
+		@Size(max = 30, message = "A quantidade deve ter no máximo 30 caracteres.") String quantidadePlanejada,
+		TipoPreco medida) {
 }

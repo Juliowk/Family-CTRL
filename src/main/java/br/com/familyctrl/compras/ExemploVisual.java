@@ -31,8 +31,10 @@ import br.com.familyctrl.listas.dto.ListaResponse;
 
 /**
  * Cria, em toda família nova, a lista "Exemplo Visual": uma lista completa (todas as categorias,
- * alguns itens já pegos) com um histórico de 15 compras concluídas. Assim quem acabou de chegar
- * vê de cara o que o sistema oferece (indicadores, compras concluídas, preços, marcas, mercados).
+ * alguns itens já pegos) com um histórico de 15 compras concluídas. Assim quem acabou de chegar vê
+ * de cara o que o sistema oferece (compras concluídas, preços, marcas, mercados). As compras são
+ * marcadas como exemplo: aparecem nas concluídas, mas não entram no resumo do mês (gasto,
+ * quantidade e última compra), para não assustar com um gasto que não é da família.
  *
  * <p>Os dados variam de uma compra para outra (itens, quantidades, preços, mercados e datas), mas
  * são gerados com uma semente fixa por família: a mesma família sempre recebe o mesmo exemplo.
@@ -188,7 +190,7 @@ class ExemploVisual {
 		Function<String, CategoriaResponse> categoria = nome -> categorias.getOrDefault(nome, outros);
 
 		List<ItemRequest> itens = PLANEJADOS.stream()
-			.map(p -> new ItemRequest(p.nome(), categoria.apply(p.categoria()).id(), p.planejado()))
+			.map(p -> new ItemRequest(p.nome(), categoria.apply(p.categoria()).id(), p.planejado(), p.tipo()))
 			.toList();
 		ListaResponse lista = listaService.importar(familiaId, usuarioId, NOME_LISTA, itens);
 
@@ -251,7 +253,7 @@ class ExemploVisual {
 
 		LocalTime hora = LocalTime.of(9 + sorte.nextInt(11), sorte.nextInt(60));
 		return new Compra(familiaId, listaId, NOME_LISTA, mercado.nome(), data,
-				variavel.setScale(2, RoundingMode.HALF_UP), usuarioId, data.atTime(hora).atZone(FUSO).toInstant(),
+				variavel.setScale(2, RoundingMode.HALF_UP), usuarioId, data.atTime(hora).atZone(FUSO).toInstant(), true,
 				itens);
 	}
 

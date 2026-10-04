@@ -77,6 +77,8 @@ export interface DadosItem {
   nome: string;
   categoriaId: number;
   quantidadePlanejada?: string;
+  /** Por unidade ou por kg (obrigatória). */
+  medida: TipoPreco;
 }
 
 /** Valores informados ao pegar um item (todos opcionais). */

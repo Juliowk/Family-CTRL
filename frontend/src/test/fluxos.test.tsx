@@ -189,8 +189,8 @@ describe('listas', () => {
         corpo: {
           nome: 'Feira',
           itens: [
-            { nome: 'Pão', categoriaId: 1, quantidadePlanejada: '6 un' },
-            { nome: 'Cerveja', categoriaId: 3 },
+            { nome: 'Pão', categoriaId: 1, quantidadePlanejada: '6 un', medida: 'UNIDADE' },
+            { nome: 'Cerveja', categoriaId: 3, medida: 'UNIDADE' },
           ],
         },
       }),
@@ -207,27 +207,56 @@ describe('listas', () => {
 });
 
 describe('planejar', () => {
-  it('adiciona item com categoria e quantidade, agrupado pela categoria', async () => {
-    const { chamadas } = criarApiFalsa();
-    const { usuario } = renderizarApp('/listas/100', { logado: true });
+  it('sem aba na URL, a lista abre em Comprar', async () => {
+    criarApiFalsa();
+    renderizarApp('/listas/100', { logado: true });
 
-    // Sem aba na URL, a lista abre no planejamento
+    expect(await screen.findByRole('link', { name: 'Comprar' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.queryByLabelText('Item')).not.toBeInTheDocument();
+  });
+
+  it('adiciona item com categoria, medida e quantidade, agrupado pela categoria', async () => {
+    const { chamadas } = criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
+
     await usuario.type(await screen.findByLabelText('Item'), 'Bananas');
     await usuario.click(screen.getByRole('radio', { name: 'Hortifrúti e Congelados' }));
+    await usuario.click(screen.getByRole('button', { name: 'Por kg' }));
     await usuario.type(screen.getByLabelText('Quantidade (opcional)'), '1 dúzia');
     await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     const grupo = await screen.findByRole('region', { name: /Hortifrúti e Congelados/ });
     expect(within(grupo).getByText('Bananas')).toBeInTheDocument();
-    expect(within(grupo).getByText('1 dúzia')).toBeInTheDocument();
+    expect(within(grupo).getByText('1 dúzia · por kg')).toBeInTheDocument();
     expect(screen.getByLabelText('Item')).toHaveValue('');
+    // A medida não fica escolhida para o próximo item
+    expect(screen.getByRole('button', { name: 'Por kg' })).toHaveAttribute('aria-pressed', 'false');
     expect(chamadas).toContainEqual(
       expect.objectContaining({
         metodo: 'POST',
         caminho: '/api/listas/100/itens',
-        corpo: { nome: 'Bananas', categoriaId: 2, quantidadePlanejada: '1 dúzia' },
+        corpo: { nome: 'Bananas', categoriaId: 2, quantidadePlanejada: '1 dúzia', medida: 'KG' },
       }),
     );
+  });
+
+  it('exige a medida antes de adicionar', async () => {
+    const { chamadas } = criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
+
+    await usuario.type(await screen.findByLabelText('Item'), 'Arroz');
+    await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Escolha a medida: por unidade ou por kg.',
+    );
+    expect(chamadas.some((c) => c.caminho === '/api/listas/100/itens')).toBe(false);
+
+    await usuario.click(screen.getByRole('button', { name: 'Por unidade' }));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 
@@ -273,12 +302,20 @@ describe('comprar', () => {
 
   it('por kg, informa o peso e o preço total pago por ele', async () => {
     const { estado, chamadas } = criarApiFalsa();
-    estado.itens.push(novoItem({ id: 1, nome: 'Banana', quantidadePlanejada: '1 kg' }));
+    estado.itens.push(
+      novoItem({
+        id: 1,
+        nome: 'Banana',
+        quantidadePlanejada: '1 kg',
+        medida: 'KG',
+        tipoPreco: 'KG',
+      }),
+    );
     const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
     await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Banana' }));
     const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
-    // Item pesado ("1 kg") já abre em "Por kg", com o peso sugerido
+    // Item planejado por kg já abre em "Por kg", com o peso planejado sugerido
     expect(within(dialogo).getByRole('button', { name: 'Por kg' })).toHaveAttribute(
       'aria-pressed',
       'true',

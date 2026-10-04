@@ -91,6 +91,12 @@ transação: se o exemplo falhar, a família não fica criada pela metade.
   O `ExemploVisualTest` cria o ouvinte ligado na mão para testar o exemplo.
 - É uma lista comum: dá para editar, usar ou excluir. As compras concluídas continuam no histórico
   mesmo se a lista for excluída (como qualquer compra).
+- **As compras do exemplo não entram no resumo do mês** (gasto, número de compras e última
+  compra): quem acaba de chegar veria um "gasto no mês" que não é seu, o que assusta. Elas são
+  marcadas com `compras.exemplo = true`, aparecem nas concluídas com o selo "Exemplo · fora do
+  resumo do mês" e as consultas do resumo filtram `exemplo = false`. Por que uma coluna e não o
+  nome da lista: o usuário pode criar uma lista com o mesmo nome, e as compras dela precisam
+  contar normalmente.
 
 ## 3. API REST
 
@@ -158,13 +164,14 @@ familias (id, nome, codigo_convite UNIQUE, criado_em)
 categorias (id, familia_id, nome, ordem, fixa)          UNIQUE (familia_id, lower(nome))
 listas (id, familia_id, nome, criada_por → usuarios, criada_em)
     ▲ lista_id (ON DELETE CASCADE)
-itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada,
+itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada, medida UNIDADE|KG,
        -- compra em andamento:
        pego, pego_por → usuarios, pego_em, quantidade_pega numeric(10,3),
        tipo_preco UNIDADE|KG, preco numeric(10,2), marca, extra,
        adicionado_por → usuarios, criado_em, atualizado_em)
 compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mercado, data_compra,
-         valor_itens, valor_variavel, valor_total, finalizada_por → usuarios, finalizada_em)
+         valor_itens, valor_variavel, valor_total, finalizada_por → usuarios, finalizada_em,
+         exemplo)
     ▲ compra_id (ON DELETE CASCADE)
 compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planejada, pego,
               quantidade_pega, tipo_preco, preco, subtotal, marca, extra)
@@ -194,8 +201,13 @@ compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planej
 
 A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
 
-1. **Planejar** (em casa): itens com nome, categoria e quantidade desejada. Na tela, agrupados por
-   categoria na ordem configurada pela família.
+1. **Planejar** (em casa): itens com nome, categoria, **medida** (por unidade ou por kg,
+   obrigatória) e quantidade desejada (opcional). Na tela, agrupados por categoria na ordem
+   configurada pela família. A medida é o plano e fica em `itens.medida`; `tipo_preco` é o estado
+   da compra em andamento. Ao pegar, o "preço por" começa na medida planejada (dá para trocar no
+   mercado); ao desmarcar (ou ao finalizar a compra), `tipo_preco` volta para a medida. Por que
+   duas colunas: se o "preço por" trocado no mercado sobrescrevesse a medida, o plano mudaria sem
+   ninguém pedir.
 2. **Comprar** (no mercado): o checkbox abre um formulário (por unidade: quantidade e preço da
    unidade; por kg: peso e preço total pago; marca; tudo opcional) e o item só fica marcado ao confirmar. O item pego vai para o fim
    da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
@@ -397,13 +409,16 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
   topo, com o tema e a conta (avatar) no canto superior direito.
 - **Filtros e abas na URL.** "Listas / Concluídas" é um grupo de chips que grava
   `?ver=concluidas`, e as abas da lista são rotas (`/listas/:id/planejar` e `/comprar`):
-  recarregar ou compartilhar o link abre a mesma visão. O título da seção continua "Listas" nas
+  recarregar ou compartilhar o link abre a mesma visão. Sem aba na URL (`/listas/:id`), a lista
+  abre em **Comprar**, o uso principal (no mercado); uma lista recém-criada ou importada abre em
+  Planejar, porque ainda precisa de itens ou de revisão. O título da seção continua "Listas" nas
   duas visões: só o conteúdo muda.
 - **Abas dentro de card** (`AbasPainel`): "Entrar com código / Criar família" e "Nova lista /
   Importar" são caminhos alternativos para a mesma tarefa, então ficam num único card com
   abas (padrão ARIA, setas trocam de aba) e não mudam a URL. Os painéis ficam montados e só
   escondidos, para trocar de aba não apagar o que foi digitado.
-- **Importar lista de CSV.** O usuário cola um texto CSV (`nome;categoria;quantidade`), muitas
+- **Importar lista de CSV.** O usuário cola um texto CSV (`nome;categoria;quantidade;medida`,
+  medida `un` ou `kg`; vazia, é deduzida da quantidade: "500 g" e "2 kg" são por kg), muitas
   vezes gerado por uma IA com o prompt que a tela oferece para copiar (já com as categorias da
   família). Por quê ler o CSV no navegador: o resumo ("12 itens prontos", linhas com erro,
   categorias desconhecidas) aparece enquanto se digita, sem ida ao servidor, e a API recebe
