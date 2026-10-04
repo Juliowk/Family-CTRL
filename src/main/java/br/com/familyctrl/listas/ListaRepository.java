@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface ListaRepository extends JpaRepository<Lista, Long> {
 
-	List<Lista> findByFamiliaIdAndArquivadaOrderByCriadaEmDesc(Long familiaId, boolean arquivada);
+	List<Lista> findByFamiliaIdOrderByCriadaEmDesc(Long familiaId);
 
 }

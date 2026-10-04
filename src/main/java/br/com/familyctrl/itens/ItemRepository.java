@@ -9,29 +9,30 @@ import org.springframework.data.jpa.repository.Query;
 
 interface ItemRepository extends JpaRepository<Item, Long> {
 
-	/** Pendentes primeiro (false < true), depois na ordem em que foram adicionados. */
-	List<Item> findByListaIdOrderByCompradoAscCriadoEmAscIdAsc(Long listaId);
+	/** Na ordem em que foram adicionados; o agrupamento por categoria é feito na tela. */
+	List<Item> findByListaIdOrderByCriadoEmAscIdAsc(Long listaId);
 
 	@Query("""
 			select i.listaId as listaId,
 			       count(i) as total,
-			       coalesce(sum(case when i.comprado = true then 1 else 0 end), 0) as comprados
+			       coalesce(sum(case when i.pego = true then 1 else 0 end), 0) as pegos
 			from Item i
 			where i.listaId in :listaIds
 			group by i.listaId""")
-	List<ProgressoLista> contarPorLista(Collection<Long> listaIds);
+	List<ContagemLista> contarPorLista(Collection<Long> listaIds);
 
+	/** Usado quando uma categoria é excluída: os itens vão para "Outros". */
 	@Modifying
-	@Query("delete from Item i where i.listaId = :listaId and i.comprado = true")
-	int excluirComprados(Long listaId);
+	@Query("update Item i set i.categoriaId = :destino where i.categoriaId = :origem")
+	int moverCategoria(Long origem, Long destino);
 
-	interface ProgressoLista {
+	interface ContagemLista {
 
 		Long getListaId();
 
 		long getTotal();
 
-		long getComprados();
+		long getPegos();
 
 	}
 

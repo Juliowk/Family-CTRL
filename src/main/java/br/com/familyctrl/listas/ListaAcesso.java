@@ -1,5 +1,7 @@
 package br.com.familyctrl.listas;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +28,14 @@ public class ListaAcesso {
 	}
 
 	public boolean podeAcessar(Long listaId, Long usuarioId) {
+		return familiaDaLista(listaId, usuarioId).isPresent();
+	}
+
+	/** Id da família dona da lista, se o usuário for membro dela; vazio caso contrário. */
+	public Optional<Long> familiaDaLista(Long listaId, Long usuarioId) {
 		return listas.findById(listaId)
-			.map(lista -> familiaService.ehMembro(lista.getFamiliaId(), usuarioId))
-			.orElse(false);
+			.map(Lista::getFamiliaId)
+			.filter(familiaId -> familiaService.ehMembro(familiaId, usuarioId));
 	}
 
 }

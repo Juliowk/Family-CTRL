@@ -5,8 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import br.com.familyctrl.IntegracaoTest;
 
+/** Listas, planejamento de itens e compra em andamento (pegar, desmarcar, extras). */
 class ListasEItensTest extends IntegracaoTest {
 
 	private Sessao ana;
@@ -22,14 +26,30 @@ class ListasEItensTest extends IntegracaoTest {
 
 	private long familiaId;
 
+	private long padaria;
+
+	private long outraFamiliaCategoria;
+
 	@BeforeEach
 	void setUp() throws Exception {
 		ana = cadastrar("Ana");
 		intruso = cadastrar("Intruso");
 		familiaId = lerId(mvc.perform(como(ana, post("/api/familias")).content("{\"nome\":\"Casa\"}")).andReturn(),
 				"$.id");
+		padaria = categoria(ana, familiaId, "Padaria");
 		// O intruso tem a própria família, para garantir que ser membro de OUTRA família não basta
-		mvc.perform(como(intruso, post("/api/familias")).content("{\"nome\":\"Outra\"}"));
+		long outraFamilia = lerId(
+				mvc.perform(como(intruso, post("/api/familias")).content("{\"nome\":\"Outra\"}")).andReturn(), "$.id");
+		outraFamiliaCategoria = categoria(intruso, outraFamilia, "Padaria");
+	}
+
+	private long categoria(Sessao sessao, long familia, String nome) throws Exception {
+		String json = mvc.perform(como(sessao, get("/api/familias/" + familia + "/categorias")))
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		List<Number> ids = JsonPath.read(json, "$[?(@.nome == '" + nome + "')].id");
+		return ids.getFirst().longValue();
 	}
 
 	private long criarLista(String nome) throws Exception {
@@ -37,99 +57,141 @@ class ListasEItensTest extends IntegracaoTest {
 			.content("{\"nome\":\"" + nome + "\"}")).andExpect(status().isCreated()).andReturn(), "$.id");
 	}
 
-	private long adicionarItem(long listaId, String json) throws Exception {
-		return lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens")).content(json))
+	private long adicionarItem(long listaId, String nome) throws Exception {
+		return lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens"))
+			.content("{\"nome\":\"" + nome + "\",\"categoriaId\":" + padaria + "}"))
 			.andExpect(status().isCreated())
 			.andReturn(), "$.id");
 	}
 
 	@Test
-	void criaListaEMostraProgresso() throws Exception {
+	void planejaItemComCategoriaEQuantidade() throws Exception {
 		long listaId = criarLista("Mercado");
-		long arroz = adicionarItem(listaId, "{\"nome\":\"Arroz\",\"quantidade\":\"2 kg\"}");
-		adicionarItem(listaId, "{\"nome\":\"Feijão\"}");
-
-		mvc.perform(como(ana, patch("/api/itens/" + arroz)).content("{\"comprado\":true}"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.comprado").value(true))
-			.andExpect(jsonPath("$.compradoPor.id").value(ana.id()))
-			.andExpect(jsonPath("$.compradoPor.nome").value("Ana"));
-
-		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/listas")))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$", hasSize(1)))
-			.andExpect(jsonPath("$[0].nome").value("Mercado"))
-			.andExpect(jsonPath("$[0].totalItens").value(2))
-			.andExpect(jsonPath("$[0].itensComprados").value(1));
-	}
-
-	@Test
-	void itensPendentesAparecemAntesDosComprados() throws Exception {
-		long listaId = criarLista("Mercado");
-		long primeiro = adicionarItem(listaId, "{\"nome\":\"Primeiro\"}");
-		adicionarItem(listaId, "{\"nome\":\"Segundo\"}");
-		mvc.perform(como(ana, patch("/api/itens/" + primeiro)).content("{\"comprado\":true}"));
+		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens"))
+			.content("{\"nome\":\"Pão\",\"categoriaId\":" + padaria + ",\"quantidadePlanejada\":\"6 un\"}"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.categoriaId").value(padaria))
+			.andExpect(jsonPath("$.quantidadePlanejada").value("6 un"))
+			.andExpect(jsonPath("$.pego").value(false))
+			.andExpect(jsonPath("$.extra").value(false));
 
 		mvc.perform(como(ana, get("/api/listas/" + listaId)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.itens[0].nome").value("Segundo"))
-			.andExpect(jsonPath("$.itens[1].nome").value("Primeiro"));
+			.andExpect(jsonPath("$.categorias", hasSize(8)))
+			.andExpect(jsonPath("$.categorias[7].nome").value("Outros"))
+			.andExpect(jsonPath("$.itens", hasSize(1)));
 	}
 
 	@Test
-	void desmarcarLimpaQuemComprou() throws Exception {
+	void categoriaDeOutraFamiliaERecusada() throws Exception {
 		long listaId = criarLista("Mercado");
-		long item = adicionarItem(listaId, "{\"nome\":\"Leite\"}");
-		mvc.perform(como(ana, patch("/api/itens/" + item)).content("{\"comprado\":true}"));
-
-		mvc.perform(como(ana, patch("/api/itens/" + item)).content("{\"comprado\":false}"))
-			.andExpect(jsonPath("$.comprado").value(false))
-			.andExpect(jsonPath("$.compradoPor").doesNotExist());
+		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens"))
+			.content("{\"nome\":\"Pão\",\"categoriaId\":" + outraFamiliaCategoria + "}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros[0].campo").value("categoriaId"));
 	}
 
 	@Test
-	void editaERemoveItem() throws Exception {
+	void pegaItemComPrecoEQuantidadeECalculaSubtotal() throws Exception {
 		long listaId = criarLista("Mercado");
-		long item = adicionarItem(listaId, "{\"nome\":\"Leite\",\"quantidade\":\"1\",\"observacao\":\"integral\"}");
+		long pao = adicionarItem(listaId, "Pão");
 
-		mvc.perform(como(ana, patch("/api/itens/" + item)).content("{\"nome\":\"Leite desnatado\",\"quantidade\":\"\"}"))
+		mvc.perform(como(ana, put("/api/itens/" + pao + "/pego"))
+			.content("{\"quantidadePega\":4,\"tipoPreco\":\"UNIDADE\",\"preco\":7.88,\"marca\":\"Pullman\"}"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.pego").value(true))
+			.andExpect(jsonPath("$.pegoPor.nome").value("Ana"))
+			.andExpect(jsonPath("$.subtotal").value(31.52))
+			.andExpect(jsonPath("$.marca").value("Pullman"));
+
+		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/listas")))
+			.andExpect(jsonPath("$[0].totalItens").value(1))
+			.andExpect(jsonPath("$[0].itensPegos").value(1));
+	}
+
+	@Test
+	void pegaPorKgEItemSemPrecoFicaSemSubtotal() throws Exception {
+		long listaId = criarLista("Feira");
+		long banana = adicionarItem(listaId, "Banana");
+		long alface = adicionarItem(listaId, "Alface");
+
+		mvc.perform(como(ana, put("/api/itens/" + banana + "/pego"))
+			.content("{\"quantidadePega\":1.25,\"tipoPreco\":\"KG\",\"preco\":6.90}"))
+			.andExpect(jsonPath("$.tipoPreco").value("KG"))
+			.andExpect(jsonPath("$.subtotal").value(8.63));
+
+		// Sem preço: valor só será conhecido no caixa
+		mvc.perform(como(ana, put("/api/itens/" + alface + "/pego")).content("{}"))
+			.andExpect(jsonPath("$.pego").value(true))
+			.andExpect(jsonPath("$.tipoPreco").value("UNIDADE"))
+			.andExpect(jsonPath("$.subtotal").doesNotExist());
+	}
+
+	@Test
+	void desmarcarApagaOsValores() throws Exception {
+		long listaId = criarLista("Mercado");
+		long leite = adicionarItem(listaId, "Leite");
+		mvc.perform(como(ana, put("/api/itens/" + leite + "/pego")).content("{\"preco\":6,\"marca\":\"Itambé\"}"));
+
+		mvc.perform(como(ana, delete("/api/itens/" + leite + "/pego")))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.pego").value(false))
+			.andExpect(jsonPath("$.pegoPor").doesNotExist())
+			.andExpect(jsonPath("$.preco").doesNotExist())
+			.andExpect(jsonPath("$.marca").doesNotExist());
+	}
+
+	@Test
+	void desmarcarTodosZeraACompraEmAndamento() throws Exception {
+		long listaId = criarLista("Mercado");
+		long pao = adicionarItem(listaId, "Pão");
+		long cafe = adicionarItem(listaId, "Café");
+		mvc.perform(como(ana, put("/api/itens/" + pao + "/pego")).content("{\"preco\":7}"));
+		mvc.perform(como(ana, put("/api/itens/" + cafe + "/pego")).content("{\"preco\":15}"));
+
+		mvc.perform(como(ana, post("/api/listas/" + listaId + "/desmarcar-todos"))).andExpect(status().isNoContent());
+
+		mvc.perform(como(ana, get("/api/listas/" + listaId)))
+			.andExpect(jsonPath("$.itens", hasSize(2)))
+			.andExpect(jsonPath("$.itens[?(@.pego == true)]", hasSize(0)))
+			.andExpect(jsonPath("$.itens[?(@.preco != null)]", hasSize(0)));
+	}
+
+	@Test
+	void itemNaoPlanejadoEntraComoPegoEExtra() throws Exception {
+		long listaId = criarLista("Mercado");
+		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
+			.content("{\"nome\":\"Chocolate\",\"categoriaId\":" + padaria + ",\"preco\":5.5}"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.pego").value(true))
+			.andExpect(jsonPath("$.extra").value(true))
+			.andExpect(jsonPath("$.subtotal").value(5.5));
+	}
+
+	@Test
+	void editaPlanejamentoERemoveItem() throws Exception {
+		long listaId = criarLista("Mercado");
+		long item = adicionarItem(listaId, "Leite");
+		long laticinios = categoria(ana, familiaId, "Laticínios, Frios e Ovos");
+
+		mvc.perform(como(ana, patch("/api/itens/" + item))
+			.content("{\"nome\":\"Leite desnatado\",\"categoriaId\":" + laticinios + ",\"quantidadePlanejada\":\"\"}"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.nome").value("Leite desnatado"))
-			.andExpect(jsonPath("$.quantidade").doesNotExist())
-			.andExpect(jsonPath("$.observacao").value("integral"));
+			.andExpect(jsonPath("$.categoriaId").value(laticinios))
+			.andExpect(jsonPath("$.quantidadePlanejada").doesNotExist());
 
 		mvc.perform(como(ana, delete("/api/itens/" + item))).andExpect(status().isNoContent());
 		mvc.perform(como(ana, get("/api/listas/" + listaId))).andExpect(jsonPath("$.itens", hasSize(0)));
 	}
 
 	@Test
-	void limparCompradosRemoveSoOsComprados() throws Exception {
-		long listaId = criarLista("Mercado");
-		long comprado = adicionarItem(listaId, "{\"nome\":\"Pão\"}");
-		adicionarItem(listaId, "{\"nome\":\"Café\"}");
-		mvc.perform(como(ana, patch("/api/itens/" + comprado)).content("{\"comprado\":true}"));
-
-		mvc.perform(como(ana, delete("/api/listas/" + listaId + "/itens/comprados")))
-			.andExpect(status().isNoContent());
-
-		mvc.perform(como(ana, get("/api/listas/" + listaId)))
-			.andExpect(jsonPath("$.itens", hasSize(1)))
-			.andExpect(jsonPath("$.itens[0].nome").value("Café"));
-	}
-
-	@Test
-	void renomeiaArquivaEExcluiLista() throws Exception {
+	void renomeiaEExcluiLista() throws Exception {
 		long listaId = criarLista("Mercado");
 
 		mvc.perform(como(ana, patch("/api/listas/" + listaId)).content("{\"nome\":\"Feira\"}"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.nome").value("Feira"));
-
-		mvc.perform(como(ana, patch("/api/listas/" + listaId)).content("{\"arquivada\":true}"))
-			.andExpect(jsonPath("$.arquivada").value(true));
-		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/listas"))).andExpect(jsonPath("$", hasSize(0)));
-		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/listas?arquivadas=true")))
-			.andExpect(jsonPath("$", hasSize(1)));
 
 		mvc.perform(como(ana, delete("/api/listas/" + listaId))).andExpect(status().isNoContent());
 		mvc.perform(como(ana, get("/api/listas/" + listaId))).andExpect(status().isNotFound());
@@ -138,7 +200,7 @@ class ListasEItensTest extends IntegracaoTest {
 	@Test
 	void usuarioDeOutraFamiliaRecebe404EmListasEItens() throws Exception {
 		long listaId = criarLista("Mercado");
-		long item = adicionarItem(listaId, "{\"nome\":\"Leite\"}");
+		long item = adicionarItem(listaId, "Leite");
 
 		mvc.perform(como(intruso, get("/api/familias/" + familiaId + "/listas"))).andExpect(status().isNotFound());
 		mvc.perform(como(intruso, post("/api/familias/" + familiaId + "/listas")).content("{\"nome\":\"X\"}"))
@@ -147,18 +209,27 @@ class ListasEItensTest extends IntegracaoTest {
 		mvc.perform(como(intruso, patch("/api/listas/" + listaId)).content("{\"nome\":\"X\"}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, delete("/api/listas/" + listaId))).andExpect(status().isNotFound());
-		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/itens")).content("{\"nome\":\"X\"}"))
+		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/itens"))
+			.content("{\"nome\":\"X\",\"categoriaId\":" + outraFamiliaCategoria + "}"))
 			.andExpect(status().isNotFound());
-		mvc.perform(como(intruso, delete("/api/listas/" + listaId + "/itens/comprados")))
+		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/itens/extra"))
+			.content("{\"nome\":\"X\",\"categoriaId\":" + outraFamiliaCategoria + "}"))
 			.andExpect(status().isNotFound());
-		mvc.perform(como(intruso, patch("/api/itens/" + item)).content("{\"comprado\":true}"))
+		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/desmarcar-todos")))
+			.andExpect(status().isNotFound());
+		mvc.perform(como(intruso, put("/api/itens/" + item + "/pego")).content("{}"))
+			.andExpect(status().isNotFound());
+		mvc.perform(como(intruso, delete("/api/itens/" + item + "/pego"))).andExpect(status().isNotFound());
+		mvc.perform(como(intruso, patch("/api/itens/" + item)).content("{\"nome\":\"X\"}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, delete("/api/itens/" + item))).andExpect(status().isNotFound());
 
 		// Nada foi alterado
 		mvc.perform(como(ana, get("/api/listas/" + listaId)))
 			.andExpect(jsonPath("$.nome").value("Mercado"))
-			.andExpect(jsonPath("$.itens[0].comprado").value(false));
+			.andExpect(jsonPath("$.itens", hasSize(1)))
+			.andExpect(jsonPath("$.itens[0].nome").value("Leite"))
+			.andExpect(jsonPath("$.itens[0].pego").value(false));
 	}
 
 	@Test
@@ -180,11 +251,15 @@ class ListasEItensTest extends IntegracaoTest {
 		long listaId = criarLista("Mercado");
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens")).content("{\"nome\":\"\"}"))
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.erros[0].campo").value("nome"));
+			.andExpect(jsonPath("$.erros[?(@.campo == 'nome')]", hasSize(1)))
+			.andExpect(jsonPath("$.erros[?(@.campo == 'categoriaId')]", hasSize(1)));
 
-		long item = adicionarItem(listaId, "{\"nome\":\"Leite\"}");
+		long item = adicionarItem(listaId, "Leite");
 		mvc.perform(como(ana, patch("/api/itens/" + item)).content("{\"nome\":\"  \"}"))
 			.andExpect(status().isBadRequest());
+		mvc.perform(como(ana, put("/api/itens/" + item + "/pego")).content("{\"preco\":-1,\"quantidadePega\":0}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros", hasSize(2)));
 	}
 
 }

@@ -4,25 +4,32 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.familyctrl.auth.UsuarioService;
 import br.com.familyctrl.auth.dto.UsuarioResponse;
+import br.com.familyctrl.categorias.CategoriaExcluida;
+import br.com.familyctrl.categorias.CategoriaService;
 import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
 import br.com.familyctrl.infra.erro.ValidacaoException;
 import br.com.familyctrl.itens.dto.AtualizarItemRequest;
+import br.com.familyctrl.itens.dto.ExtraRequest;
 import br.com.familyctrl.itens.dto.ItemRequest;
 import br.com.familyctrl.itens.dto.ItemResponse;
+import br.com.familyctrl.itens.dto.PegarRequest;
 import br.com.familyctrl.itens.dto.PessoaResponse;
 import br.com.familyctrl.listas.ListaAcesso;
 
 /**
- * Regras dos itens. Toda operação verifica, via {@link ListaAcesso}, se o usuário é membro da
- * família dona da lista. Sem acesso, a resposta é 404.
+ * Regras dos itens: planejamento (nome, categoria, quantidade desejada) e compra em andamento
+ * (pegar, desmarcar, itens não planejados). Toda operação verifica, via {@link ListaAcesso}, se o
+ * usuário é membro da família dona da lista. Sem acesso, a resposta é 404.
  */
 @Service
 @Transactional
@@ -36,24 +43,28 @@ public class ItemService {
 
 	private final ListaAcesso listaAcesso;
 
+	private final CategoriaService categoriaService;
+
 	private final UsuarioService usuarioService;
 
-	ItemService(ItemRepository itens, ListaAcesso listaAcesso, UsuarioService usuarioService) {
+	ItemService(ItemRepository itens, ListaAcesso listaAcesso, CategoriaService categoriaService,
+			UsuarioService usuarioService) {
 		this.itens = itens;
 		this.listaAcesso = listaAcesso;
+		this.categoriaService = categoriaService;
 		this.usuarioService = usuarioService;
 	}
 
+	/**
+	 * Itens de uma lista, na ordem em que foram adicionados. Uso interno de outros módulos (listas
+	 * e compras), que já verificaram o acesso.
+	 */
 	@Transactional(readOnly = true)
-	public List<ItemResponse> listar(Long listaId, Long usuarioId) {
-		verificarLista(listaId, usuarioId);
-		return paraResponse(itens.findByListaIdOrderByCompradoAscCriadoEmAscIdAsc(listaId));
+	public List<ItemResponse> listarDaLista(Long listaId) {
+		return paraResponse(itens.findByListaIdOrderByCriadoEmAscIdAsc(listaId));
 	}
 
-	/**
-	 * Progresso de várias listas numa só consulta. Retorna apenas contagens; quem chama
-	 * (o ListaService) já verificou o acesso às listas.
-	 */
+	/** Quantos itens e quantos pegos por lista, numa só consulta. Quem chama já verificou o acesso. */
 	@Transactional(readOnly = true)
 	public Map<Long, Progresso> progressoPorLista(Collection<Long> listaIds) {
 		if (listaIds.isEmpty()) {
@@ -61,14 +72,17 @@ public class ItemService {
 		}
 		return itens.contarPorLista(listaIds)
 			.stream()
-			.collect(Collectors.toMap(ItemRepository.ProgressoLista::getListaId,
-					p -> new Progresso(p.getTotal(), p.getComprados())));
+			.collect(Collectors.toMap(ItemRepository.ContagemLista::getListaId,
+					c -> new Progresso(c.getTotal(), c.getPegos())));
 	}
 
+	// ------------------------------------------------------------------ planejamento
+
 	public ItemResponse adicionar(Long listaId, Long usuarioId, ItemRequest request) {
-		verificarLista(listaId, usuarioId);
-		Item item = itens.save(new Item(listaId, request.nome().trim(), vazioParaNulo(request.quantidade()),
-				vazioParaNulo(request.observacao()), usuarioId));
+		Long familiaId = familiaDaLista(listaId, usuarioId);
+		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
+		Item item = itens.save(new Item(listaId, request.categoriaId(), request.nome().trim(),
+				vazioParaNulo(request.quantidadePlanejada()), false, usuarioId));
 		return paraResponse(item);
 	}
 
@@ -77,14 +91,13 @@ public class ItemService {
 		if (request.nome() != null && request.nome().isBlank()) {
 			throw new ValidacaoException("nome", "Informe o nome do item.");
 		}
-		if (request.nome() != null || request.quantidade() != null || request.observacao() != null) {
-			item.editar(request.nome() != null ? request.nome().trim() : item.getNome(),
-					request.quantidade() != null ? vazioParaNulo(request.quantidade()) : item.getQuantidade(),
-					request.observacao() != null ? vazioParaNulo(request.observacao()) : item.getObservacao());
+		if (request.categoriaId() != null) {
+			categoriaService.verificarDaFamilia(request.categoriaId(), familiaDaLista(item.getListaId(), usuarioId));
 		}
-		if (request.comprado() != null && request.comprado() != item.isComprado()) {
-			item.marcarComprado(request.comprado(), usuarioId);
-		}
+		item.editarPlanejamento(request.nome() != null ? request.nome().trim() : item.getNome(),
+				request.categoriaId() != null ? request.categoriaId() : item.getCategoriaId(),
+				request.quantidadePlanejada() != null ? vazioParaNulo(request.quantidadePlanejada())
+						: item.getQuantidadePlanejada());
 		return paraResponse(item);
 	}
 
@@ -92,24 +105,78 @@ public class ItemService {
 		itens.delete(buscarItem(itemId, usuarioId));
 	}
 
-	/** Remove todos os itens já comprados da lista. */
-	public void limparComprados(Long listaId, Long usuarioId) {
-		verificarLista(listaId, usuarioId);
-		itens.excluirComprados(listaId);
+	// ------------------------------------------------------------------ compra em andamento
+
+	/** Marca como pego com quantidade, preço e marca (todos opcionais), ou corrige esses valores. */
+	public ItemResponse pegar(Long itemId, Long usuarioId, PegarRequest request) {
+		Item item = buscarItem(itemId, usuarioId);
+		item.pegar(request.quantidadePega(), tipoOuPadrao(request.tipoPreco()), request.preco(),
+				vazioParaNulo(request.marca()), usuarioId);
+		return paraResponse(item);
+	}
+
+	/** Desmarca e apaga quantidade, preço e marca. */
+	public ItemResponse desmarcar(Long itemId, Long usuarioId) {
+		Item item = buscarItem(itemId, usuarioId);
+		item.desmarcar();
+		return paraResponse(item);
+	}
+
+	/** Item não planejado encontrado no mercado: entra na categoria escolhida já como pego. */
+	public ItemResponse adicionarExtra(Long listaId, Long usuarioId, ExtraRequest request) {
+		Long familiaId = familiaDaLista(listaId, usuarioId);
+		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
+		Item item = new Item(listaId, request.categoriaId(), request.nome().trim(), null, true, usuarioId);
+		item.pegar(request.quantidadePega(), tipoOuPadrao(request.tipoPreco()), request.preco(),
+				vazioParaNulo(request.marca()), usuarioId);
+		return paraResponse(itens.save(item));
+	}
+
+	/** Desmarca todos os itens da lista, apagando quantidades, preços e marcas. */
+	public void desmarcarTodos(Long listaId, Long usuarioId) {
+		familiaDaLista(listaId, usuarioId);
+		itens.findByListaIdOrderByCriadoEmAscIdAsc(listaId).stream().filter(Item::isPego).forEach(Item::desmarcar);
+	}
+
+	/**
+	 * Depois de finalizar a compra: a lista volta zerada. Itens não planejados ficam na lista só se
+	 * estiverem em {@code extrasMantidos} (aí passam a ser planejados); os demais são removidos.
+	 * Uso interno do módulo de compras, que já verificou o acesso.
+	 */
+	public void zerarAposCompra(Long listaId, Set<Long> extrasMantidos) {
+		for (Item item : itens.findByListaIdOrderByCriadoEmAscIdAsc(listaId)) {
+			if (item.isExtra() && !extrasMantidos.contains(item.getId())) {
+				itens.delete(item);
+				continue;
+			}
+			if (item.isExtra()) {
+				item.tornarPlanejado();
+			}
+			item.desmarcar();
+		}
+	}
+
+	/** Categoria excluída: os itens dela vão para "Outros". Roda na mesma transação da exclusão. */
+	@EventListener
+	void aoExcluirCategoria(CategoriaExcluida evento) {
+		itens.moverCategoria(evento.categoriaId(), evento.destinoId());
 	}
 
 	// ---------------------------------------------------------------------------------------------
 
-	private void verificarLista(Long listaId, Long usuarioId) {
-		if (!listaAcesso.podeAcessar(listaId, usuarioId)) {
-			throw new RecursoNaoEncontradoException(LISTA_NAO_ENCONTRADA);
-		}
+	private Long familiaDaLista(Long listaId, Long usuarioId) {
+		return listaAcesso.familiaDaLista(listaId, usuarioId)
+			.orElseThrow(() -> new RecursoNaoEncontradoException(LISTA_NAO_ENCONTRADA));
 	}
 
 	private Item buscarItem(Long itemId, Long usuarioId) {
 		return itens.findById(itemId)
 			.filter(item -> listaAcesso.podeAcessar(item.getListaId(), usuarioId))
 			.orElseThrow(() -> new RecursoNaoEncontradoException(ITEM_NAO_ENCONTRADO));
+	}
+
+	private static TipoPreco tipoOuPadrao(TipoPreco tipo) {
+		return tipo != null ? tipo : TipoPreco.UNIDADE;
 	}
 
 	private static String vazioParaNulo(String valor) {
@@ -122,15 +189,16 @@ public class ItemService {
 
 	private List<ItemResponse> paraResponse(List<Item> lista) {
 		List<Long> ids = lista.stream()
-			.flatMap(i -> Stream.of(i.getAdicionadoPor(), i.getCompradoPor()))
+			.flatMap(i -> Stream.of(i.getAdicionadoPor(), i.getPegoPor()))
 			.filter(Objects::nonNull)
 			.distinct()
 			.toList();
 		Map<Long, UsuarioResponse> usuarios = ids.isEmpty() ? Map.of() : usuarioService.buscarPorIds(ids);
 		return lista.stream()
-			.map(i -> new ItemResponse(i.getId(), i.getListaId(), i.getNome(), i.getQuantidade(), i.getObservacao(),
-					i.isComprado(), pessoa(usuarios, i.getCompradoPor()), pessoa(usuarios, i.getAdicionadoPor()),
-					i.getCriadoEm(), i.getAtualizadoEm()))
+			.map(i -> new ItemResponse(i.getId(), i.getListaId(), i.getCategoriaId(), i.getNome(),
+					i.getQuantidadePlanejada(), i.isPego(), i.getPegoEm(), pessoa(usuarios, i.getPegoPor()),
+					i.getQuantidadePega(), i.getTipoPreco(), i.getPreco(), i.subtotal(), i.getMarca(), i.isExtra(),
+					pessoa(usuarios, i.getAdicionadoPor()), i.getCriadoEm(), i.getAtualizadoEm()))
 			.toList();
 	}
 

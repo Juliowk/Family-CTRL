@@ -6,17 +6,16 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.familyctrl.categorias.CategoriaService;
 import br.com.familyctrl.familia.FamiliaService;
 import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
-import br.com.familyctrl.infra.erro.ValidacaoException;
 import br.com.familyctrl.itens.ItemService;
 import br.com.familyctrl.itens.Progresso;
-import br.com.familyctrl.listas.dto.AtualizarListaRequest;
 import br.com.familyctrl.listas.dto.ListaDetalhe;
 import br.com.familyctrl.listas.dto.ListaResponse;
 
 /**
- * Regras das listas. Qualquer membro da família pode criar, renomear, arquivar e excluir listas.
+ * Regras das listas. Qualquer membro da família pode criar, renomear e excluir listas.
  * Sem acesso à família, a resposta é 404.
  */
 @Service
@@ -31,16 +30,20 @@ public class ListaService {
 
 	private final ItemService itemService;
 
-	ListaService(ListaRepository listas, FamiliaService familiaService, ItemService itemService) {
+	private final CategoriaService categoriaService;
+
+	ListaService(ListaRepository listas, FamiliaService familiaService, ItemService itemService,
+			CategoriaService categoriaService) {
 		this.listas = listas;
 		this.familiaService = familiaService;
 		this.itemService = itemService;
+		this.categoriaService = categoriaService;
 	}
 
 	@Transactional(readOnly = true)
-	public List<ListaResponse> listar(Long familiaId, Long usuarioId, boolean arquivadas) {
+	public List<ListaResponse> listar(Long familiaId, Long usuarioId) {
 		familiaService.verificarMembro(familiaId, usuarioId);
-		List<Lista> daFamilia = listas.findByFamiliaIdAndArquivadaOrderByCriadaEmDesc(familiaId, arquivadas);
+		List<Lista> daFamilia = listas.findByFamiliaIdOrderByCriadaEmDesc(familiaId);
 		Map<Long, Progresso> progresso = itemService
 			.progressoPorLista(daFamilia.stream().map(Lista::getId).toList());
 		return daFamilia.stream()
@@ -54,31 +57,25 @@ public class ListaService {
 		return paraResponse(lista, Progresso.VAZIO);
 	}
 
-	@Transactional(readOnly = true)
+	/** Lista com categorias e itens. Não é readOnly: o 1º acesso cria as categorias padrão. */
 	public ListaDetalhe detalhar(Long listaId, Long usuarioId) {
 		Lista lista = buscar(listaId, usuarioId);
-		return new ListaDetalhe(lista.getId(), lista.getFamiliaId(), lista.getNome(), lista.isArquivada(),
-				lista.getCriadaEm(), itemService.listar(listaId, usuarioId));
+		return new ListaDetalhe(lista.getId(), lista.getFamiliaId(), lista.getNome(), lista.getCriadaEm(),
+				categoriaService.listarDaFamilia(lista.getFamiliaId()), itemService.listarDaLista(listaId));
 	}
 
-	/** Renomeia e/ou arquiva/desarquiva. */
-	public ListaResponse atualizar(Long listaId, Long usuarioId, AtualizarListaRequest request) {
+	public ListaResponse renomear(Long listaId, Long usuarioId, String nome) {
 		Lista lista = buscar(listaId, usuarioId);
-		if (request.nome() != null) {
-			if (request.nome().isBlank()) {
-				throw new ValidacaoException("nome", "Informe o nome da lista.");
-			}
-			lista.setNome(request.nome().trim());
-		}
-		if (request.arquivada() != null) {
-			lista.setArquivada(request.arquivada());
-		}
+		lista.setNome(nome.trim());
 		Progresso progresso = itemService.progressoPorLista(List.of(listaId))
 			.getOrDefault(listaId, Progresso.VAZIO);
 		return paraResponse(lista, progresso);
 	}
 
-	/** Exclui a lista; os itens são removidos junto (ON DELETE CASCADE no banco). */
+	/**
+	 * Exclui a lista; os itens são removidos junto (ON DELETE CASCADE). As compras concluídas
+	 * continuam no histórico (guardam o nome da lista).
+	 */
 	public void excluir(Long listaId, Long usuarioId) {
 		listas.delete(buscar(listaId, usuarioId));
 	}
@@ -90,8 +87,8 @@ public class ListaService {
 	}
 
 	private static ListaResponse paraResponse(Lista lista, Progresso progresso) {
-		return new ListaResponse(lista.getId(), lista.getFamiliaId(), lista.getNome(), lista.isArquivada(),
-				lista.getCriadaEm(), progresso.total(), progresso.comprados());
+		return new ListaResponse(lista.getId(), lista.getFamiliaId(), lista.getNome(), lista.getCriadaEm(),
+				progresso.total(), progresso.pegos());
 	}
 
 }

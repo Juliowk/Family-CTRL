@@ -9,7 +9,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Lista de compras de uma família. Referencia família e criador apenas pelo id. */
+/**
+ * Lista de compras de uma família: o planejamento reutilizável. Cada ida ao mercado finalizada vira
+ * uma compra (módulo compras). Referencia família e criador apenas pelo id.
+ */
 @Entity
 @Table(name = "listas")
 class Lista {
@@ -23,9 +26,6 @@ class Lista {
 
 	@Column(nullable = false, length = 100)
 	private String nome;
-
-	@Column(nullable = false)
-	private boolean arquivada;
 
 	@Column(name = "criada_por", nullable = false, updatable = false)
 	private Long criadaPor;
@@ -57,14 +57,6 @@ class Lista {
 
 	void setNome(String nome) {
 		this.nome = nome;
-	}
-
-	boolean isArquivada() {
-		return arquivada;
-	}
-
-	void setArquivada(boolean arquivada) {
-		this.arquivada = arquivada;
 	}
 
 	Instant getCriadaEm() {

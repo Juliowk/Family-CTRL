@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,11 +31,9 @@ class ListaController {
 		this.service = service;
 	}
 
-	/** Listas da família. Por padrão só as ativas; use {@code ?arquivadas=true} para as arquivadas. */
 	@GetMapping("/familias/{familiaId}/listas")
-	List<ListaResponse> listar(UsuarioLogado usuario, @PathVariable Long familiaId,
-			@RequestParam(defaultValue = "false") boolean arquivadas) {
-		return service.listar(familiaId, usuario.id(), arquivadas);
+	List<ListaResponse> listar(UsuarioLogado usuario, @PathVariable Long familiaId) {
+		return service.listar(familiaId, usuario.id());
 	}
 
 	@PostMapping("/familias/{familiaId}/listas")
@@ -54,7 +51,7 @@ class ListaController {
 	@PatchMapping("/listas/{id}")
 	ListaResponse atualizar(UsuarioLogado usuario, @PathVariable Long id,
 			@Valid @RequestBody AtualizarListaRequest request) {
-		return service.atualizar(id, usuario.id(), request);
+		return service.renomear(id, usuario.id(), request.nome());
 	}
 
 	@DeleteMapping("/listas/{id}")
