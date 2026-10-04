@@ -22,9 +22,14 @@ Projeto de estudo de backend e peça de portfólio.
 - Famílias: criar, entrar com código de convite, alternar entre várias famílias
 - ADMIN: renomear a família, gerar novo código, promover/rebaixar e remover membros
 - Sair da família (o último ADMIN precisa promover alguém antes)
-- Listas: criar, renomear, arquivar/desarquivar, excluir, com progresso (comprados/total)
-- Itens: adicionar (quantidade e observação opcionais), editar, remover, marcar como comprado
-  (registra quem marcou), "limpar comprados"
+- Categorias por família (padrão + personalizadas), com ordem configurável
+- Listas como planejamento reutilizável, em duas abas:
+  - **Planejar**: itens com nome, categoria e quantidade desejada, agrupados por categoria
+  - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade ou por kg) e marca,
+    todos opcionais; total parcial ao vivo; itens não planejados; "desmarcar todos" com confirmação
+- Finalizar compra: valor dos itens sem preço (descoberto no caixa), mercado e data; pergunta se os
+  itens não planejados ficam na lista; a lista volta zerada para a próxima compra
+- Compras concluídas com valor, data, mercado e "x de y comprados"; gasto e compras do mês
 - Autorização: só membros da família acessam suas listas e itens (os demais recebem 404)
 
 ## Stack

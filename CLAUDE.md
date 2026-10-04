@@ -108,16 +108,23 @@ Ao final:
 - ADMIN pode: renomear a família, gerar um novo código de convite, promover membros e removê-los
 - Qualquer membro pode sair da família (o último ADMIN não pode sair sem promover outro membro)
 
-### Listas
-- Membros da família criam, renomeiam, arquivam e excluem listas
-- A tela inicial da família mostra as listas ativas com o progresso (itens comprados/total)
+### Categorias
+- Cada família tem categorias (padrão: Açougue, Mercearia, Laticínios, Padaria, Hortifrúti, Limpeza, Higiene e "Outros", fixa)
+- Membros criam, renomeiam, reordenam e excluem categorias (itens de categoria excluída vão para "Outros")
+
+### Listas (planejamento) e compras
+- A lista é um planejamento reutilizável; cada ida ao mercado finalizada vira uma compra concluída
+- Membros criam, renomeiam e excluem listas. Não há "arquivar": o histórico são as compras concluídas
+- Tela inicial da família: indicadores (gasto no mês, compras no mês, última compra), seção Listas | Concluídas e "Criar lista" por último
+- "x de y comprados", preço, data e mercado aparecem só nas compras concluídas
 
 ### Itens
-- Adicionar item com nome, quantidade opcional e observação opcional
-- Marcar e desmarcar como comprado (registrando quem marcou), com atualização otimista na interface
-- Editar e remover item
-- Botão "limpar comprados" por lista
-- Itens pendentes aparecem antes dos comprados
+- Planejar (aba própria): nome, categoria (obrigatória) e quantidade desejada (opcional); editar e remover
+- Comprar (aba própria): checkbox abre formulário (quantidade pega, preço por unidade ou por kg, marca; tudo opcional) e marca ao confirmar
+- Item pego vai para o fim da sua categoria, com destaque simples além do check
+- Itens não planejados podem ser adicionados durante a compra
+- Total parcial calculado ao vivo; "Desmarcar todos" (com confirmação) apaga quantidades, preços e marcas
+- Finalizar compra: valor variável (itens sem preço), mercado e data; pergunta se os itens não planejados viram fixos; a lista volta zerada
 
 ### Autorização (obrigatório)
 - Todo acesso a família, lista ou item verifica no backend se o usuário autenticado é membro daquela família.

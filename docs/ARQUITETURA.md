@@ -32,8 +32,10 @@ simples que microsserviços (um banco, um deploy, sem rede entre módulos) e ain
 | `infra`  | Configuração, segurança (JWT, CORS), tratamento global de erros               |
 | `auth`   | Cadastro, login, emissão de token, usuário autenticado                        |
 | `familia`| Famílias, membros, papéis, convites                                           |
-| `listas` | Listas de compras                                                             |
-| `itens`  | Itens das listas                                                              |
+| `categorias` | Categorias de itens por família (ordem, "Outros" fixa)                    |
+| `listas` | Listas de compras (o planejamento reutilizável)                               |
+| `itens`  | Itens das listas: planejamento e compra em andamento                          |
+| `compras`| Finalizar a compra, compras concluídas e resumo do mês                        |
 
 Dentro de cada módulo: **entidade** JPA, **repositório** (Spring Data), **serviço** (regras de
 negócio), **controller** REST e **DTOs** (records em `dto/`).
@@ -55,16 +57,23 @@ negócio), **controller** REST e **DTOs** (records em `dto/`).
 ### Dependências entre os módulos
 
 ```
-auth  ◀──  familia  ◀──  listas (ListaAcesso)  ◀──  itens
-                           ▲                          │
-                           └──── ListaService ────────┘ (progresso)
+auth  ◀──  familia  ◀──  categorias  ◀──  itens  ──▶  listas (ListaAcesso)
+                                            ▲              ▲
+                         ListaService ──────┘              │
+                              ▲                            │
+                         compras (CompraService) ──────────┘
 ```
 
 `ListaService` precisa do `ItemService` (para calcular o progresso de cada lista) e o
 `ItemService` precisa saber se o usuário pode acessar a lista. Se `ItemService` dependesse de
 `ListaService`, teríamos uma **dependência circular** (o Spring não conseguiria criar os beans).
 Solução: um componente pequeno, `ListaAcesso`, que só responde "este usuário pode acessar esta
-lista?". Os dois serviços dependem dele, e o ciclo desaparece.
+lista?" (e de qual família ela é). Os dois serviços dependem dele, e o ciclo desaparece.
+
+O mesmo problema apareceria com categorias: `itens` precisa de `categorias` (para validar a
+categoria de um item) e excluir uma categoria precisa mover os itens dela para "Outros". Aqui a
+solução é um **evento**: `CategoriaService` publica `CategoriaExcluida` e o `ItemService` escuta
+(`@EventListener`, na mesma transação). Categorias não conhece itens, e não há ciclo.
 
 ## 3. API REST
 
@@ -84,23 +93,38 @@ Prefixo `/api`. Corpo em JSON. Erros em ProblemDetail (seção 7).
 | PATCH  | `/api/familias/{id}/membros/{usuarioId}`      | Altera papel (ADMIN)                    | 200     |
 | DELETE | `/api/familias/{id}/membros/{usuarioId}`      | Remove membro (ADMIN)                   | 204     |
 | POST   | `/api/familias/{id}/sair`                     | Sai da família                          | 204     |
-| GET    | `/api/familias/{id}/listas?arquivadas=false`  | Listas com progresso                    | 200     |
+| GET    | `/api/familias/{id}/categorias`               | Categorias na ordem (cria as padrão)    | 200     |
+| POST   | `/api/familias/{id}/categorias`               | Cria categoria (antes de "Outros")      | 201     |
+| PUT    | `/api/familias/{id}/categorias/ordem`         | Reordena (todos os ids)                 | 200     |
+| PATCH  | `/api/categorias/{id}`                        | Renomeia                                | 200     |
+| DELETE | `/api/categorias/{id}`                        | Exclui (itens vão para "Outros")        | 204     |
+| GET    | `/api/familias/{id}/listas`                   | Listas com total de itens e pegos       | 200     |
 | POST   | `/api/familias/{id}/listas`                   | Cria lista                              | 201     |
-| GET    | `/api/listas/{id}`                            | Lista com itens (pendentes primeiro)    | 200     |
-| PATCH  | `/api/listas/{id}`                            | Renomeia e/ou arquiva                   | 200     |
-| DELETE | `/api/listas/{id}`                            | Exclui (itens juntos)                   | 204     |
-| POST   | `/api/listas/{id}/itens`                      | Adiciona item                           | 201     |
-| DELETE | `/api/listas/{id}/itens/comprados`            | Limpa comprados                         | 204     |
-| PATCH  | `/api/itens/{id}`                             | Edita e/ou marca/desmarca comprado      | 200     |
+| GET    | `/api/listas/{id}`                            | Lista com categorias e itens            | 200     |
+| PATCH  | `/api/listas/{id}`                            | Renomeia                                | 200     |
+| DELETE | `/api/listas/{id}`                            | Exclui (compras concluídas ficam)       | 204     |
+| POST   | `/api/listas/{id}/itens`                      | Planeja item (nome, categoria, qtd.)    | 201     |
+| PATCH  | `/api/itens/{id}`                             | Edita o planejamento                    | 200     |
 | DELETE | `/api/itens/{id}`                             | Remove item                             | 204     |
+| PUT    | `/api/itens/{id}/pego`                        | Marca como pego (qtd., preço, marca)    | 200     |
+| DELETE | `/api/itens/{id}/pego`                        | Desmarca e apaga os valores             | 200     |
+| POST   | `/api/listas/{id}/itens/extra`                | Item não planejado (já pego)            | 201     |
+| POST   | `/api/listas/{id}/desmarcar-todos`            | Desmarca todos da compra em andamento   | 204     |
+| POST   | `/api/listas/{id}/compras`                    | Finaliza a compra                       | 201     |
+| GET    | `/api/familias/{id}/compras`                  | Compras concluídas                      | 200     |
+| GET    | `/api/familias/{id}/compras/resumo?mes=AAAA-MM` | Gasto e compras do mês, última compra | 200     |
+| GET    | `/api/compras/{id}`                           | Compra concluída com os itens           | 200     |
 | GET    | `/actuator/health`                            | Health check (público)                  | 200     |
 
 Status de erro: **400** validação, **401** sem token/token inválido/credenciais erradas,
 **403** membro sem papel de ADMIN, **404** recurso inexistente **ou de outra família**,
 **409** conflito (e-mail já cadastrado, último ADMIN saindo).
 
-**PATCH parcial:** campos ausentes (nulos) não são alterados. Para apagar quantidade ou observação
+**PATCH parcial:** campos ausentes (nulos) não são alterados. Para apagar a quantidade desejada
 de um item, envia-se string vazia.
+
+**PUT em `/pego`:** marcar como pego é idempotente (repetir a chamada dá o mesmo resultado), por
+isso PUT; ele também serve para corrigir quantidade, preço ou marca de um item já pego.
 
 ## 4. Modelo de dados
 
@@ -113,14 +137,28 @@ membros_familia (familia_id, usuario_id, papel ADMIN|MEMBRO, entrou_em)   PK com
     ▼
 familias (id, nome, codigo_convite UNIQUE, criado_em)
     ▲ familia_id (ON DELETE CASCADE)
-listas (id, familia_id, nome, arquivada, criada_por → usuarios, criada_em)
+categorias (id, familia_id, nome, ordem, fixa)          UNIQUE (familia_id, lower(nome))
+listas (id, familia_id, nome, criada_por → usuarios, criada_em)
     ▲ lista_id (ON DELETE CASCADE)
-itens (id, lista_id, nome, quantidade, observacao, comprado,
-       comprado_por → usuarios, adicionado_por → usuarios, criado_em, atualizado_em)
+itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada,
+       -- compra em andamento:
+       pego, pego_por → usuarios, pego_em, quantidade_pega numeric(10,3),
+       tipo_preco UNIDADE|KG, preco numeric(10,2), marca, extra,
+       adicionado_por → usuarios, criado_em, atualizado_em)
+compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mercado, data_compra,
+         valor_itens, valor_variavel, valor_total, finalizada_por → usuarios, finalizada_em)
+    ▲ compra_id (ON DELETE CASCADE)
+compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planejada, pego,
+              quantidade_pega, tipo_preco, preco, subtotal, marca, extra)
 ```
 
-- **Flyway** versiona o schema (`src/main/resources/db/migration/V1__schema_inicial.sql`). Toda
-  mudança futura é um novo arquivo `V2__...sql`. Nunca se edita uma migration já aplicada.
+- **Flyway** versiona o schema (`src/main/resources/db/migration/`). `V1` criou o schema inicial;
+  `V2__categorias_e_compras.sql` trouxe categorias, o estado da compra nos itens e as compras
+  (movendo os itens existentes para "Outros"). Nunca se edita uma migration já aplicada.
+- **Dinheiro em `numeric(10,2)` e `BigDecimal`**, nunca `double`: ponto flutuante não representa
+  centavos com exatidão (0,1 + 0,2 ≠ 0,3). Quantidades em `numeric(10,3)` aceitam kg como 1,250.
+- **`compra_itens` é uma cópia, não uma referência.** A compra guarda nome, categoria e valores
+  como estavam no dia: editar a lista, renomear categoria ou excluir a lista não muda o histórico.
 - **`ddl-auto=validate`**: o Hibernate não cria nem altera tabelas, só confere se as entidades
   batem com o banco. Se não baterem, a aplicação nem sobe (erro cedo, e não em produção).
 - **`ON DELETE CASCADE`**: excluir uma lista exclui os itens; excluir uma família exclui listas e
@@ -131,6 +169,30 @@ itens (id, lista_id, nome, quantidade, observacao, comprado,
   diferenciar maiúsculas.
 - **IDs `bigint` com identity**: simples e suficientes. Como toda rota verifica a permissão, o id
   sequencial não expõe dados de outras famílias.
+
+## 4.1 Fluxo da compra (planejar → comprar → finalizar)
+
+A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
+
+1. **Planejar** (em casa): itens com nome, categoria e quantidade desejada. Na tela, agrupados por
+   categoria na ordem configurada pela família.
+2. **Comprar** (no mercado): o checkbox abre um formulário (quantidade, preço por unidade ou por
+   kg, marca, todos opcionais) e o item só fica marcado ao confirmar. O item pego vai para o fim
+   da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
+   soma o **total parcial** (`util/compra.ts`) e mostra quantos itens estão sem preço.
+3. **Finalizar**: o usuário informa o **valor variável** (itens cujo preço só aparece no caixa,
+   como frutas e verduras), o mercado e a data, e escolhe quais itens não planejados ficam na
+   lista. Numa transação, o backend grava a compra (recalculando o valor dos itens com
+   `Valores.subtotal`, a mesma regra do front, sem confiar no total enviado), zera a lista e
+   remove os extras não mantidos.
+
+**Por que o cálculo existe nos dois lados?** O front calcula para mostrar o total enquanto se
+compra, sem ir ao servidor a cada toque. O backend recalcula ao finalizar porque o valor gravado
+não pode depender do navegador. As duas implementações têm testes com os mesmos casos
+(ex.: 1,255 kg × R$ 6,90 = R$ 8,66, arredondando meio centavo para cima).
+
+**Indicadores do mês:** o mês vem da tela (`?mes=2026-10`) porque o servidor roda em UTC e o "mês
+atual" é o do usuário.
 
 ## 5. Autenticação com JWT
 
@@ -250,12 +312,12 @@ para permitir revogação.
   ProblemDetail em `ApiError`, trata 401 (limpa o token e volta ao login), aplica timeout.
 - **TanStack Query** para cache, carregamento, erro e nova tentativa. As chaves ficam centralizadas
   em `src/estado/chaves.ts`, o que deixa explícito o que invalidar após cada alteração.
-- **Atualização otimista** ao marcar um item: a tela muda na hora e a API é chamada em seguida. Se
-  a chamada falhar, o estado anterior é restaurado e uma mensagem aparece. No supermercado, com
-  sinal ruim, isso faz o app parecer instantâneo.
+- **Atualização otimista** ao desmarcar um item: a tela muda na hora e a API é chamada em
+  seguida. Se a chamada falhar, o estado anterior é restaurado e uma mensagem aparece. Marcar não
+  é otimista porque passa por um formulário (quantidade, preço, marca) e só vale ao confirmar.
 - **Família atual** guardada no `localStorage`: o app abre direto na última família usada.
 - **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: alvos de
-  toque de no mínimo 44 px; a linha inteira do item é o botão de marcar.
+  toque de no mínimo 44 px; o checkbox de cada item tem 56 px de largura de toque.
 - **Design system** (detalhado abaixo): a linguagem visual e o padrão de cores seguem os da
   EcomSmart (referência de produto SaaS).
 
@@ -294,7 +356,8 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
   tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
   Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
   item "Listas" continua ativo.
-- **Filtros na URL.** "Ativas / Arquivadas" é um grupo de chips que grava `?ver=arquivadas`:
+- **Filtros e abas na URL.** "Listas / Concluídas" é um grupo de chips que grava
+  `?ver=concluidas`, e as abas da lista são rotas (`/listas/:id/planejar` e `/comprar`):
   recarregar ou compartilhar o link abre a mesma visão.
 - **Componentes compartilhados:** `Botao`/`LinkBotao`, `Campo`, `Card`/`CardNumerado`, `Selo`,
   `Avatar`, `CabecalhoPagina`, `Indicadores`, `FiltroChips`, `Modal` (folha que sobe de baixo no
@@ -315,9 +378,11 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
 | Onde     | O quê                                                                                   |
 | -------- | --------------------------------------------------------------------------------------- |
 | Backend  | Integração com PostgreSQL real (Testcontainers): autenticação, famílias, listas, itens, autorização entre famílias (404), validação (400), 401 sem token/token inválido/assinado com outro segredo, CORS, health público |
-| Backend  | Unitários (Mockito) das regras de membros: último ADMIN, único membro, permissões         |
+| Backend  | Integração: categorias (padrão, ordem, "Outros" fixa, exclusão move itens), compra em andamento (pegar por unidade/kg, desmarcar, extras, desmarcar todos), finalizar (cópia, valor recalculado, lista zerada, extras mantidos), resumo do mês, 404 entre famílias em todas as rotas |
+| Backend  | Unitários (Mockito) das regras de membros: último ADMIN, único membro, permissões; cálculo do subtotal (`ValoresTest`) |
 | Frontend | Cliente HTTP (ProblemDetail, 401, falha de rede, retry)                                  |
-| Frontend | Fluxos com API simulada: login, token expirado, cadastro, criar lista, adicionar e marcar item, rollback otimista |
+| Frontend | Fluxos com API simulada: login, token expirado, cadastro, criar lista, planejar com categoria, pegar pelo formulário com total, desmarcar todos com confirmação, rollback otimista, finalizar com valor variável, tema |
+| Frontend | Unitários de `util/compra.ts`: leitura de decimal pt-BR, subtotal (mesmos casos do backend), agrupamento por categoria |
 
 Todos os testes de integração do backend compartilham um único contexto Spring e um único
 contêiner, e cada teste cria usuários com e-mails únicos. Por isso não é preciso limpar o banco
