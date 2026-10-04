@@ -62,13 +62,21 @@ Detalhes e o porquê de cada decisão: [docs/ARQUITETURA.md](docs/ARQUITETURA.md
 Na raiz do projeto, no PowerShell:
 
 ```powershell
-.\dev
+.\iniciar
 ```
 
-O script [scripts/dev.ps1](scripts/dev.ps1) sobe o PostgreSQL (Docker), abre o backend numa janela
-separada e roda o frontend no terminal atual, abrindo o navegador em http://localhost:5173.
-**Ctrl+C** encerra o front e o back; o banco continua rodando (`docker compose stop` para parar).
-Use `.\dev -SemNavegador` para não abrir o navegador.
+O script [scripts/iniciar.ps1](scripts/iniciar.ps1), em ordem:
+
+1. confere Docker, Java, Node e se as portas 8080 e 5173 estão livres;
+2. sobe o PostgreSQL (Docker) e espera ele ficar saudável;
+3. sobe o backend numa **nova aba do Windows Terminal** (os logs do Spring ficam lá) e espera
+   `/actuator/health` responder `UP`. Fora do Windows Terminal (ex.: terminal do VS Code), o
+   backend roda em segundo plano, com logs em `target/backend.log`;
+4. só então sobe o frontend neste terminal (o Vite mostra apenas avisos e erros) e informa que
+   ele está ativo em http://localhost:5173. O navegador não é aberto automaticamente.
+
+**Ctrl+C** encerra o front e o back (a aba do backend fecha sozinha); o banco continua rodando
+(`docker compose stop` para parar).
 
 Ou, passo a passo:
 
