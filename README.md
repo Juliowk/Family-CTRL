@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/marca/logo-horizontal-escuro.svg" alt="Family Ctrl" width="320" /></p>
+
 # Family Ctrl
 
 Aplicação web de gestão familiar focada em **listas de compras colaborativas**. Cada família tem um

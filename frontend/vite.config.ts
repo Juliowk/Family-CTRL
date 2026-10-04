@@ -5,15 +5,16 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 /**
  * Injeta a Content-Security-Policy no index.html apenas no build de produção.
  * Em desenvolvimento o Vite usa scripts inline (hot reload), que a CSP bloquearia.
- * A política só permite recursos da própria origem e chamadas para a URL da API.
+ * A política só permite recursos da própria origem, chamadas para a URL da API e a fonte
+ * Inter do Google Fonts (CSS em fonts.googleapis.com, arquivos em fonts.gstatic.com).
  */
 function contentSecurityPolicy(apiUrl: string): Plugin {
   const politica = [
     "default-src 'self'",
     "script-src 'self'",
-    "style-src 'self'",
+    "style-src 'self' https://fonts.googleapis.com",
     "img-src 'self' data:",
-    "font-src 'self'",
+    "font-src 'self' https://fonts.gstatic.com",
     `connect-src 'self' ${apiUrl}`,
     "object-src 'none'",
     "base-uri 'self'",

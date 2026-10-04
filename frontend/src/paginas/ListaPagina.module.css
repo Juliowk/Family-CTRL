@@ -164,7 +164,7 @@
   width: 24px;
   height: 24px;
   border: 2px solid var(--cor-borda-forte);
-  border-radius: var(--raio-sm);
+  border-radius: var(--raio-xs);
   color: var(--cor-primaria-texto);
   transition:
     background-color var(--transicao),

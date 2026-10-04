@@ -41,7 +41,7 @@ export function CabecalhoPagina({ trilha, rotulo, titulo, descricao, selos, acoe
       )}
       {anterior && (
         <Link to={anterior.para} className={estilos.voltar}>
-          <IconeVoltar tamanho={18} />
+          <IconeVoltar tamanho={20} />
           {anterior.rotulo}
         </Link>
       )}

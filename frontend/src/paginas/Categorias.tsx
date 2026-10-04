@@ -115,7 +115,7 @@ export function Categorias() {
         acoes={
           voltarPara && (
             <LinkBotao to={voltarPara} pequeno>
-              <IconeVoltar tamanho={18} />
+              <IconeVoltar tamanho={20} />
               Voltar para {lista.data?.nome ?? 'a lista'}
             </LinkBotao>
           )
@@ -151,7 +151,7 @@ export function Categorias() {
                         disabled={indice === 0 || reordenar.isPending}
                         onClick={() => mover(lista, indice, -1)}
                       >
-                        <IconeSubir tamanho={18} />
+                        <IconeSubir tamanho={20} />
                       </button>
                       <button
                         type="button"
@@ -160,7 +160,7 @@ export function Categorias() {
                         disabled={ultimaMovel || reordenar.isPending}
                         onClick={() => mover(lista, indice, 1)}
                       >
-                        <IconeDescer tamanho={18} />
+                        <IconeDescer tamanho={20} />
                       </button>
                       <button
                         type="button"
@@ -168,7 +168,7 @@ export function Categorias() {
                         aria-label={`Renomear ${categoria.nome}`}
                         onClick={() => setRenomeando(categoria)}
                       >
-                        <IconeEditar tamanho={18} />
+                        <IconeEditar tamanho={20} />
                       </button>
                       <button
                         type="button"
@@ -176,7 +176,7 @@ export function Categorias() {
                         aria-label={`Excluir ${categoria.nome}`}
                         onClick={() => setExcluindo(categoria)}
                       >
-                        <IconeLixeira tamanho={18} />
+                        <IconeLixeira tamanho={20} />
                       </button>
                     </div>
                   )}

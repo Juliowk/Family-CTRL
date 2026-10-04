@@ -29,7 +29,6 @@
 
 .heroi {
   padding: var(--espaco-7) 0 var(--espaco-secao);
-  background: var(--brilho-heroi);
 }
 
 .heroiGrade {

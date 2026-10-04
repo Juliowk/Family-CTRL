@@ -35,8 +35,8 @@ export function Conta() {
             valor={tema}
             aoMudar={definirTema}
             opcoes={[
-              { valor: 'claro', rotulo: 'Claro' },
               { valor: 'escuro', rotulo: 'Escuro' },
+              { valor: 'claro', rotulo: 'Claro' },
             ]}
           />
         </Card>
@@ -51,7 +51,7 @@ export function Conta() {
             Veja as famílias de que você participa, crie uma nova ou entre com um código.
           </p>
           <LinkBotao to="/familias" pequeno>
-            <IconeTrocar tamanho={18} />
+            <IconeTrocar tamanho={20} />
             Suas famílias
           </LinkBotao>
         </Card>
@@ -65,7 +65,7 @@ export function Conta() {
           </p>
         </div>
         <Botao variante="perigo" onClick={sair}>
-          <IconeSair tamanho={18} />
+          <IconeSair tamanho={20} />
           Sair
         </Botao>
       </section>

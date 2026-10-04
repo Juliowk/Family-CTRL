@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import { SimboloLogo } from '../components/brand/Logo';
 import { IconeCheck } from '../components/Icones';
+import { useTema } from '../estado/tema';
 import estilos from './MolduraAuth.module.css';
 
 const VANTAGENS = [
@@ -25,6 +27,7 @@ export function MolduraAuth({
   rodape: ReactNode;
   children: ReactNode;
 }) {
+  const [tema] = useTema();
   return (
     <div className={estilos.moldura}>
       <div className={estilos.card}>
@@ -37,12 +40,13 @@ export function MolduraAuth({
         <p className={estilos.rodape}>{rodape}</p>
       </div>
       <aside className={estilos.painel} aria-label="Por que usar">
+        <SimboloLogo tema={tema} tamanho={56} />
         <p className={estilos.painelTitulo}>As compras da casa, organizadas em família.</p>
         <ul className={estilos.vantagens}>
           {VANTAGENS.map((vantagem) => (
             <li key={vantagem}>
               <span className={estilos.vantagemIcone} aria-hidden="true">
-                <IconeCheck tamanho={14} />
+                <IconeCheck tamanho={16} />
               </span>
               {vantagem}
             </li>

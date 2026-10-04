@@ -157,12 +157,15 @@ Tempo real (WebSocket), notificações, e-mail, recuperação de senha, refresh 
 - Layout fluido com CSS Grid e Flexbox, unidades relativas, sem rolagem horizontal.
 - Alvos de toque com no mínimo 44x44px; marcar um item como comprado deve ser um toque só e fácil.
 - No celular, navegação principal acessível com o polegar (barra inferior ou equivalente); no desktop, layout com mais respiro e largura máxima de leitura.
-- Estilo minimalista: muito espaço em branco, poucos elementos por tela, hierarquia tipográfica clara, sem sombras pesadas nem gradientes chamativos. Transições curtas e discretas.
-- Paleta no padrão de cores da EcomSmart (azul e navy), definida como variáveis CSS em `:root`. Tema claro como padrão; o usuário pode mudar para o escuro (escolha salva no aparelho, aplicada via `data-theme="dark"`).
-  - Tema claro (referência): fundo `#F6F8FC`, superfície `#FFFFFF`, borda `#E1E6F0`, texto `#0B1033`, texto secundário `#4A5670`, destaque azul `#0A5BF0`, azul hover `#0849C4`, barra lateral navy `#0B1033`
-  - Tema escuro (azul-noite): fundo `#070B1E`, superfície `#0E1436`, borda `#232B57`, texto `#EEF1F7`, texto secundário `#9AA5B8`, destaque azul claro `#8DB0FF`
-  - Use o azul com moderação: ações principais, estado ativo, foco e dados de destaque.
-- Fonte: pilha de fontes do sistema (sem dependência externa).
+- **Identidade visual: siga `docs/marca.md`** (cores, logo, ícones, tema e componentes). Ao mexer no frontend, esse guia é a fonte oficial.
+- Estilo minimalista: muito espaço em branco, poucos elementos por tela, hierarquia tipográfica clara, sem gradientes. Transições curtas e discretas. O único "volume" é a sombra sólida de tecla (`--sombra-tecla`) no botão primário, que afunda ao ser pressionado.
+- Paleta da marca Family Ctrl (preto, cinzas neutros e roxo), em `frontend/src/styles/tokens.css`: primitivos `--fc-*` e tokens semânticos `--cor-*`. Componentes usam só `var(--cor-*)`, nunca hex (exceção: o logo, com cores oficiais fixas).
+  - **Tema escuro é o padrão** (identidade da marca, sem seguir `prefers-color-scheme`): fundo `#0F0F14`, superfície `#17171F`, superfície 2 `#1F1F29`, borda `#2E2E3A`, texto `#FAFAFA`, texto secundário `#A1A1AA`, destaque lavanda `#A78BFA`
+  - Tema claro, opcional (escolha salva no aparelho, aplicada via `data-theme="light"`): fundo `#FAFAFA`, superfície `#FFFFFF`, borda `#E4E4E7`, texto `#0F0F14`, texto secundário `#71717A`, destaque roxo `#7C3AED`
+  - Ação principal: roxo `#7C3AED` (hover `#6D28D9`). Roxo no máximo em ~10% da tela, só em ação e estado; um botão primário por tela; nunca para erro ou sucesso.
+- Logo: componente `Logo`/`SimboloLogo` em `frontend/src/components/brand/Logo.tsx` (assinatura `familyctrl`; em texto corrido, "Family Ctrl").
+- Ícones: Lucide (`lucide-react`), traço 2, 20px (16px em texto pequeno, 24px na barra inferior), sempre via `frontend/src/components/Icones.tsx`.
+- Fonte: Inter (400 a 700) via Google Fonts, com a pilha do sistema como reserva; a CSP libera só `fonts.googleapis.com` e `fonts.gstatic.com`.
 - Acessibilidade: contraste AA, foco visível, labels em todos os campos, HTML semântico, `aria-*` onde necessário, navegação por teclado.
 - Estados sempre tratados: carregando (skeletons discretos, incluindo o "servidor acordando"), erro, vazio ("nenhuma lista ainda") e confirmação de ações destrutivas.
 - Componentes reutilizáveis (botão, campo, card, modal, barra de navegação) com os tokens de design centralizados.

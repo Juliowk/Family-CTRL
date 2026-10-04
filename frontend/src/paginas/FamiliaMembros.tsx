@@ -139,7 +139,7 @@ export function FamiliaMembros() {
         </div>
         <div className={cartoes.cartaoAcoes}>
           <Botao variante="primario" onClick={copiarCodigo}>
-            {copiado ? <IconeCheck tamanho={18} /> : <IconeCopiar tamanho={18} />}
+            {copiado ? <IconeCheck tamanho={20} /> : <IconeCopiar tamanho={20} />}
             {copiado ? 'Copiado!' : 'Copiar código'}
           </Botao>
           {souAdmin && (

@@ -4,32 +4,22 @@ import { familiasApi } from '../api/endpoints';
 import { useAuth } from '../estado/auth';
 import { chaves } from '../estado/chaves';
 import { useFamiliaAtual } from '../estado/familiaAtual';
+import { useTema, type Tema } from '../estado/tema';
 import { AlternarTema } from './AlternarTema';
 import { Avatar } from './Avatar';
 import { LinkBotao } from './Botao';
+import { Logo } from './brand/Logo';
 import { Carregando, MensagemErro } from './Estados';
 import { IconeConta, IconeCtrl, IconeEtiqueta, IconeFamilia, IconeTrocar } from './Icones';
 import estilos from './Layouts.module.css';
 
 const REPOSITORIO = 'https://github.com/Juliowk/Family-CTRL';
 
-function Marca() {
-  return (
-    <span className={estilos.marca}>
-      <span className={estilos.marcaIcone} aria-hidden="true">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
-          <path
-            d="M3.5 8.5l3 3 6-7"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      Family Ctrl
-    </span>
-  );
+/** Assinatura da marca seguindo o tema atual (na barra lateral, sempre escura, use tema="escuro"). */
+function Marca({ tema }: { tema?: Tema }) {
+  const [temaAtual] = useTema();
+  // 28px: a assinatura fica com ~130px, acima do mínimo de 120px e cabe no topo em telas de 320px
+  return <Logo tema={tema ?? temaAtual} tamanho={28} />;
 }
 
 /** Telas públicas (landing, login, cadastro). Quem já está logado vai direto para o app. */
@@ -47,7 +37,13 @@ export function LayoutPublico() {
           <nav className={estilos.publicoNav} aria-label="Acesso">
             <AlternarTema />
             {pathname !== '/login' && (
-              <LinkBotao to="/login" variante="fantasma" pequeno>
+              <LinkBotao
+                to="/login"
+                variante="fantasma"
+                pequeno
+                // Na landing o herói já tem "Já tenho conta": em telas estreitas, o topo fica só com o CTA
+                className={pathname === '/' ? estilos.entrarOpcional : undefined}
+              >
                 Entrar
               </LinkBotao>
             )}
@@ -156,7 +152,7 @@ export function LayoutAutenticado() {
     <div className={estilos.app}>
       <aside className={estilos.lateral}>
         <Link to="/inicio" className={estilos.lateralMarca}>
-          <Marca />
+          <Marca tema="escuro" />
         </Link>
 
         <nav className={estilos.lateralNav} aria-label="Navegação principal">
@@ -217,15 +213,15 @@ export function LayoutAutenticado() {
 
       <nav className={estilos.barraInferior} aria-label="Navegação rápida">
         <NavLink to={inicio} end className={classeLinkCtrl(dentroDeLista)}>
-          <IconeCtrl />
+          <IconeCtrl tamanho={24} />
           <span>ctrl</span>
         </NavLink>
         <NavLink to={membros} end className={classeLink}>
-          <IconeFamilia />
+          <IconeFamilia tamanho={24} />
           <span>Família</span>
         </NavLink>
         <NavLink to="/conta" className={classeLink}>
-          <IconeConta />
+          <IconeConta tamanho={24} />
           <span>Conta</span>
         </NavLink>
       </nav>

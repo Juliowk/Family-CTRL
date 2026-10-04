@@ -97,7 +97,7 @@ function Demonstracao() {
           {itens.map((item) => (
             <li key={item.nome} data-comprado={item.comprado}>
               <span className={estilos.demoMarcador}>
-                {item.comprado && <IconeCheck tamanho={14} />}
+                {item.comprado && <IconeCheck tamanho={16} />}
               </span>
               <span className={estilos.demoTexto}>
                 <span className={estilos.demoNome}>{item.nome}</span>
@@ -133,7 +133,7 @@ export function Landing() {
             <div className={estilos.heroiAcoes}>
               <LinkBotao to="/cadastro" variante="primario">
                 Criar conta grátis
-                <IconeSeta tamanho={18} />
+                <IconeSeta tamanho={20} />
               </LinkBotao>
               <LinkBotao to="/login">Já tenho conta</LinkBotao>
             </div>
@@ -222,7 +222,7 @@ export function Landing() {
             <p>Crie a conta, monte a primeira lista e mande o código para quem mora com você.</p>
             <LinkBotao to="/cadastro" variante="primario">
               Criar conta grátis
-              <IconeSeta tamanho={18} />
+              <IconeSeta tamanho={20} />
             </LinkBotao>
           </div>
         </div>

@@ -1,4 +1,4 @@
-/* Botões em formato pílula: o formato já diz "isto é uma ação" */
+/* Botões com o raio da tecla do logo; o primário "afunda" ao ser pressionado */
 .botao {
   display: inline-flex;
   align-items: center;
@@ -8,7 +8,7 @@
   min-width: var(--alvo-toque);
   padding: 0 var(--espaco-5);
   border: 1px solid transparent;
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio-sm);
   font-size: var(--texto-md);
   font-weight: var(--peso-forte);
   line-height: 1;
@@ -31,6 +31,12 @@
   transform: translateY(1px);
 }
 
+/* Metáfora do logo: o botão primário é uma tecla que desce ao ser apertada */
+.primario:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
 .botao svg {
   flex-shrink: 0;
   transition: transform var(--transicao-lenta);
@@ -44,15 +50,15 @@
 .primario {
   background: var(--cor-primaria);
   color: var(--cor-primaria-texto);
+  box-shadow: var(--sombra-tecla);
 }
 
 .primario:hover:not(:disabled) {
   background: var(--cor-primaria-hover);
-  box-shadow: var(--sombra-primaria);
 }
 
 .secundario {
-  background: transparent;
+  background: var(--cor-superficie-2);
   border-color: var(--cor-borda-forte);
   color: var(--cor-texto);
 }

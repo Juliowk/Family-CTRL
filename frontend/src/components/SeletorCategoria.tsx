@@ -40,7 +40,7 @@ export function SeletorCategoria({
                 onChange={() => aoMudar(categoria.id)}
                 className="sr-only"
               />
-              {marcada && <IconeCheck tamanho={14} />}
+              {marcada && <IconeCheck tamanho={16} />}
               {categoria.nome}
             </label>
           );

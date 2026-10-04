@@ -1,0 +1,13 @@
+{
+  "name": "Family Ctrl",
+  "short_name": "Family Ctrl",
+  "description": "Listas de compras da família, no controle.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F0F14",
+  "theme_color": "#0F0F14",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

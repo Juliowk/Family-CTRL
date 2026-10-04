@@ -1,0 +1,36 @@
+/* Assinatura: "family" em Bold e "ctrl" em Regular na cor de destaque, sempre minúsculo e junto */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--logo-tamanho) * 0.3);
+  line-height: 1;
+}
+
+.simbolo {
+  flex-shrink: 0;
+}
+
+.palavra {
+  font-family: var(--fonte);
+  font-size: calc(var(--logo-tamanho) * 0.62);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: #fafafa;
+}
+
+.palavra b {
+  font-weight: 700;
+}
+
+.ctrl {
+  font-weight: 400;
+  color: #a78bfa;
+}
+
+.logo[data-tema='claro'] .palavra {
+  color: #0f0f14;
+}
+
+.logo[data-tema='claro'] .ctrl {
+  color: #7c3aed;
+}

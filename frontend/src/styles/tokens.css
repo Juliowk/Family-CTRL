@@ -1,93 +1,80 @@
 /*
- * Tokens de design em duas camadas:
- *  1. Primitivos: a paleta crua (padrão de cores da EcomSmart). Só esta camada cita hexadecimal.
+ * Tokens de design da marca Family Ctrl (guia completo em docs/marca.md), em duas camadas:
+ *  1. Primitivos: a paleta crua da marca (preto, cinzas e roxo). Só esta camada cita hexadecimal.
  *  2. Semânticos: o papel de cada cor na interface (fundo, texto, borda...). Componentes
  *     usam só os semânticos, então trocar de tema é só trocar o mapeamento.
- * Tema claro é o padrão. O escuro (azul-noite) vale quando o <html> tem data-theme="dark",
- * definido pelo botão de tema (ver src/estado/tema.ts e public/tema.js).
+ * Tema ESCURO é o padrão (é a identidade da marca). O claro vale quando o <html> tem
+ * data-theme="light", definido pelo botão de tema (ver src/estado/tema.ts e public/tema.js).
  */
 :root {
   /* ---------- 1. Primitivos ---------- */
-  --azul-50: #eef4ff;
-  --azul-100: #dce7ff;
-  --azul-200: #b9ceff;
-  --azul-300: #8db0ff;
-  --azul-400: #5a8cfa;
-  --azul-500: #2f70f5;
-  --azul-600: #0a5bf0;
-  --azul-700: #0849c4;
-  --azul-800: #073a9a;
+  --fc-preto: #0f0f14;
+  --fc-cinza-950: #17171f;
+  --fc-cinza-900: #1f1f29;
+  --fc-cinza-800: #2e2e3a;
+  --fc-cinza-700: #3f3f4d;
+  --fc-cinza-500: #71717a;
+  --fc-cinza-400: #a1a1aa;
+  --fc-cinza-300: #d4d4d8;
+  --fc-cinza-200: #e4e4e7;
+  --fc-cinza-100: #f4f4f5;
+  --fc-cinza-50: #fafafa;
+  --fc-branco: #ffffff;
 
-  --navy-1000: #04061a;
-  --navy-950: #070b1e;
-  --navy-900: #0b1033;
-  --navy-850: #0e1436;
-  --navy-800: #151c45;
-  --navy-700: #232b57;
-  --navy-600: #323b6b;
+  --fc-roxo-50: #ede9fe;
+  --fc-roxo-300: #c4b5fd;
+  --fc-roxo-400: #a78bfa; /* lavanda: destaque no escuro */
+  --fc-roxo-500: #8b5cf6;
+  --fc-roxo-600: #7c3aed; /* roxo da marca */
+  --fc-roxo-700: #6d28d9;
 
-  --cinza-50: #f6f8fc;
-  --cinza-100: #eef1f7;
-  --cinza-200: #e1e6f0;
-  --cinza-300: #c9d1df;
-  --cinza-400: #9aa5b8;
-  --cinza-500: #6b7790;
-  --cinza-600: #4a5670;
-  --branco: #ffffff;
+  --fc-verde-400: #4ade80;
+  --fc-verde-700: #15803d;
+  --fc-ambar-400: #fbbf24;
+  --fc-ambar-700: #b45309;
+  --fc-vermelho-400: #f87171;
+  --fc-vermelho-600: #dc2626;
 
-  --verde-400: #4ade80;
-  --verde-700: #15803d;
-  --ambar-400: #fbbf24;
-  --ambar-700: #b45309;
-  --vermelho-400: #f87171;
-  --vermelho-600: #dc2626;
+  /* ---------- 2. Semânticos (tema escuro, o padrão) ---------- */
+  color-scheme: dark;
 
-  /* ---------- 2. Semânticos (tema claro, o padrão) ---------- */
-  color-scheme: light;
-
-  --cor-fundo: var(--cinza-50);
-  --cor-fundo-2: var(--cinza-100);
-  --cor-superficie: var(--branco);
-  --cor-superficie-2: var(--cinza-100);
-  --cor-borda: var(--cinza-200);
-  --cor-borda-forte: var(--cinza-300);
-  --cor-texto: var(--navy-900);
-  --cor-texto-secundario: var(--cinza-600);
-  /* Azul só em ações, estado ativo e dados de destaque */
-  --cor-destaque: var(--azul-600);
-  --cor-primaria: var(--azul-600);
-  --cor-primaria-hover: var(--azul-700);
-  --cor-primaria-texto: var(--branco);
-  --cor-destaque-suave: var(--azul-50);
-  --cor-destaque-linha: var(--azul-100);
-  --cor-perigo: var(--vermelho-600);
-  --cor-perigo-fundo: rgb(220 38 38 / 0.08);
-  /* Verde e âmbar mais escuros que os da referência para manter contraste AA em texto */
-  --cor-sucesso: var(--verde-700);
-  --cor-sucesso-fundo: rgb(21 128 61 / 0.08);
-  --cor-atencao: var(--ambar-700);
-  --cor-atencao-fundo: rgb(180 83 9 / 0.08);
-  --cor-foco: var(--azul-600);
-  --cor-overlay: rgb(11 16 51 / 0.45);
-  /* Barra lateral navy nos dois temas */
-  --cor-lateral: var(--navy-900);
-  --cor-lateral-texto: var(--branco);
-  --cor-lateral-texto-2: rgb(255 255 255 / 0.72);
-  --cor-lateral-ativo: rgb(255 255 255 / 0.12);
-  --cor-lateral-borda: var(--navy-900);
-  --cor-lateral-divisoria: rgb(255 255 255 / 0.1);
-  --cor-lateral-destaque: var(--azul-300);
-  --cor-topo-vidro: rgb(255 255 255 / 0.88);
-  /* Brilho azul discreto atrás do herói da landing */
-  --brilho-heroi: radial-gradient(
-    ellipse 60% 55% at 85% 0%,
-    rgb(90 140 250 / 0.2),
-    transparent 65%
-  );
+  --cor-fundo: var(--fc-preto);
+  --cor-fundo-2: #0a0a0e;
+  --cor-superficie: var(--fc-cinza-950);
+  --cor-superficie-2: var(--fc-cinza-900);
+  --cor-borda: var(--fc-cinza-800);
+  --cor-borda-forte: var(--fc-cinza-700);
+  --cor-texto: var(--fc-cinza-50);
+  --cor-texto-secundario: var(--fc-cinza-400);
+  /* Roxo só em ações e estados (no máximo ~10% da tela); lavanda para texto/ícone ativo */
+  --cor-destaque: var(--fc-roxo-400);
+  --cor-primaria: var(--fc-roxo-600);
+  --cor-primaria-hover: var(--fc-roxo-700);
+  --cor-primaria-texto: var(--fc-branco);
+  --cor-destaque-suave: rgb(124 58 237 / 0.16);
+  --cor-destaque-linha: rgb(167 139 250 / 0.4);
+  /* Cores de estado só em mensagens e validações; nunca use o roxo para erro ou sucesso */
+  --cor-perigo: var(--fc-vermelho-400);
+  --cor-perigo-fundo: rgb(248 113 113 / 0.12);
+  --cor-sucesso: var(--fc-verde-400);
+  --cor-sucesso-fundo: rgb(74 222 128 / 0.12);
+  --cor-atencao: var(--fc-ambar-400);
+  --cor-atencao-fundo: rgb(251 191 36 / 0.12);
+  --cor-foco: var(--fc-roxo-400);
+  --cor-overlay: rgb(0 0 0 / 0.7);
+  /* Barra lateral (desktop): sempre escura, nos dois temas */
+  --cor-lateral: var(--fc-cinza-950);
+  --cor-lateral-texto: var(--fc-cinza-50);
+  --cor-lateral-texto-2: var(--fc-cinza-400);
+  --cor-lateral-ativo: rgb(124 58 237 / 0.16);
+  --cor-lateral-borda: var(--fc-cinza-800);
+  --cor-lateral-divisoria: var(--fc-cinza-800);
+  --cor-lateral-destaque: var(--fc-roxo-400);
+  --cor-topo-vidro: rgb(15 15 20 / 0.85);
 
   /* ---------- Tipografia ---------- */
   --fonte:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --fonte-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
   --texto-rotulo: 0.75rem; /* 12px: rótulos em caixa alta, selos */
   --texto-xs: 0.8125rem; /* 13px: metadados */
@@ -120,17 +107,22 @@
   --espaco-secao: clamp(3.5rem, 2rem + 6vw, 6rem);
 
   /* ---------- Bordas ---------- */
-  --raio-sm: 8px; /* campos */
-  --raio: 12px; /* cards, listas */
-  --raio-lg: 16px; /* painéis, modal */
+  --raio-xs: 6px; /* caixas de seleção */
+  --raio-sm: 10px; /* campos, botões, itens de lista */
+  --raio: 16px; /* cards: mesmo raio do ícone da marca */
+  --raio-lg: 20px; /* painéis, modal */
   --raio-xl: 24px; /* blocos de demonstração */
-  --raio-pilula: 999px; /* botões, chips, selos, navegação */
+  --raio-pilula: 999px; /* chips, selos, barras de progresso */
 
-  /* ---------- Elevação: só o que flutua tem sombra ---------- */
-  --sombra-leve: 0 1px 2px rgb(11 16 51 / 0.08);
-  --sombra-flutuante: 0 24px 60px -24px rgb(11 16 51 / 0.45);
-  --sombra-primaria: 0 10px 24px -14px var(--cor-primaria);
+  /* ---------- Elevação: sem gradientes; o "volume" vem da sombra sólida de tecla ---------- */
+  --sombra-leve: 0 1px 2px rgb(0 0 0 / 0.4);
+  --sombra-flutuante: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  /* Só no botão primário e no botão flutuante de "novo item" */
+  --sombra-tecla: 0 3px 0 0 rgb(0 0 0 / 0.6);
   --anel-foco: 0 0 0 3px var(--cor-destaque-linha);
+
+  /* ---------- Ícones (Lucide) ---------- */
+  --icone-tamanho: 20px;
 
   /* ---------- Tamanhos e layout ---------- */
   --alvo-toque: 44px;
@@ -150,40 +142,38 @@
   --transicao-lenta: 320ms var(--curva);
 }
 
-:root[data-theme='dark'] {
-  color-scheme: dark;
+/* ---------- Tema claro (secundário, escolhido pelo usuário) ---------- */
+:root[data-theme='light'] {
+  color-scheme: light;
 
-  --cor-fundo: var(--navy-950);
-  --cor-fundo-2: var(--navy-1000);
-  --cor-superficie: var(--navy-850);
-  --cor-superficie-2: var(--navy-800);
-  --cor-borda: var(--navy-700);
-  --cor-borda-forte: var(--navy-600);
-  --cor-texto: var(--cinza-100);
-  --cor-texto-secundario: var(--cinza-400);
-  /* Azul claro para texto/estado ativo (contraste AA sobre o navy) */
-  --cor-destaque: var(--azul-300);
-  --cor-primaria: var(--azul-600);
-  --cor-primaria-hover: var(--azul-500);
-  --cor-destaque-suave: rgb(90 140 250 / 0.16);
-  --cor-destaque-linha: rgb(90 140 250 / 0.4);
-  --cor-perigo: var(--vermelho-400);
-  --cor-perigo-fundo: rgb(248 113 113 / 0.12);
-  --cor-sucesso: var(--verde-400);
-  --cor-sucesso-fundo: rgb(74 222 128 / 0.12);
-  --cor-atencao: var(--ambar-400);
-  --cor-atencao-fundo: rgb(251 191 36 / 0.12);
-  --cor-foco: var(--azul-400);
-  --cor-overlay: rgb(4 6 26 / 0.7);
-  --cor-lateral: var(--navy-1000);
-  --cor-lateral-borda: var(--navy-700);
-  --cor-topo-vidro: rgb(7 11 30 / 0.85);
-  --brilho-heroi: radial-gradient(
-    ellipse 60% 55% at 85% 0%,
-    rgb(90 140 250 / 0.16),
-    transparent 65%
-  );
+  --cor-fundo: var(--fc-cinza-50);
+  --cor-fundo-2: var(--fc-cinza-100);
+  --cor-superficie: var(--fc-branco);
+  --cor-superficie-2: var(--fc-cinza-100);
+  --cor-borda: var(--fc-cinza-200);
+  --cor-borda-forte: var(--fc-cinza-300);
+  --cor-texto: var(--fc-preto);
+  --cor-texto-secundario: var(--fc-cinza-500);
+  /* Lavanda não tem contraste no fundo claro: o destaque vira o roxo da marca */
+  --cor-destaque: var(--fc-roxo-600);
+  --cor-primaria: var(--fc-roxo-600);
+  --cor-primaria-hover: var(--fc-roxo-700);
+  --cor-destaque-suave: var(--fc-roxo-50);
+  --cor-destaque-linha: var(--fc-roxo-300);
+  /* Verde e âmbar mais escuros para manter contraste AA em texto */
+  --cor-perigo: var(--fc-vermelho-600);
+  --cor-perigo-fundo: rgb(220 38 38 / 0.08);
+  --cor-sucesso: var(--fc-verde-700);
+  --cor-sucesso-fundo: rgb(21 128 61 / 0.08);
+  --cor-atencao: var(--fc-ambar-700);
+  --cor-atencao-fundo: rgb(180 83 9 / 0.08);
+  --cor-foco: var(--fc-roxo-600);
+  --cor-overlay: rgb(15 15 20 / 0.45);
+  --cor-lateral: var(--fc-preto);
+  --cor-lateral-borda: var(--fc-preto);
+  --cor-topo-vidro: rgb(255 255 255 / 0.88);
 
-  --sombra-leve: 0 1px 2px rgb(0 0 0 / 0.4);
-  --sombra-flutuante: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  --sombra-leve: 0 1px 2px rgb(15 15 20 / 0.08);
+  --sombra-flutuante: 0 24px 60px -24px rgb(15 15 20 / 0.35);
+  --sombra-tecla: 0 3px 0 0 var(--fc-cinza-300);
 }

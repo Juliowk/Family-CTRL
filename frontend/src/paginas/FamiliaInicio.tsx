@@ -111,7 +111,7 @@ export function FamiliaInicio() {
               className={estilos.voltar}
               onClick={() => abrir(null)}
             >
-              <IconeVoltar tamanho={18} />
+              <IconeVoltar tamanho={20} />
               Funcionalidades
             </Botao>
             <FuncionalidadeListas familiaId={familiaId} />
