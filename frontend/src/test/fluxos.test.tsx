@@ -176,20 +176,20 @@ describe('comprar', () => {
     );
   });
 
-  it('com preço total, o subtotal é o valor informado (a quantidade só informa)', async () => {
+  it('por kg, informa o peso e o preço total pago por ele', async () => {
     const { estado, chamadas } = criarApiFalsa();
     estado.itens.push(novoItem({ id: 1, nome: 'Banana', quantidadePlanejada: '1 kg' }));
     const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
     await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Banana' }));
     const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
-    // Item pesado ("1 kg") já sugere preço total, o valor da etiqueta da balança
-    expect(within(dialogo).getByRole('button', { name: 'Total' })).toHaveAttribute(
+    // Item pesado ("1 kg") já abre em "Por kg", com o peso sugerido
+    expect(within(dialogo).getByRole('button', { name: 'Por kg' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await usuario.clear(within(dialogo).getByLabelText('Quantidade'));
-    await usuario.type(within(dialogo).getByLabelText('Quantidade'), '1,25');
+    await usuario.clear(within(dialogo).getByLabelText('Peso (kg)'));
+    await usuario.type(within(dialogo).getByLabelText('Peso (kg)'), '1,25');
     await usuario.type(within(dialogo).getByLabelText('Preço total (R$)'), '8,63');
     expect(within(dialogo).getByText(/8,63/, { selector: 'strong' })).toBeInTheDocument();
     await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
@@ -199,7 +199,7 @@ describe('comprar', () => {
     expect(chamadas).toContainEqual(
       expect.objectContaining({
         metodo: 'PUT',
-        corpo: { tipoPreco: 'TOTAL', quantidadePega: 1.25, preco: 8.63 },
+        corpo: { tipoPreco: 'KG', quantidadePega: 1.25, preco: 8.63 },
       }),
     );
   });

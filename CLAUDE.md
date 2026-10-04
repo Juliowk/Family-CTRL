@@ -120,7 +120,7 @@ Ao final:
 
 ### Itens
 - Planejar (aba própria): nome, categoria (obrigatória) e quantidade desejada (opcional); editar e remover
-- Comprar (aba própria): checkbox abre formulário (quantidade pega, preço por unidade ou preço total, marca; tudo opcional) e marca ao confirmar
+- Comprar (aba própria): checkbox abre formulário (quantidade pega, por unidade: quantidade e preço da unidade; por kg: peso e preço total pago; marca; tudo opcional) e marca ao confirmar
 - Item pego vai para o fim da sua categoria, com destaque simples além do check
 - Itens não planejados podem ser adicionados durante a compra
 - Total parcial calculado ao vivo; "Desmarcar todos" (com confirmação) apaga quantidades, preços e marcas

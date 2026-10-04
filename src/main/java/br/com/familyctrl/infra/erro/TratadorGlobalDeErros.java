@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -71,6 +72,18 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
 			.toList();
 		problema.setProperty("erros", erros);
 		return ResponseEntity.badRequest().body(problema);
+	}
+
+	/**
+	 * Corpo que não dá para ler (JSON malformado, valor fora do esperado, como um tipo de preço
+	 * desconhecido). A mensagem padrão do Spring ("Failed to read request") é técnica e em inglês.
+	 */
+	@Override
+	protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		return ResponseEntity.badRequest()
+			.body(problema(HttpStatus.BAD_REQUEST, "Dados inválidos",
+					"Não foi possível ler os dados enviados. Verifique os valores informados."));
 	}
 
 	private static ProblemDetail problema(HttpStatus status, String titulo, String detalhe) {

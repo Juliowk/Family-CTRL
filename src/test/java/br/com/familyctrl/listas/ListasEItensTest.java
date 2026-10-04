@@ -110,14 +110,14 @@ class ListasEItensTest extends IntegracaoTest {
 	}
 
 	@Test
-	void pegaComPrecoTotalEItemSemPrecoFicaSemSubtotal() throws Exception {
+	void pegaPorKgComPrecoTotalEItemSemPrecoFicaSemSubtotal() throws Exception {
 		long listaId = criarLista("Feira");
 		long banana = adicionarItem(listaId, "Banana");
 		long alface = adicionarItem(listaId, "Alface");
 
 		mvc.perform(como(ana, put("/api/itens/" + banana + "/pego"))
-			.content("{\"quantidadePega\":1.25,\"tipoPreco\":\"TOTAL\",\"preco\":8.63}"))
-			.andExpect(jsonPath("$.tipoPreco").value("TOTAL"))
+			.content("{\"quantidadePega\":1.25,\"tipoPreco\":\"KG\",\"preco\":8.63}"))
+			.andExpect(jsonPath("$.tipoPreco").value("KG"))
 			.andExpect(jsonPath("$.subtotal").value(8.63));
 
 		// Sem preço: valor só será conhecido no caixa
@@ -260,6 +260,10 @@ class ListasEItensTest extends IntegracaoTest {
 		mvc.perform(como(ana, put("/api/itens/" + item + "/pego")).content("{\"preco\":-1,\"quantidadePega\":0}"))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.erros", hasSize(2)));
+		// Tipo de preço desconhecido: 400 com mensagem em português (não "Failed to read request")
+		mvc.perform(como(ana, put("/api/itens/" + item + "/pego")).content("{\"tipoPreco\":\"LITRO\"}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value("Não foi possível ler os dados enviados. Verifique os valores informados."));
 	}
 
 }

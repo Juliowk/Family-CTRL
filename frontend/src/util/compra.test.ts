@@ -48,9 +48,11 @@ describe('subtotal', () => {
     expect(subtotal('UNIDADE', 7.88, 4)).toBe(31.52);
     expect(subtotal('UNIDADE', 3.9, null)).toBe(3.9);
     expect(subtotal('UNIDADE', 6.9, 1.255)).toBe(8.66);
-    expect(subtotal('TOTAL', 8.63, 1.25)).toBe(8.63);
-    expect(subtotal('TOTAL', 8.63, null)).toBe(8.63);
-    expect(subtotal('TOTAL', null, 2)).toBeUndefined();
+    // Por kg o preço é o total pago pelo peso: 1 kg por R$ 50,00 = R$ 50,00
+    expect(subtotal('KG', 50, 1)).toBe(50);
+    expect(subtotal('KG', 8.63, 1.25)).toBe(8.63);
+    expect(subtotal('KG', 8.63, null)).toBe(8.63);
+    expect(subtotal('KG', null, 2)).toBeUndefined();
     expect(subtotal('UNIDADE', null, 2)).toBeUndefined();
   });
 });
@@ -68,8 +70,8 @@ describe('totalDaCompra', () => {
 
 describe('sugestaoDaQuantidade', () => {
   it('extrai número e tipo da quantidade planejada', () => {
-    expect(sugestaoDaQuantidade('2 kg')).toEqual({ quantidade: 2, tipo: 'TOTAL' });
-    expect(sugestaoDaQuantidade('500 g')).toEqual({ quantidade: 500, tipo: 'TOTAL' });
+    expect(sugestaoDaQuantidade('2 kg')).toEqual({ quantidade: 2, tipo: 'KG' });
+    expect(sugestaoDaQuantidade('500 g')).toEqual({ quantidade: 0.5, tipo: 'KG' });
     expect(sugestaoDaQuantidade('6 un')).toEqual({ quantidade: 6, tipo: undefined });
     expect(sugestaoDaQuantidade('bastante')).toEqual({ quantidade: undefined, tipo: undefined });
   });

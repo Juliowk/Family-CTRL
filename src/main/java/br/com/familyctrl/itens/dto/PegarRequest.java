@@ -11,7 +11,7 @@ import br.com.familyctrl.itens.TipoPreco;
 /**
  * Marcar um item como pego (ou corrigir os valores de um item já pego). Tudo é opcional: o preço
  * de frutas e verduras, por exemplo, muitas vezes só é conhecido no caixa. Sem tipo, vale
- * "por unidade"; com {@code TOTAL}, o preço é o valor total do item.
+ * "por unidade"; com {@code KG}, a quantidade é o peso e o preço é o total pago por ele.
  */
 public record PegarRequest(
 		@DecimalMin(value = "0.001", message = "A quantidade deve ser maior que zero.") @Digits(integer = 7,

@@ -28,15 +28,18 @@ class ValoresTest {
 	}
 
 	@Test
-	void precoTotalIgnoraAQuantidade() {
-		assertThat(Valores.subtotal(TipoPreco.TOTAL, new BigDecimal("8.63"), new BigDecimal("1.25")))
+	void porKgOPrecoEOTotalPagoPeloPeso() {
+		// 1 kg por R$ 50,00: o subtotal é R$ 50,00, o peso é só informativo
+		assertThat(Valores.subtotal(TipoPreco.KG, new BigDecimal("50.00"), new BigDecimal("1")))
+			.isEqualByComparingTo("50.00");
+		assertThat(Valores.subtotal(TipoPreco.KG, new BigDecimal("8.63"), new BigDecimal("1.25")))
 			.isEqualByComparingTo("8.63");
-		assertThat(Valores.subtotal(TipoPreco.TOTAL, new BigDecimal("8.63"), null)).isEqualByComparingTo("8.63");
+		assertThat(Valores.subtotal(TipoPreco.KG, new BigDecimal("8.63"), null)).isEqualByComparingTo("8.63");
 	}
 
 	@Test
 	void semPrecoNaoTemSubtotal() {
-		assertThat(Valores.subtotal(TipoPreco.TOTAL, null, BigDecimal.TEN)).isNull();
+		assertThat(Valores.subtotal(TipoPreco.KG, null, BigDecimal.TEN)).isNull();
 		assertThat(Valores.subtotal(TipoPreco.UNIDADE, null, BigDecimal.TEN)).isNull();
 	}
 

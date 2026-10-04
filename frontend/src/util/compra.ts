@@ -37,7 +37,7 @@ export const paraCampo = (valor: number | null | undefined) =>
 
 /**
  * Subtotal de um item pego (mesma regra do backend, em Valores.java).
- * Sem preço: undefined (valor descoberto no caixa). Preço total: o próprio preço.
+ * Sem preço: undefined (valor descoberto no caixa). Por kg: o preço já é o total pago pelo peso.
  * Por unidade: preço × quantidade; sem quantidade, conta 1.
  */
 export function subtotal(
@@ -46,7 +46,7 @@ export function subtotal(
   quantidade: number | null | undefined,
 ): number | undefined {
   if (preco === null || preco === undefined) return undefined;
-  if (tipo === 'TOTAL') return Math.round(preco * 100) / 100;
+  if (tipo === 'KG') return Math.round(preco * 100) / 100;
   const qtd = quantidade ?? 1;
   // Em inteiros (centavos × milésimos) para não sofrer com o arredondamento do ponto flutuante:
   // 6,90 × 1,255 tem de dar 8,66, como no BigDecimal do backend
@@ -57,7 +57,7 @@ export function subtotal(
 
 /**
  * Detalhe de um item pego para as listas: "4 un · R$ 7,88/un · Pullman" (por unidade) ou
- * "Qtd. 1,25 · Marca" (preço total: o valor já aparece ao lado, como subtotal).
+ * "1,25 kg · Marca" (por kg: o total pago já aparece ao lado, como subtotal).
  */
 export function descreverPego(item: {
   tipoPreco: TipoPreco;
@@ -69,7 +69,7 @@ export function descreverPego(item: {
   const porUnidade = item.tipoPreco === 'UNIDADE';
   if (item.quantidadePega !== null) {
     const qtd = formatarDecimal(item.quantidadePega);
-    partes.push(porUnidade ? `${qtd} un` : `Qtd. ${qtd}`);
+    partes.push(`${qtd} ${porUnidade ? 'un' : 'kg'}`);
   }
   if (porUnidade && item.preco !== null) partes.push(`${formatarDinheiro(item.preco)}/un`);
   if (item.marca) partes.push(item.marca);
@@ -90,8 +90,8 @@ export function totalDaCompra(itens: Item[]) {
 }
 
 /**
- * Sugestão para o formulário de pegar a partir da quantidade planejada ("6 un" → 6). Itens
- * pesados ("2 kg", "500 g") sugerem preço total, que é o que vem na etiqueta da balança.
+ * Sugestão para o formulário de pegar a partir da quantidade planejada: "6 un" → 6 por unidade;
+ * "2 kg" → 2 kg; "500 g" → 0,5 kg. Texto sem número → nada.
  */
 export function sugestaoDaQuantidade(planejada: string | null): {
   quantidade?: number;
@@ -99,10 +99,12 @@ export function sugestaoDaQuantidade(planejada: string | null): {
 } {
   if (!planejada) return {};
   const numero = planejada.match(/\d+(?:[.,]\d+)?/);
-  const tipo: TipoPreco | undefined = /\d\s*(kg|g)\b|quilo|grama/i.test(planejada)
-    ? 'TOTAL'
-    : undefined;
-  return { quantidade: numero ? lerDecimal(numero[0]) : undefined, tipo };
+  const valor = numero ? lerDecimal(numero[0]) : undefined;
+  if (/\d\s*(kg|quilos?)\b/i.test(planejada)) return { quantidade: valor, tipo: 'KG' };
+  if (/\d\s*(g|gramas?)\b/i.test(planejada)) {
+    return { quantidade: valor !== undefined ? valor / 1000 : undefined, tipo: 'KG' };
+  }
+  return { quantidade: valor, tipo: undefined };
 }
 
 export interface Grupo {

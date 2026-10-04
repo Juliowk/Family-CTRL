@@ -13,7 +13,7 @@ public final class Valores {
 	 * Subtotal de um item pego, arredondado a centavos.
 	 * <ul>
 	 * <li>Sem preço: {@code null} (o valor só é conhecido no caixa: entra como "valor variável").</li>
-	 * <li>Preço total: o próprio preço (a quantidade é só informativa).</li>
+	 * <li>Por kg: o preço já é o total pago pelo peso (o peso é só informativo).</li>
 	 * <li>Por unidade: preço × quantidade; sem quantidade, conta 1 unidade.</li>
 	 * </ul>
 	 */
@@ -21,7 +21,7 @@ public final class Valores {
 		if (preco == null) {
 			return null;
 		}
-		if (tipo == TipoPreco.TOTAL) {
+		if (tipo == TipoPreco.KG) {
 			return preco.setScale(2, RoundingMode.HALF_UP);
 		}
 		BigDecimal qtd = quantidade != null ? quantidade : BigDecimal.ONE;

@@ -79,7 +79,7 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
     salvar.mutate();
   }
 
-  const total = tipo === 'TOTAL';
+  const porKg = tipo === 'KG';
   const titulo = item?.nome ?? 'Item não planejado';
 
   return (
@@ -118,17 +118,17 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
             aoMudar={setTipo}
             opcoes={[
               { valor: 'UNIDADE', rotulo: 'Por unidade' },
-              { valor: 'TOTAL', rotulo: 'Total' },
+              { valor: 'KG', rotulo: 'Por kg' },
             ]}
           />
         </div>
 
         <div className={estilos.duasColunas}>
           <Campo
-            rotulo="Quantidade"
+            rotulo={porKg ? 'Peso (kg)' : 'Quantidade'}
             inputMode="decimal"
             autoComplete="off"
-            placeholder={total ? 'Ex.: 1,250' : 'Ex.: 2'}
+            placeholder={porKg ? 'Ex.: 1,250' : 'Ex.: 2'}
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value)}
             erro={
@@ -138,7 +138,7 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
             }
           />
           <Campo
-            rotulo={total ? 'Preço total (R$)' : 'Preço da unidade (R$)'}
+            rotulo={porKg ? 'Preço total (R$)' : 'Preço da unidade (R$)'}
             inputMode="decimal"
             autoComplete="off"
             placeholder="Ex.: 7,88"
