@@ -14,11 +14,25 @@ import { Modal } from '../components/Modal';
 import { SeletorCategoria } from '../components/SeletorCategoria';
 import { SeletorMedida } from '../components/SeletorMedida';
 import { agruparPorCategoria, rotuloMedida } from '../util/compra';
-import { apagarItem, gravarItem, invalidarResumoDasListas } from './cacheLista';
+import {
+  antesDeAlterar,
+  apagarItem,
+  depoisDeAlterar,
+  ehDesatualizado,
+  gravarItem,
+  mensagemDesatualizado,
+} from './cacheLista';
 import estilos from './ListaPagina.module.css';
 
 /** Aba Planejar: cadastrar o que comprar, com categoria, medida e quantidade desejada. */
-export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
+export function ListaPlanejar({
+  lista,
+  aoDesatualizado,
+}: {
+  lista: ListaDetalhe;
+  /** Alteração recusada porque outra pessoa mudou ou removeu o item antes. */
+  aoDesatualizado: (mensagem: string) => void;
+}) {
   const [editando, setEditando] = useState<Item | null>(null);
   const grupos = agruparPorCategoria(lista.categorias, lista.itens, 'planejar');
 
@@ -59,7 +73,7 @@ export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
                       aria-label={`Editar ${item.nome}`}
                       onClick={() => setEditando(item)}
                     >
-                      <IconeEditar tamanho={18} />
+                      <IconeEditar tamanho={20} />
                     </button>
                   </li>
                 ))}
@@ -81,6 +95,7 @@ export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
           item={editando}
           categorias={lista.categorias}
           aoFechar={() => setEditando(null)}
+          aoDesatualizado={aoDesatualizado}
         />
       )}
     </>
@@ -108,9 +123,10 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
         quantidadePlanejada: quantidade.trim() || undefined,
         medida: medidaEscolhida,
       }),
+    onMutate: () => antesDeAlterar(queryClient, lista.id),
+    onSettled: () => depoisDeAlterar(queryClient, lista.id),
     onSuccess: (item) => {
       gravarItem(queryClient, item);
-      invalidarResumoDasListas(queryClient);
       setNome('');
       setQuantidade('');
       setMedida(null);
@@ -175,7 +191,7 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
           carregando={adicionar.isPending}
           disabled={!nome.trim()}
         >
-          <IconeMais tamanho={18} />
+          <IconeMais tamanho={20} />
           Adicionar
         </Botao>
       </form>
@@ -187,10 +203,12 @@ function ModalEditarItem({
   item,
   categorias,
   aoFechar,
+  aoDesatualizado,
 }: {
   item: Item;
   categorias: Categoria[];
   aoFechar: () => void;
+  aoDesatualizado: (mensagem: string) => void;
 }) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState(item.nome);
@@ -199,27 +217,39 @@ function ModalEditarItem({
   const [medida, setMedida] = useState<TipoPreco>(item.medida);
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
 
+  /** Outra pessoa alterou ou removeu o item depois que o formulário abriu: nada foi gravado. */
+  function aoErro(erro: unknown) {
+    if (!ehDesatualizado(erro)) return;
+    aoFechar();
+    aoDesatualizado(mensagemDesatualizado(erro));
+  }
+
   // String vazia apaga a quantidade desejada no backend
   const salvar = useMutation({
     mutationFn: () =>
-      itensApi.atualizar(item.id, {
+      itensApi.atualizar(item.id, item.versao, {
         nome: nome.trim(),
         categoriaId,
         quantidadePlanejada: quantidade.trim(),
         medida,
       }),
+    onMutate: () => antesDeAlterar(queryClient, item.listaId),
     onSuccess: (atualizado) => {
       gravarItem(queryClient, atualizado);
       aoFechar();
     },
+    onError: aoErro,
+    onSettled: () => depoisDeAlterar(queryClient, item.listaId),
   });
   const remover = useMutation({
-    mutationFn: () => itensApi.remover(item.id),
+    mutationFn: () => itensApi.remover(item.id, item.versao),
+    onMutate: () => antesDeAlterar(queryClient, item.listaId),
     onSuccess: () => {
       apagarItem(queryClient, item.listaId, item.id);
-      invalidarResumoDasListas(queryClient);
       aoFechar();
     },
+    onError: aoErro,
+    onSettled: () => depoisDeAlterar(queryClient, item.listaId),
   });
   const erro = salvar.error instanceof ApiError ? salvar.error : undefined;
   const erroGeral = (salvar.error ?? remover.error) as unknown;

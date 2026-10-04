@@ -18,7 +18,13 @@ import {
   subtotal,
   totalDaCompra,
 } from '../util/compra';
-import { gravarItem, invalidarResumoDasListas } from './cacheLista';
+import {
+  antesDeAlterar,
+  depoisDeAlterar,
+  ehDesatualizado,
+  gravarItem,
+  mensagemDesatualizado,
+} from './cacheLista';
 import estilos from './ListaPagina.module.css';
 import { ModalPegar } from './ModalPegar';
 
@@ -26,25 +32,31 @@ import { ModalPegar } from './ModalPegar';
 type Formulario = { item: Item } | { extra: true } | null;
 
 /** Aba Comprar: no mercado, marcar o que foi pego e acompanhar o total. */
-export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
+export function ListaComprar({
+  lista,
+  aoDesatualizado,
+}: {
+  lista: ListaDetalhe;
+  /** Alteração recusada porque outra pessoa mudou o item ou a lista antes. */
+  aoDesatualizado: (mensagem: string) => void;
+}) {
   const queryClient = useQueryClient();
   const navegar = useNavigate();
   const [formulario, setFormulario] = useState<Formulario>(null);
   const [confirmandoDesmarcar, setConfirmandoDesmarcar] = useState(false);
   const [erroDesmarcar, setErroDesmarcar] = useState<string>();
 
-  const chaveLista = chaves.lista(lista.id);
   const grupos = agruparPorCategoria(lista.categorias, lista.itens, 'comprar');
   const pegos = lista.itens.filter((i) => i.pego).length;
   const { total, semValor } = totalDaCompra(lista.itens);
 
   /** Desmarcar um item: otimista (a tela muda na hora; se a API falhar, volta). */
   const desmarcar = useMutation({
-    mutationFn: (item: Item) => itensApi.desmarcar(item.id),
+    mutationFn: (item: Item) => itensApi.desmarcar(item.id, item.versao),
     onMutate: async (item) => {
       setErroDesmarcar(undefined);
-      await queryClient.cancelQueries({ queryKey: chaveLista });
-      const anterior = queryClient.getQueryData<ListaDetalhe>(chaveLista);
+      await antesDeAlterar(queryClient, lista.id);
+      const anterior = queryClient.getQueryData<ListaDetalhe>(chaves.lista(lista.id));
       gravarItem(queryClient, {
         ...item,
         pego: false,
@@ -58,23 +70,26 @@ export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
       });
       return { anterior };
     },
-    onError: (_erro, _item, contexto) => {
-      if (contexto?.anterior) queryClient.setQueryData(chaveLista, contexto.anterior);
-      setErroDesmarcar('Não foi possível desmarcar o item. Tente de novo.');
+    onError: (erro, _item, contexto) => {
+      if (contexto?.anterior) queryClient.setQueryData(chaves.lista(lista.id), contexto.anterior);
+      if (ehDesatualizado(erro)) aoDesatualizado(mensagemDesatualizado(erro));
+      else setErroDesmarcar('Não foi possível desmarcar o item. Tente de novo.');
     },
-    onSuccess: (salvo) => {
-      gravarItem(queryClient, salvo);
-      invalidarResumoDasListas(queryClient);
-    },
+    onSuccess: (salvo) => gravarItem(queryClient, salvo),
+    onSettled: () => depoisDeAlterar(queryClient, lista.id),
   });
 
+  // Com a versão da lista: se alguém marcou algo depois que a tela mostrou a contagem, é recusado
   const desmarcarTodos = useMutation({
-    mutationFn: () => itensApi.desmarcarTodos(lista.id),
-    onSuccess: () => {
+    mutationFn: () => itensApi.desmarcarTodos(lista.id, lista.versao),
+    onMutate: () => antesDeAlterar(queryClient, lista.id),
+    onSuccess: () => setConfirmandoDesmarcar(false),
+    onError: (erro) => {
+      if (!ehDesatualizado(erro)) return;
       setConfirmandoDesmarcar(false);
-      void queryClient.invalidateQueries({ queryKey: chaveLista });
-      invalidarResumoDasListas(queryClient);
+      aoDesatualizado(erro.message);
     },
+    onSettled: () => depoisDeAlterar(queryClient, lista.id),
   });
 
   if (lista.itens.length === 0) {
@@ -88,7 +103,7 @@ export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
           Planeje os itens em casa ou adicione no mercado o que encontrar.
         </EstadoVazio>
         <Botao className={estilos.botaoExtraSozinho} onClick={() => setFormulario({ extra: true })}>
-          <IconeMais tamanho={18} />
+          <IconeMais tamanho={20} />
           Item não planejado
         </Botao>
         {formulario && (
@@ -96,6 +111,7 @@ export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
             listaId={lista.id}
             categorias={lista.categorias}
             aoFechar={() => setFormulario(null)}
+            aoDesatualizado={aoDesatualizado}
           />
         )}
       </>
@@ -106,7 +122,7 @@ export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
     <>
       <div className={estilos.ferramentas}>
         <Botao pequeno onClick={() => setFormulario({ extra: true })}>
-          <IconeMais tamanho={18} />
+          <IconeMais tamanho={20} />
           Item não planejado
         </Botao>
         <Botao
@@ -176,6 +192,7 @@ export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
           categorias={lista.categorias}
           item={'item' in formulario ? formulario.item : undefined}
           aoFechar={() => setFormulario(null)}
+          aoDesatualizado={aoDesatualizado}
         />
       )}
 

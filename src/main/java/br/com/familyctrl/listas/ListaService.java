@@ -73,7 +73,7 @@ public class ListaService {
 	public ListaDetalhe detalhar(Long listaId, Long usuarioId) {
 		Lista lista = buscar(listaId, usuarioId);
 		return new ListaDetalhe(lista.getId(), lista.getFamiliaId(), lista.getNome(), lista.getCriadaEm(),
-				categoriaService.listarDaFamilia(lista.getFamiliaId()), itemService.listarDaLista(listaId));
+				lista.getVersao(), categoriaService.listarDaFamilia(lista.getFamiliaId()), itemService.listarDaLista(listaId));
 	}
 
 	public ListaResponse renomear(Long listaId, Long usuarioId, String nome) {

@@ -16,6 +16,8 @@ import jakarta.validation.constraints.Size;
  *
  * @param valorVariavel valor dos itens sem preço, descoberto no caixa (0 se não houver)
  * @param extrasMantidos ids dos itens não planejados que passam a fazer parte da lista
+ * @param versaoLista versão da lista que a tela mostrou ao calcular os valores; se outra pessoa
+ * alterou a lista depois disso, a compra não é finalizada (409). Nula: não verifica.
  */
 public record FinalizarRequest(
 		@NotBlank(message = "Informe o mercado.") @Size(max = 100,
@@ -25,5 +27,5 @@ public record FinalizarRequest(
 		@NotNull(message = "Informe o valor dos itens sem preço (0 se não houver).") @DecimalMin(value = "0.00",
 				message = "O valor não pode ser negativo.") @Digits(integer = 8, fraction = 2,
 						message = "Valor inválido.") BigDecimal valorVariavel,
-		List<Long> extrasMantidos) {
+		List<Long> extrasMantidos, Long versaoLista) {
 }

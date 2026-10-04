@@ -2,6 +2,7 @@ package br.com.familyctrl.itens;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,6 +12,10 @@ interface ItemRepository extends JpaRepository<Item, Long> {
 
 	/** Na ordem em que foram adicionados; o agrupamento por categoria é feito na tela. */
 	List<Item> findByListaIdOrderByCriadoEmAscIdAsc(Long listaId);
+
+	/** Só a lista do item, sem carregar a entidade (ela é lida depois de travar a lista). */
+	@Query("select i.listaId from Item i where i.id = :id")
+	Optional<Long> findListaIdById(Long id);
 
 	@Query("""
 			select i.listaId as listaId,

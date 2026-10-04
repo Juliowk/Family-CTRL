@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -57,6 +58,16 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	ProblemDetail integridade(DataIntegrityViolationException ex) {
 		return problema(HttpStatus.CONFLICT, "Conflito", "A operação conflita com dados existentes.");
+	}
+
+	/**
+	 * Rede de segurança do controle de versão dos itens: duas alterações no mesmo item ao mesmo
+	 * tempo. Normalmente a trava da lista já evita isso; se acontecer, a segunda é recusada.
+	 */
+	@ExceptionHandler(OptimisticLockingFailureException.class)
+	ProblemDetail versaoDesatualizada(OptimisticLockingFailureException ex) {
+		return problema(HttpStatus.CONFLICT, "Conflito",
+				"Outra pessoa alterou estes dados agora há pouco. Confira os valores atualizados e tente de novo.");
 	}
 
 	/** Erros do Bean Validation (@Valid): devolve a lista de erros campo a campo. */

@@ -34,9 +34,11 @@ export function FuncionalidadeListas({ familiaId }: { familiaId: number }) {
   const visao: Visao = parametros.get('ver') === 'concluidas' ? 'concluidas' : 'listas';
   const [nome, setNome] = useState('');
 
+  // Atualiza sozinho o progresso ("em andamento") quando outra pessoa está comprando
   const listas = useQuery({
     queryKey: chaves.listas(familiaId),
     queryFn: () => listasApi.listar(familiaId),
+    refetchInterval: 10_000,
   });
 
   const criar = useMutation({

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import br.com.familyctrl.auth.UsuarioService;
 import br.com.familyctrl.auth.dto.UsuarioResponse;
 import br.com.familyctrl.categorias.CategoriaExcluida;
 import br.com.familyctrl.categorias.CategoriaService;
+import br.com.familyctrl.infra.erro.ConflitoException;
 import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
 import br.com.familyctrl.infra.erro.ValidacaoException;
 import br.com.familyctrl.itens.dto.AtualizarItemRequest;
@@ -31,14 +33,20 @@ import br.com.familyctrl.listas.ListaAcesso;
  * Regras dos itens: planejamento (nome, categoria, quantidade desejada) e compra em andamento
  * (pegar, desmarcar, itens não planejados). Toda operação verifica, via {@link ListaAcesso}, se o
  * usuário é membro da família dona da lista. Sem acesso, a resposta é 404.
+ *
+ * <p>Várias pessoas podem usar a mesma lista ao mesmo tempo, cada uma no seu aparelho. Por isso toda
+ * alteração (1) trava a lista até o fim da transação ({@link ListaAcesso#travarParaAlterar}), para as
+ * alterações serem aplicadas uma de cada vez, e (2) quando a tela informa a versão do item que está
+ * mostrando, recusa com 409 se outra pessoa já o alterou: ninguém sobrescreve sem ter visto.
  */
 @Service
 @Transactional
 public class ItemService {
 
-	private static final String LISTA_NAO_ENCONTRADA = "Lista não encontrada.";
-
 	private static final String ITEM_NAO_ENCONTRADO = "Item não encontrado.";
+
+	private static final String ITEM_MUDOU = "Outra pessoa alterou este item agora há pouco. Os valores na tela "
+			+ "foram atualizados; confira e tente de novo.";
 
 	private final ItemRepository itens;
 
@@ -80,7 +88,7 @@ public class ItemService {
 	// ------------------------------------------------------------------ planejamento
 
 	public ItemResponse adicionar(Long listaId, Long usuarioId, ItemRequest request) {
-		Long familiaId = familiaDaLista(listaId, usuarioId);
+		Long familiaId = listaAcesso.travarParaAlterar(listaId, usuarioId, null);
 		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
 		Item item = itens.save(new Item(listaId, request.categoriaId(), request.nome().trim(),
 				vazioParaNulo(request.quantidadePlanejada()), request.medida(), false, usuarioId));
@@ -106,45 +114,46 @@ public class ItemService {
 	}
 
 	public ItemResponse atualizar(Long itemId, Long usuarioId, AtualizarItemRequest request) {
-		Item item = buscarItem(itemId, usuarioId);
 		if (request.nome() != null && request.nome().isBlank()) {
 			throw new ValidacaoException("nome", "Informe o nome do item.");
 		}
+		ItemTravado travado = travarItem(itemId, usuarioId, request.versao());
+		Item item = travado.item();
 		if (request.categoriaId() != null) {
-			categoriaService.verificarDaFamilia(request.categoriaId(), familiaDaLista(item.getListaId(), usuarioId));
+			categoriaService.verificarDaFamilia(request.categoriaId(), travado.familiaId());
 		}
 		item.editarPlanejamento(request.nome() != null ? request.nome().trim() : item.getNome(),
 				request.categoriaId() != null ? request.categoriaId() : item.getCategoriaId(),
 				request.quantidadePlanejada() != null ? vazioParaNulo(request.quantidadePlanejada())
 						: item.getQuantidadePlanejada(),
 				request.medida() != null ? request.medida() : item.getMedida());
-		return paraResponse(item);
+		return gravado(item);
 	}
 
-	public void remover(Long itemId, Long usuarioId) {
-		itens.delete(buscarItem(itemId, usuarioId));
+	public void remover(Long itemId, Long usuarioId, @Nullable Long versao) {
+		itens.delete(travarItem(itemId, usuarioId, versao).item());
 	}
 
 	// ------------------------------------------------------------------ compra em andamento
 
 	/** Marca como pego com quantidade, preço e marca (todos opcionais), ou corrige esses valores. */
 	public ItemResponse pegar(Long itemId, Long usuarioId, PegarRequest request) {
-		Item item = buscarItem(itemId, usuarioId);
+		Item item = travarItem(itemId, usuarioId, request.versao()).item();
 		item.pegar(request.quantidadePega(), tipoOuPadrao(request.tipoPreco()), request.preco(),
 				vazioParaNulo(request.marca()), usuarioId);
-		return paraResponse(item);
+		return gravado(item);
 	}
 
 	/** Desmarca e apaga quantidade, preço e marca. */
-	public ItemResponse desmarcar(Long itemId, Long usuarioId) {
-		Item item = buscarItem(itemId, usuarioId);
+	public ItemResponse desmarcar(Long itemId, Long usuarioId, @Nullable Long versao) {
+		Item item = travarItem(itemId, usuarioId, versao).item();
 		item.desmarcar();
-		return paraResponse(item);
+		return gravado(item);
 	}
 
 	/** Item não planejado encontrado no mercado: entra na categoria escolhida já como pego. */
 	public ItemResponse adicionarExtra(Long listaId, Long usuarioId, ExtraRequest request) {
-		Long familiaId = familiaDaLista(listaId, usuarioId);
+		Long familiaId = listaAcesso.travarParaAlterar(listaId, usuarioId, null);
 		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
 		Item item = new Item(listaId, request.categoriaId(), request.nome().trim(), null,
 				tipoOuPadrao(request.tipoPreco()), true, usuarioId);
@@ -153,16 +162,19 @@ public class ItemService {
 		return paraResponse(itens.save(item));
 	}
 
-	/** Desmarca todos os itens da lista, apagando quantidades, preços e marcas. */
-	public void desmarcarTodos(Long listaId, Long usuarioId) {
-		familiaDaLista(listaId, usuarioId);
+	/**
+	 * Desmarca todos os itens da lista, apagando quantidades, preços e marcas. Com
+	 * {@code versaoLista}, recusa (409) se alguém alterou a lista depois que a tela foi carregada.
+	 */
+	public void desmarcarTodos(Long listaId, Long usuarioId, @Nullable Long versaoLista) {
+		listaAcesso.travarParaAlterar(listaId, usuarioId, versaoLista);
 		itens.findByListaIdOrderByCriadoEmAscIdAsc(listaId).stream().filter(Item::isPego).forEach(Item::desmarcar);
 	}
 
 	/**
 	 * Depois de finalizar a compra: a lista volta zerada. Itens não planejados ficam na lista só se
 	 * estiverem em {@code extrasMantidos} (aí passam a ser planejados); os demais são removidos.
-	 * Uso interno do módulo de compras, que já verificou o acesso.
+	 * Uso interno do módulo de compras, que já verificou o acesso e travou a lista.
 	 */
 	public void zerarAposCompra(Long listaId, Set<Long> extrasMantidos) {
 		for (Item item : itens.findByListaIdOrderByCriadoEmAscIdAsc(listaId)) {
@@ -185,15 +197,37 @@ public class ItemService {
 
 	// ---------------------------------------------------------------------------------------------
 
-	private Long familiaDaLista(Long listaId, Long usuarioId) {
-		return listaAcesso.familiaDaLista(listaId, usuarioId)
-			.orElseThrow(() -> new RecursoNaoEncontradoException(LISTA_NAO_ENCONTRADA));
+	/**
+	 * Trava a lista do item e só então lê o item: assim ele vem com os valores mais recentes, mesmo
+	 * que outra pessoa tenha acabado de alterá-lo. Com {@code versaoEsperada} diferente da atual,
+	 * responde 409.
+	 */
+	private ItemTravado travarItem(Long itemId, Long usuarioId, @Nullable Long versaoEsperada) {
+		Long listaId = itens.findListaIdById(itemId)
+			.orElseThrow(() -> new RecursoNaoEncontradoException(ITEM_NAO_ENCONTRADO));
+		Long familiaId;
+		try {
+			familiaId = listaAcesso.travarParaAlterar(listaId, usuarioId, null);
+		}
+		catch (RecursoNaoEncontradoException e) {
+			throw new RecursoNaoEncontradoException(ITEM_NAO_ENCONTRADO);
+		}
+		// Pode ter sido removido por outra pessoa enquanto esperávamos a trava
+		Item item = itens.findById(itemId)
+			.orElseThrow(() -> new RecursoNaoEncontradoException(ITEM_NAO_ENCONTRADO));
+		if (versaoEsperada != null && versaoEsperada != item.getVersao()) {
+			throw new ConflitoException(ITEM_MUDOU);
+		}
+		return new ItemTravado(item, familiaId);
 	}
 
-	private Item buscarItem(Long itemId, Long usuarioId) {
-		return itens.findById(itemId)
-			.filter(item -> listaAcesso.podeAcessar(item.getListaId(), usuarioId))
-			.orElseThrow(() -> new RecursoNaoEncontradoException(ITEM_NAO_ENCONTRADO));
+	private record ItemTravado(Item item, Long familiaId) {
+	}
+
+	/** Grava já (o Hibernate sobe a versão no UPDATE) para a resposta levar a versão nova. */
+	private ItemResponse gravado(Item item) {
+		itens.flush();
+		return paraResponse(item);
 	}
 
 	private static TipoPreco tipoOuPadrao(TipoPreco tipo) {
@@ -219,7 +253,7 @@ public class ItemService {
 			.map(i -> new ItemResponse(i.getId(), i.getListaId(), i.getCategoriaId(), i.getNome(),
 					i.getQuantidadePlanejada(), i.getMedida(), i.isPego(), i.getPegoEm(), pessoa(usuarios, i.getPegoPor()),
 					i.getQuantidadePega(), i.getTipoPreco(), i.getPreco(), i.subtotal(), i.getMarca(), i.isExtra(),
-					pessoa(usuarios, i.getAdicionadoPor()), i.getCriadoEm(), i.getAtualizadoEm()))
+					pessoa(usuarios, i.getAdicionadoPor()), i.getCriadoEm(), i.getAtualizadoEm(), i.getVersao()))
 			.toList();
 	}
 

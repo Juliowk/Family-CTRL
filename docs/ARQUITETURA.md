@@ -236,6 +236,45 @@ formulário já abre em "Por kg" com o peso em kg.
 **Indicadores do mês:** o mês vem da tela (`?mes=2026-10`) porque o servidor roda em UTC e o "mês
 atual" é o do usuário.
 
+## 4.2 Compra em vários aparelhos ao mesmo tempo
+
+Duas ou mais pessoas da família podem fazer a mesma compra, cada uma no seu celular, e todas veem
+os mesmos itens, quantidades e valores. A garantia tem três partes:
+
+1. **A tela acompanha o servidor.** A tela da lista e a de finalizar buscam a lista de novo a cada
+   3 segundos enquanto estão visíveis, ao voltar para o app e ao reconectar (`useLista.ts`). Se a
+   busca falha (sem sinal no mercado), a tela continua com os últimos dados e mostra o aviso
+   "sem conexão, os valores podem estar desatualizados". Os cards da família atualizam a cada
+   10 segundos.
+2. **Uma alteração por vez em cada lista.** Toda alteração em itens começa em
+   `ListaAcesso.travarParaAlterar`, que trava a linha da lista no banco (`SELECT ... FOR UPDATE`)
+   até o fim da transação. Duas pessoas marcando itens no mesmo instante são atendidas uma depois
+   da outra, e as duas alterações ficam gravadas.
+3. **Ninguém altera o que não viu (controle otimista de versão).** Cada item tem `versao`
+   (`@Version` do JPA) e cada lista tem `versao`, que sobe a cada alteração em qualquer item dela.
+   A tela envia a versão que está mostrando:
+   - ao pegar, corrigir, desmarcar, editar ou remover um item: se outra pessoa alterou o item
+     antes, a API responde **409** e nada é gravado. A tela fecha o formulário, busca a lista e
+     avisa "Outra pessoa alterou este item agora há pouco";
+   - ao **finalizar** e ao **desmarcar todos**: se a lista mudou depois de conferida, 409. Assim
+     o total gravado na compra é sempre o total que a pessoa estava vendo.
+
+**Por que buscar periodicamente (polling), e não WebSocket?** Tempo real com WebSocket está fora
+do escopo do MVP. Além disso, o dyno Eco dorme e reinicia, o que derruba as conexões abertas. A
+busca periódica não precisa de tecnologia nova, funciona em qualquer rede e custa pouco: uma
+requisição pequena a cada 3 s por aparelho, e só com a lista aberta. A consistência não depende
+dela: mesmo que uma tela esteja alguns segundos atrasada, o controle de versão impede gravar ou
+finalizar com base em dados velhos.
+
+**Por que trava pessimista *e* versão?** A trava ordena as gravações simultâneas no servidor. A
+versão protege contra o intervalo entre o que a pessoa viu e o momento em que ela confirma. São
+problemas diferentes: sem a versão, a segunda pessoa sobrescreveria o preço da primeira sem nunca
+tê-lo visto.
+
+**Detalhe do front:** enquanto uma alteração está em andamento, a busca periódica pausa e as
+buscas em curso são canceladas. Assim, uma resposta antiga não "desfaz" na tela o que acabou de
+ser alterado. Depois da alteração, a lista é buscada de novo para trazer a versão nova.
+
 ## 5. Autenticação com JWT
 
 ### Fluxo
@@ -367,40 +406,52 @@ para permitir revogação.
   `FUNCIONALIDADES` de `FamiliaInicio.tsx` e no tipo `Funcionalidade` de `rotasFamilia.ts`.
 - **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: alvos de
   toque de no mínimo 44 px; o checkbox de cada item tem 56 px de largura de toque.
-- **Design system** (detalhado abaixo): a linguagem visual e o padrão de cores seguem os da
-  EcomSmart (referência de produto SaaS).
+- **Design system** (detalhado abaixo): segue a identidade visual própria do Family Ctrl,
+  documentada em [`docs/marca.md`](marca.md) (cores, logo, ícones e regras de uso).
 
 ### Design system
 
-A referência foi usada pela **estrutura** (como as telas se organizam) e pelo **padrão de cores**
-(azul `#0A5BF0`, navy `#0B1033`, cinzas azulados). Logo, nome, textos e a fonte Figtree **não**
-foram copiados: a fonte continua a do sistema, sem dependência externa.
+A **estrutura** das telas (como se organizam) veio de uma referência de produto SaaS. A
+**identidade visual** é própria e está em [`docs/marca.md`](marca.md): símbolo da tecla ⌃
+(Control, que também é o telhado de uma casa) com três "pontos família", preto e cinzas neutros,
+roxo `#7C3AED` como cor de ação e lavanda `#A78BFA` como destaque no escuro.
 
-- **Tema claro por padrão, escuro por escolha.** O botão de sol/lua (topo, barra lateral e tela
-  Conta) grava a escolha no `localStorage` e coloca `data-theme="dark"` no `<html>`. O
-  `public/tema.js` aplica o tema salvo antes do React carregar, para quem usa o escuro não ver a
-  tela piscar em claro. Ele é um arquivo e não um `<script>` inline porque a CSP só permite
+- **Tema escuro por padrão, claro por escolha.** O escuro é a identidade da marca, por isso não
+  seguimos o `prefers-color-scheme` do sistema. O botão de sol/lua (topo, barra lateral e tela
+  Conta) grava a escolha do claro no `localStorage` e coloca `data-theme="light"` no `<html>`. O
+  `public/tema.js` aplica o tema salvo antes do React carregar, para quem usa o claro não ver a
+  tela piscar em escuro. Ele é um arquivo e não um `<script>` inline porque a CSP só permite
   scripts da própria origem.
-- **Contraste.** O verde e o âmbar da referência (`#16A34A`, `#D97706`) não atingem 4,5:1 sobre
-  branco; em texto usamos tons mais escuros (`#15803D`, `#B45309`). No tema escuro, links e estado
-  ativo usam o azul claro `#8DB0FF`.
-- **Tokens em duas camadas.** Primitivos (`--azul-600`, `--navy-900`...) são a paleta crua e o
-  único lugar com hexadecimal. Semânticos (`--cor-superficie`, `--cor-texto-secundario`...) dizem
-  o papel de cada cor. Componentes só usam semânticos; o tema escuro apenas remapeia os semânticos.
+- **Contraste.** Todos os pares de texto/fundo passam no AA (lavanda sobre preto 7:1, branco sobre
+  roxo 5,7:1). A lavanda não tem contraste no fundo claro, então no tema claro o token de
+  destaque vira o roxo `#7C3AED`. Verde e âmbar em texto no claro usam tons mais escuros
+  (`#15803D`, `#B45309`).
+- **Tokens em duas camadas.** Primitivos (`--fc-roxo-600`, `--fc-cinza-900`...) são a paleta crua e
+  o único lugar com hexadecimal. Semânticos (`--cor-superficie`, `--cor-texto-secundario`...) dizem
+  o papel de cada cor. Componentes só usam semânticos; o tema claro apenas remapeia os semânticos.
+  A exceção é o logo (`components/brand/Logo.tsx`), que tem cores oficiais fixas por versão.
+- **Fonte Inter** (400 a 700) carregada do Google Fonts, com a pilha do sistema como reserva. A
+  CSP libera só `fonts.googleapis.com` (CSS) e `fonts.gstatic.com` (arquivos da fonte).
+- **Ícones Lucide** (`lucide-react`), traço 2, 20 px por padrão (16 px em texto pequeno, 24 px na
+  barra inferior do celular). O app importa os ícones só por `components/Icones.tsx`, que dá
+  nomes em português e esconde os ícones dos leitores de tela; trocar um desenho é mexer só ali.
 - **Escalas fixas.** Espaçamento de 4 em 4 px (`--espaco-1` = 4 px até `--espaco-9` = 96 px),
-  raios `8/12/16/24/pílula` (campos, cards, painéis, blocos de demonstração, botões), tipografia
+  raios `6/10/16/20/24/pílula` (caixa de seleção, campos e botões, cards, painéis, blocos de
+  demonstração, chips e selos), tipografia
   com `clamp()` para títulos crescerem com a tela sem saltos de breakpoint.
-- **Elevação mínima.** Cards são planos, só com borda. Sombra apenas no que flutua (modal, demo da
-  landing) e um brilho discreto no hover do botão primário.
-- **Formas que comunicam.** Botões, chips e navegação em pílula ("isto é uma ação"); campos com
-  raio menor e altura de 48 px ("isto recebe texto"). Estado também é indicado por forma, não só
+- **Elevação mínima, sem gradientes.** Cards são planos, só com borda. Sombra apenas no que
+  flutua (modal, demo da landing). O "volume" da marca vem da sombra sólida de tecla
+  (`--sombra-tecla`), usada só no botão primário: ao ser pressionado ele desce 2 px e perde a
+  sombra, como uma tecla. É o único lugar em que a metáfora do logo vira interação.
+- **Formas que comunicam.** Botões com o raio da tecla do logo (10 px), um primário por tela;
+  chips e selos em pílula; campos com altura de 48 px ("isto recebe texto"). Estado também é indicado por forma, não só
   por cor: ponto nos selos, filete à esquerda em cards atuais/concluídos e erros, barrinha no item
   ativo da navegação.
 - **Rótulo em caixa alta acima do título** ("FAMÍLIA", "LISTA DE COMPRAS") dá contexto sem
   ocupar uma linha de texto comum.
 - **O dado é o destaque.** A tela da família abre com indicadores (itens a comprar, comprados,
-  listas, membros): números grandes e tabulares, o principal em azul. Sem dado, mostra "—".
-- **Navegação.** Desktop (≥ 64 rem): barra lateral navy com a família atual, as seções e a conta
+  listas, membros): números grandes e tabulares, o principal na cor de destaque. Sem dado, mostra "—".
+- **Navegação.** Desktop (≥ 64 rem): barra lateral escura com a família atual, as seções e a conta
   no rodapé (a lateral é sempre escura, por isso tem tokens próprios de destaque). Celular e
   tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
   Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
@@ -437,8 +488,8 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
 - **Acessibilidade:** rótulos em todos os campos (visíveis ou só para leitores de tela), foco
   visível, `aria-pressed` nos itens, modal com foco preso e Esc para fechar, mensagens com
   `role="alert"`/`role="status"`, respeito a `prefers-reduced-motion`.
-- **Cores e contraste:** padrão de cores da EcomSmart; os ajustes para contraste AA estão na
-  seção "Design system".
+- **Cores e contraste:** identidade própria (`docs/marca.md`); os ajustes para contraste AA estão
+  na seção "Design system".
 
 ## 11. Testes
 

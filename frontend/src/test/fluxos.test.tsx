@@ -295,7 +295,7 @@ describe('comprar', () => {
       expect.objectContaining({
         metodo: 'PUT',
         caminho: '/api/itens/1/pego',
-        corpo: { tipoPreco: 'UNIDADE', quantidadePega: 2, preco: 6.5, marca: 'Itambé' },
+        corpo: { tipoPreco: 'UNIDADE', quantidadePega: 2, preco: 6.5, marca: 'Itambé', versao: 0 },
       }),
     );
   });
@@ -331,7 +331,7 @@ describe('comprar', () => {
     expect(chamadas).toContainEqual(
       expect.objectContaining({
         metodo: 'PUT',
-        corpo: { tipoPreco: 'KG', quantidadePega: 1.25, preco: 8.63 },
+        corpo: { tipoPreco: 'KG', quantidadePega: 1.25, preco: 8.63, versao: 0 },
       }),
     );
   });
@@ -449,17 +449,84 @@ describe('comprar', () => {
   });
 });
 
+describe('compra em dois aparelhos', () => {
+  const daBia = () => ({
+    pego: true,
+    pegoEm: new Date().toISOString(),
+    pegoPor: { id: 2, nome: 'Bia' },
+  });
+
+  it('o que outra pessoa marca aparece sozinho na tela, com o total igual', async () => {
+    const { estado, alterarEmOutroAparelho } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite' }));
+    renderizarApp('/listas/100/comprar', { logado: true });
+    expect(await screen.findByRole('checkbox', { name: 'Pegar Leite' })).toBeInTheDocument();
+
+    alterarEmOutroAparelho(1, { ...daBia(), preco: 5, quantidadePega: 2 });
+
+    // Sem recarregar a página: a sincronização periódica traz a alteração da Bia
+    expect(
+      await screen.findByRole('checkbox', { name: 'Desmarcar Leite' }, { timeout: 5000 }),
+    ).toHaveAttribute('aria-checked', 'true');
+    const total = screen.getByRole('region', { name: 'Total da compra' });
+    expect(within(total).getByText(/10,00/)).toBeInTheDocument();
+  }, 10_000);
+
+  it('não sobrescreve o item que outra pessoa marcou enquanto o formulário estava aberto', async () => {
+    const { estado, alterarEmOutroAparelho } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite' }));
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Leite' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
+    alterarEmOutroAparelho(1, { ...daBia(), preco: 5 });
+    await usuario.type(within(dialogo).getByLabelText('Preço da unidade (R$)'), '9');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    // Recusado: o formulário fecha, avisa e a tela mostra o que a Bia marcou
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Outra pessoa alterou este item/);
+    expect(screen.queryByRole('dialog', { name: 'Leite' })).not.toBeInTheDocument();
+    const total = screen.getByRole('region', { name: 'Total da compra' });
+    await waitFor(() => expect(within(total).getByText(/5,00/)).toBeInTheDocument());
+    expect(estado.itens[0].preco).toBe(5);
+  });
+
+  it('não finaliza com valores que mudaram depois de conferidos', async () => {
+    const { estado, alterarEmOutroAparelho, chamadas } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Pão', ...daBia(), preco: 7.88 }));
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    expect(await screen.findByLabelText('Valor final pago (R$)')).toHaveValue('7,88');
+    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    alterarEmOutroAparelho(1, { preco: 10 });
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    // A compra não foi concluída: a tela mostra o valor novo para conferir de novo
+    expect(await screen.findByText(/Outra pessoa alterou a lista/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Valor final pago (R$)')).toHaveValue('10,00'),
+    );
+    expect(estado.compras).toHaveLength(0);
+
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
+    expect(estado.compras[0].valorTotal).toBe(10);
+    expect(chamadas.filter((c) => c.caminho === '/api/listas/100/compras')).toHaveLength(2);
+  });
+});
+
 describe('tema', () => {
-  it('começa claro, alterna para escuro e lembra a escolha', async () => {
+  it('começa escuro, alterna para claro e lembra a escolha', async () => {
     criarApiFalsa();
     const { usuario } = renderizarApp('/');
 
     expect(document.documentElement.dataset.theme).toBeUndefined();
-    await usuario.click(screen.getByRole('button', { name: 'Usar tema escuro' }));
-
-    expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem('familyctrl.tema')).toBe('escuro');
     await usuario.click(screen.getByRole('button', { name: 'Usar tema claro' }));
+
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(localStorage.getItem('familyctrl.tema')).toBe('claro');
+    await usuario.click(screen.getByRole('button', { name: 'Usar tema escuro' }));
     expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(localStorage.getItem('familyctrl.tema')).toBeNull();
   });
 });

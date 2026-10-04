@@ -1,0 +1,17 @@
+.aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin: 0;
+  padding: var(--espaco-3) var(--espaco-4);
+  border-left: 3px solid var(--cor-atencao);
+  border-radius: var(--raio-sm);
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-texto);
+  font-size: var(--texto-sm);
+}
+
+.aviso p {
+  margin: 0;
+}

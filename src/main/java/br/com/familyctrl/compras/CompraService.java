@@ -25,6 +25,7 @@ import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
 import br.com.familyctrl.infra.erro.ValidacaoException;
 import br.com.familyctrl.itens.ItemService;
 import br.com.familyctrl.itens.dto.ItemResponse;
+import br.com.familyctrl.listas.ListaAcesso;
 import br.com.familyctrl.listas.ListaService;
 import br.com.familyctrl.listas.dto.ListaDetalhe;
 
@@ -42,16 +43,19 @@ public class CompraService {
 
 	private final ListaService listaService;
 
+	private final ListaAcesso listaAcesso;
+
 	private final ItemService itemService;
 
 	private final FamiliaService familiaService;
 
 	private final UsuarioService usuarioService;
 
-	CompraService(CompraRepository compras, ListaService listaService, ItemService itemService,
-			FamiliaService familiaService, UsuarioService usuarioService) {
+	CompraService(CompraRepository compras, ListaService listaService, ListaAcesso listaAcesso,
+			ItemService itemService, FamiliaService familiaService, UsuarioService usuarioService) {
 		this.compras = compras;
 		this.listaService = listaService;
+		this.listaAcesso = listaAcesso;
 		this.itemService = itemService;
 		this.familiaService = familiaService;
 		this.usuarioService = usuarioService;
@@ -61,8 +65,13 @@ public class CompraService {
 	 * Finaliza a compra numa única transação: salva a cópia dos itens com os valores, zera a lista
 	 * e decide o destino dos itens não planejados. O valor dos itens é recalculado aqui a partir
 	 * dos preços salvos: o total enviado pela tela nunca é usado.
+	 *
+	 * <p>A lista fica travada durante a finalização: ninguém marca ou altera itens no meio dela. E,
+	 * com a versão informada pela tela, só finaliza se a lista ainda for exatamente a que a pessoa
+	 * conferiu (senão, 409): o total salvo é sempre o total que ela viu.
 	 */
 	public CompraDetalhe finalizar(Long listaId, Long usuarioId, FinalizarRequest request) {
+		listaAcesso.travarParaAlterar(listaId, usuarioId, request.versaoLista());
 		ListaDetalhe lista = listaService.detalhar(listaId, usuarioId);
 		if (lista.itens().stream().noneMatch(ItemResponse::pego)) {
 			throw new ValidacaoException("itens", "Marque ao menos um item antes de finalizar a compra.");

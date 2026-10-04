@@ -87,6 +87,8 @@ export interface Item {
   adicionadoPor: Pessoa;
   criadoEm: string;
   atualizadoEm: string;
+  /** Sobe a cada alteração. Quem altera envia a versão que está vendo (409 se outra pessoa mudou antes). */
+  versao: number;
 }
 
 export interface ListaDetalhe {
@@ -94,6 +96,8 @@ export interface ListaDetalhe {
   familiaId: number;
   nome: string;
   criadaEm: string;
+  /** Sobe a cada alteração em qualquer item. Finalizar e "desmarcar todos" enviam a versão vista. */
+  versao: number;
   categorias: Categoria[];
   itens: Item[];
 }

@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 /**
  * Item de uma lista. Tem duas partes:
@@ -79,6 +80,14 @@ class Item {
 
 	@Column(name = "atualizado_em", nullable = false)
 	private Instant atualizadoEm;
+
+	/**
+	 * Controle otimista: o Hibernate sobe a versão a cada UPDATE e só grava se ela ainda for a lida.
+	 * A tela envia a versão que está mostrando; diferente da atual, a alteração é recusada (409).
+	 */
+	@Version
+	@Column(nullable = false)
+	private long versao;
 
 	protected Item() {
 	}
@@ -217,6 +226,10 @@ class Item {
 
 	Instant getAtualizadoEm() {
 		return atualizadoEm;
+	}
+
+	long getVersao() {
+		return versao;
 	}
 
 }

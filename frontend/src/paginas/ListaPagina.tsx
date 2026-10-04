@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { familiasApi, listasApi } from '../api/endpoints';
+import { AvisoSincronia } from './AvisoSincronia';
 import { Abas } from '../components/Abas';
 import { Botao, LinkBotao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
@@ -17,6 +18,7 @@ import estilos from './ListaPagina.module.css';
 import { ListaPlanejar } from './ListaPlanejar';
 import paginas from './Paginas.module.css';
 import { rotaListas } from './rotasFamilia';
+import { useLista } from './useLista';
 
 const mensagemDe = (erro: unknown) => (erro instanceof ApiError ? erro.message : undefined);
 
@@ -24,6 +26,9 @@ const mensagemDe = (erro: unknown) => (erro instanceof ApiError ? erro.message :
  * Tela da lista, em duas etapas separadas por abas (cada uma com endereço próprio):
  * - Planejar: em casa, cadastrar os itens por categoria.
  * - Comprar: no mercado, marcar o que foi pego, com quantidade, preço e marca.
+ *
+ * A lista fica sincronizada com o servidor (ver useLista): várias pessoas podem fazer a mesma compra,
+ * cada uma no seu aparelho, vendo os mesmos itens e valores.
  */
 export function ListaPagina() {
   const { listaId: parametro, aba } = useParams();
@@ -33,12 +38,10 @@ export function ListaPagina() {
   const [opcoesAbertas, setOpcoesAbertas] = useState(false);
   const [renomeando, setRenomeando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
+  // Alteração recusada porque outra pessoa mudou o item/lista antes (a tela já foi atualizada)
+  const [aviso, setAviso] = useState<string>();
 
-  const lista = useQuery({
-    queryKey: chaves.lista(listaId),
-    queryFn: () => listasApi.detalhar(listaId),
-    enabled: Number.isFinite(listaId),
-  });
+  const lista = useLista(listaId);
   // Nome da família para o breadcrumb (normalmente já está no cache)
   const familiaIdDaLista = lista.data?.familiaId;
   const familia = useQuery({
@@ -69,6 +72,7 @@ export function ListaPagina() {
     return <Navigate to={`/listas/${parametro}/comprar`} replace />;
   }
   if (lista.isPending) return <Carregando linhas={5} />;
+  // 404 também na sincronização: outra pessoa excluiu a lista enquanto ela estava aberta
   if (lista.isError) {
     if (lista.error instanceof ApiError && lista.error.status === 404) {
       return (
@@ -81,6 +85,9 @@ export function ListaPagina() {
         </EstadoVazio>
       );
     }
+  }
+  // Sem dados nenhum, não há o que mostrar. Com dados, uma falha na sincronização vira só um aviso.
+  if (!lista.data) {
     return <MensagemErro erro={lista.error} aoTentarDeNovo={() => void lista.refetch()} />;
   }
 
@@ -94,7 +101,7 @@ export function ListaPagina() {
         titulo={dados.nome}
         acoes={
           <Botao pequeno onClick={() => setOpcoesAbertas(true)}>
-            <IconeOpcoes tamanho={18} />
+            <IconeOpcoes tamanho={20} />
             Opções
           </Botao>
         }
@@ -108,7 +115,17 @@ export function ListaPagina() {
         ]}
       />
 
-      {aba === 'planejar' ? <ListaPlanejar lista={dados} /> : <ListaComprar lista={dados} />}
+      <AvisoSincronia
+        semConexao={lista.isRefetchError}
+        aviso={aviso}
+        aoFecharAviso={() => setAviso(undefined)}
+      />
+
+      {aba === 'planejar' ? (
+        <ListaPlanejar lista={dados} aoDesatualizado={setAviso} />
+      ) : (
+        <ListaComprar lista={dados} aoDesatualizado={setAviso} />
+      )}
 
       <Modal
         aberto={opcoesAbertas}

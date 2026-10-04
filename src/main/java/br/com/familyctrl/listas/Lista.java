@@ -33,6 +33,13 @@ class Lista {
 	@Column(name = "criada_em", nullable = false, updatable = false)
 	private Instant criadaEm;
 
+	/**
+	 * Sobe a cada alteração em qualquer item da lista (ver {@link ListaAcesso#travarParaAlterar}). Não usa
+	 * {@code @Version}: o controle de concorrência aqui é a trava pessimista na linha da lista.
+	 */
+	@Column(nullable = false)
+	private long versao;
+
 	protected Lista() {
 	}
 
@@ -61,6 +68,14 @@ class Lista {
 
 	Instant getCriadaEm() {
 		return criadaEm;
+	}
+
+	long getVersao() {
+		return versao;
+	}
+
+	void registrarAlteracao() {
+		this.versao++;
 	}
 
 }

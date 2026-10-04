@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/cliente';
-import { comprasApi, familiasApi, listasApi } from '../api/endpoints';
+import { comprasApi, familiasApi } from '../api/endpoints';
 import type { Item } from '../api/tipos';
 import { Botao, LinkBotao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
@@ -23,8 +23,11 @@ import {
   totalDaCompra,
 } from '../util/compra';
 import estilos from './FinalizarCompra.module.css';
+import { AvisoSincronia } from './AvisoSincronia';
+import { antesDeAlterar, ehDesatualizado } from './cacheLista';
 import paginas from './Paginas.module.css';
 import { rotaListas } from './rotasFamilia';
+import { useLista } from './useLista';
 
 const temValor = (item: Item) =>
   subtotal(item.tipoPreco, item.preco, item.quantidadePega) !== undefined;
@@ -34,6 +37,10 @@ const temValor = (item: Item) =>
  * mercado e a data. O valor final e o valor dos itens sem preço (descoberto no caixa) andam
  * juntos: final = itens com preço + variável. Dá para digitar qualquer um dos dois.
  * Itens não planejados: pergunta quais ficam na lista.
+ *
+ * Os valores continuam sincronizados enquanto a tela está aberta (outra pessoa pode estar marcando
+ * itens) e a finalização leva a versão da lista: só é aceita se o que foi conferido aqui ainda for
+ * exatamente o que está no servidor.
  */
 export function FinalizarCompra() {
   const { listaId: parametro } = useParams();
@@ -42,11 +49,7 @@ export function FinalizarCompra() {
   const navegar = useNavigate();
   const idMercados = useId();
 
-  const lista = useQuery({
-    queryKey: chaves.lista(listaId),
-    queryFn: () => listasApi.detalhar(listaId),
-    enabled: Number.isFinite(listaId),
-  });
+  const lista = useLista(listaId);
   const familiaId = lista.data?.familiaId;
   const familia = useQuery({
     queryKey: chaves.familia(familiaId ?? 0),
@@ -68,15 +71,26 @@ export function FinalizarCompra() {
   const [perguntandoExtras, setPerguntandoExtras] = useState(false);
   const [extrasMantidos, setExtrasMantidos] = useState<number[]>([]);
   const [tentouEnviar, setTentouEnviar] = useState(false);
+  // Versão da lista que a pessoa já viu aqui: se mudar (outra pessoa alterou itens), avisa
+  const [versaoVista, setVersaoVista] = useState<number>();
+  if (lista.data && versaoVista === undefined) setVersaoVista(lista.data.versao);
 
   const finalizar = useMutation({
-    mutationFn: (valorVariavel: number) =>
+    mutationFn: ({ valorVariavel, versaoLista }: { valorVariavel: number; versaoLista: number }) =>
       comprasApi.finalizar(listaId, {
         mercado: mercado.trim(),
         dataCompra: data,
         valorVariavel,
         extrasMantidos,
+        versaoLista,
       }),
+    onMutate: () => antesDeAlterar(queryClient, listaId),
+    onError: (erro) => {
+      // A lista mudou: busca a atual e volta ao formulário para a pessoa conferir os valores
+      if (!ehDesatualizado(erro)) return;
+      setPerguntandoExtras(false);
+      void queryClient.invalidateQueries({ queryKey: chaves.lista(listaId) });
+    },
     onSuccess: (compra) => {
       void queryClient.invalidateQueries({ queryKey: chaves.lista(listaId) });
       void queryClient.invalidateQueries({ queryKey: chaves.todasListas });
@@ -87,11 +101,12 @@ export function FinalizarCompra() {
   const erro = finalizar.error instanceof ApiError ? finalizar.error : undefined;
 
   if (lista.isPending) return <Carregando linhas={4} />;
-  if (lista.isError) {
+  if (!lista.data) {
     return <MensagemErro erro={lista.error} aoTentarDeNovo={() => void lista.refetch()} />;
   }
 
   const dados = lista.data;
+  const listaMudou = versaoVista !== undefined && versaoVista !== dados.versao;
   const pegos = dados.itens.filter((i) => i.pego);
   const semPreco = pegos.filter((i) => !temValor(i));
   const extras = pegos.filter((i) => i.extra);
@@ -167,7 +182,14 @@ export function FinalizarCompra() {
     setTentouEnviar(true);
     if (!mercado.trim() || !data || !finalValido) return;
     if (extras.length > 0) setPerguntandoExtras(true);
-    else finalizar.mutate(diferenca);
+    else concluir();
+  }
+
+  /** Envia com a versão da lista dos valores mostrados agora na tela. */
+  function concluir() {
+    if (diferenca === undefined) return;
+    setVersaoVista(dados.versao);
+    finalizar.mutate({ valorVariavel: diferenca, versaoLista: dados.versao });
   }
 
   return (
@@ -177,6 +199,16 @@ export function FinalizarCompra() {
         rotulo={dados.nome}
         titulo="Finalizar compra"
         descricao="Confira os valores, informe o valor final do cupom e onde a compra foi feita."
+      />
+
+      <AvisoSincronia
+        semConexao={lista.isRefetchError}
+        aviso={
+          listaMudou
+            ? 'Outra pessoa alterou a lista enquanto você estava aqui. Os valores abaixo já estão atualizados; confira antes de concluir.'
+            : undefined
+        }
+        aoFecharAviso={() => setVersaoVista(dados.versao)}
       />
 
       <form className={estilos.formulario} onSubmit={enviar} noValidate>
@@ -330,11 +362,7 @@ export function FinalizarCompra() {
           <Botao variante="fantasma" onClick={() => setPerguntandoExtras(false)}>
             Voltar
           </Botao>
-          <Botao
-            variante="primario"
-            carregando={finalizar.isPending}
-            onClick={() => diferenca !== undefined && finalizar.mutate(diferenca)}
-          >
+          <Botao variante="primario" carregando={finalizar.isPending} onClick={concluir}>
             Concluir compra
           </Botao>
         </div>

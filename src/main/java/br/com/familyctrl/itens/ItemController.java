@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +31,9 @@ class ItemController {
 		this.service = service;
 	}
 
+	// O parâmetro opcional "versao" é a versão que a tela está mostrando (do item ou, em
+	// desmarcar-todos, da lista): se mudou desde então, a resposta é 409 e nada é alterado.
+
 	// ------------------------------------------------------------------ planejamento
 
 	@PostMapping("/listas/{listaId}/itens")
@@ -46,8 +50,8 @@ class ItemController {
 
 	@DeleteMapping("/itens/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	void remover(UsuarioLogado usuario, @PathVariable Long id) {
-		service.remover(id, usuario.id());
+	void remover(UsuarioLogado usuario, @PathVariable Long id, @RequestParam(required = false) Long versao) {
+		service.remover(id, usuario.id(), versao);
 	}
 
 	// ------------------------------------------------------------------ compra em andamento
@@ -59,8 +63,9 @@ class ItemController {
 	}
 
 	@DeleteMapping("/itens/{id}/pego")
-	ItemResponse desmarcar(UsuarioLogado usuario, @PathVariable Long id) {
-		return service.desmarcar(id, usuario.id());
+	ItemResponse desmarcar(UsuarioLogado usuario, @PathVariable Long id,
+			@RequestParam(required = false) Long versao) {
+		return service.desmarcar(id, usuario.id(), versao);
 	}
 
 	@PostMapping("/listas/{listaId}/itens/extra")
@@ -72,8 +77,9 @@ class ItemController {
 
 	@PostMapping("/listas/{listaId}/desmarcar-todos")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	void desmarcarTodos(UsuarioLogado usuario, @PathVariable Long listaId) {
-		service.desmarcarTodos(listaId, usuario.id());
+	void desmarcarTodos(UsuarioLogado usuario, @PathVariable Long listaId,
+			@RequestParam(required = false) Long versao) {
+		service.desmarcarTodos(listaId, usuario.id(), versao);
 	}
 
 }

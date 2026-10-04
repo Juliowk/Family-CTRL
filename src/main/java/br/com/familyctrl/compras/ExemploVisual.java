@@ -303,7 +303,7 @@ class ExemploVisual {
 				Produto produto = porNome.get(item.nome());
 				Pego pego = pegar(produto, 1.0, sorte);
 				itemService.pegar(item.id(), usuarioId,
-						new PegarRequest(pego.quantidade(), produto.tipo(), pego.preco(), pego.marca()));
+						new PegarRequest(pego.quantidade(), produto.tipo(), pego.preco(), pego.marca(), null));
 			}
 		}
 	}

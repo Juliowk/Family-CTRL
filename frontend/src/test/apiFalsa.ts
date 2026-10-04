@@ -27,6 +27,8 @@ interface Estado {
   falharDesmarcar: boolean;
   /** Força 401 em GET /api/auth/me (token expirado). */
   tokenExpirado: boolean;
+  /** Versão de cada lista: sobe a cada alteração em itens dela (como no backend). */
+  versoesListas: Map<number, number>;
 }
 
 function json(status: number, corpo: unknown) {
@@ -73,6 +75,7 @@ export function novoItem(dados: Partial<Item> & { id: number; nome: string }): I
     adicionadoPor: { id: 1, nome: 'Ana' },
     criadoEm: agora,
     atualizadoEm: agora,
+    versao: 0,
     ...dados,
   };
 }
@@ -103,10 +106,30 @@ export function criarApiFalsa() {
     compras: [],
     falharDesmarcar: false,
     tokenExpirado: false,
+    versoesListas: new Map(),
   };
   const chamadas: Chamada[] = [];
 
   const itensDa = (listaId: number) => estado.itens.filter((i) => i.listaId === listaId);
+  const versaoDa = (listaId: number) => estado.versoesListas.get(listaId) ?? 0;
+  /** Registra uma alteração na lista; com a versão esperada diferente da atual, recusa (409). */
+  function alterarLista(listaId: number, esperada?: number | null): boolean {
+    if (esperada != null && esperada !== versaoDa(listaId)) return false;
+    estado.versoesListas.set(listaId, versaoDa(listaId) + 1);
+    return true;
+  }
+  const conflito = () =>
+    problema(409, 'Outra pessoa alterou este item agora há pouco. Confira e tente de novo.');
+
+  /**
+   * Simula outra pessoa, em outro aparelho, alterando um item (sobe as versões como o backend).
+   */
+  function alterarEmOutroAparelho(itemId: number, mudancas: Partial<Item>) {
+    const item = estado.itens.find((i) => i.id === itemId)!;
+    Object.assign(item, mudancas, { versao: item.versao + 1 });
+    Object.assign(item, comSubtotal(item));
+    alterarLista(item.listaId);
+  }
   const comSubtotal = (item: Item): Item => ({
     ...item,
     subtotal: item.pego
@@ -233,6 +256,7 @@ export function criarApiFalsa() {
         familiaId,
         nome,
         criadaEm,
+        versao: versaoDa(id),
         categorias: estado.categorias,
         itens: itensDa(lista.id).map(comSubtotal),
       });
@@ -254,6 +278,7 @@ export function criarApiFalsa() {
         medida: corpo.medida,
         tipoPreco: corpo.medida,
       });
+      alterarLista(item.listaId);
       estado.itens.push(item);
       return json(201, item);
     }
@@ -267,11 +292,15 @@ export function criarApiFalsa() {
         extra: true,
       });
       pegar(item, corpo);
+      alterarLista(item.listaId);
       estado.itens.push(item);
       return json(201, item);
     }
 
     if ((m = rota.match(/^POST \/api\/listas\/(\d+)\/desmarcar-todos$/))) {
+      if (!alterarLista(Number(m[1]), Number(searchParams.get('versao')))) {
+        return problema(409, 'A lista mudou enquanto você a usava.');
+      }
       itensDa(Number(m[1])).forEach(desmarcar);
       return vazio();
     }
@@ -279,18 +308,25 @@ export function criarApiFalsa() {
     if ((m = rota.match(/^(PUT|DELETE) \/api\/itens\/(\d+)\/pego$/))) {
       const item = estado.itens.find((i) => i.id === Number(m![2]));
       if (!item) return problema(404, 'Item não encontrado.');
+      const esperada = m[1] === 'DELETE' ? Number(searchParams.get('versao')) : corpo.versao;
+      if (esperada != null && esperada !== item.versao) return conflito();
       if (m[1] === 'DELETE') {
         if (estado.falharDesmarcar) return problema(500, 'Erro interno.');
         desmarcar(item);
       } else {
         pegar(item, corpo);
       }
+      item.versao++;
+      alterarLista(item.listaId);
       return json(200, item);
     }
 
     if ((m = rota.match(/^POST \/api\/listas\/(\d+)\/compras$/))) {
       const listaId = Number(m[1]);
       const lista = estado.listas.find((l) => l.id === listaId)!;
+      if (!alterarLista(listaId, corpo.versaoLista)) {
+        return problema(409, 'A lista mudou enquanto você finalizava.');
+      }
       const itens = itensDa(listaId).map(comSubtotal);
       const valorItens = itens.reduce((soma, i) => soma + (i.subtotal ?? 0), 0);
       const compra: CompraDetalhe = {
@@ -355,5 +391,5 @@ export function criarApiFalsa() {
     .spyOn(globalThis, 'fetch')
     .mockImplementation((entrada, init) => responder(String(entrada), init));
 
-  return { estado, chamadas, fetchMock };
+  return { estado, chamadas, fetchMock, alterarEmOutroAparelho };
 }

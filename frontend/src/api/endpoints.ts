@@ -89,20 +89,26 @@ export interface DadosPego {
   marca?: string;
 }
 
+/**
+ * Itens. As alterações num item existente levam a versão do item que a tela mostra (e "desmarcar
+ * todos", a versão da lista): se outra pessoa alterou antes, a API responde 409 e nada muda.
+ */
 export const itensApi = {
   adicionar: (listaId: number, dados: DadosItem) =>
     api<Item>(`/api/listas/${listaId}/itens`, { method: 'POST', body: dados }),
   /** Para apagar a quantidade desejada, envie string vazia. */
-  atualizar: (id: number, dados: Partial<DadosItem>) =>
-    api<Item>(`/api/itens/${id}`, { method: 'PATCH', body: dados }),
-  remover: (id: number) => api<void>(`/api/itens/${id}`, { method: 'DELETE' }),
-  pegar: (id: number, dados: DadosPego) =>
-    api<Item>(`/api/itens/${id}/pego`, { method: 'PUT', body: dados }),
-  desmarcar: (id: number) => api<Item>(`/api/itens/${id}/pego`, { method: 'DELETE' }),
+  atualizar: (id: number, versao: number, dados: Partial<DadosItem>) =>
+    api<Item>(`/api/itens/${id}`, { method: 'PATCH', body: { ...dados, versao } }),
+  remover: (id: number, versao: number) =>
+    api<void>(`/api/itens/${id}?versao=${versao}`, { method: 'DELETE' }),
+  pegar: (id: number, versao: number, dados: DadosPego) =>
+    api<Item>(`/api/itens/${id}/pego`, { method: 'PUT', body: { ...dados, versao } }),
+  desmarcar: (id: number, versao: number) =>
+    api<Item>(`/api/itens/${id}/pego?versao=${versao}`, { method: 'DELETE' }),
   adicionarExtra: (listaId: number, dados: DadosPego & { nome: string; categoriaId: number }) =>
     api<Item>(`/api/listas/${listaId}/itens/extra`, { method: 'POST', body: dados }),
-  desmarcarTodos: (listaId: number) =>
-    api<void>(`/api/listas/${listaId}/desmarcar-todos`, { method: 'POST' }),
+  desmarcarTodos: (listaId: number, versaoLista: number) =>
+    api<void>(`/api/listas/${listaId}/desmarcar-todos?versao=${versaoLista}`, { method: 'POST' }),
 };
 
 export interface DadosFinalizar {
@@ -111,6 +117,8 @@ export interface DadosFinalizar {
   dataCompra: string;
   valorVariavel: number;
   extrasMantidos: number[];
+  /** Versão da lista conferida na tela: se outra pessoa alterou depois, a API responde 409. */
+  versaoLista: number;
 }
 
 export const comprasApi = {

@@ -16,7 +16,13 @@ import {
   subtotal,
   sugestaoDaQuantidade,
 } from '../util/compra';
-import { gravarItem, invalidarResumoDasListas } from './cacheLista';
+import {
+  antesDeAlterar,
+  depoisDeAlterar,
+  ehDesatualizado,
+  gravarItem,
+  mensagemDesatualizado,
+} from './cacheLista';
 import estilos from './ListaPagina.module.css';
 
 interface Props {
@@ -25,13 +31,15 @@ interface Props {
   /** Item planejado a pegar ou já pego a corrigir. Sem item: item não planejado (extra). */
   item?: Item;
   aoFechar: () => void;
+  /** Recusado porque outra pessoa alterou (ou removeu) o item antes: o formulário fecha. */
+  aoDesatualizado: (mensagem: string) => void;
 }
 
 /**
  * Formulário de "pegar" um item: o item só fica marcado ao confirmar. Quantidade, preço e marca
  * são opcionais (frutas e verduras, por exemplo, só têm o valor conhecido no caixa).
  */
-export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
+export function ModalPegar({ listaId, categorias, item, aoFechar, aoDesatualizado }: Props) {
   const queryClient = useQueryClient();
   const extra = !item;
   const sugestao = item && !item.pego ? sugestaoDaQuantidade(item.quantidadePlanejada) : {};
@@ -65,15 +73,23 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
         preco: valor,
         marca: marca.trim() || undefined,
       };
+      // Com a versão do item de quando o formulário abriu: se outra pessoa já o marcou ou
+      // corrigiu, nada é gravado (409) e a pessoa vê os valores dela antes de decidir
       return item
-        ? itensApi.pegar(item.id, dados)
+        ? itensApi.pegar(item.id, item.versao, dados)
         : itensApi.adicionarExtra(listaId, { ...dados, nome: nome.trim(), categoriaId });
     },
+    onMutate: () => antesDeAlterar(queryClient, listaId),
     onSuccess: (salvo) => {
       gravarItem(queryClient, salvo);
-      invalidarResumoDasListas(queryClient);
       aoFechar();
     },
+    onError: (erro) => {
+      if (!ehDesatualizado(erro)) return;
+      aoFechar();
+      aoDesatualizado(mensagemDesatualizado(erro));
+    },
+    onSettled: () => depoisDeAlterar(queryClient, listaId),
   });
   const erro = salvar.error instanceof ApiError ? salvar.error : undefined;
 

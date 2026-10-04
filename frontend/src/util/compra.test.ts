@@ -16,6 +16,7 @@ function item(dados: Partial<Item>): Item {
     categoriaId: 1,
     nome: 'Item',
     quantidadePlanejada: null,
+    versao: 0,
     medida: 'UNIDADE',
     pego: false,
     pegoEm: null,
