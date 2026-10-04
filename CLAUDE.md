@@ -151,10 +151,10 @@ Tempo real (WebSocket), notificações, e-mail, recuperação de senha, refresh 
 - Alvos de toque com no mínimo 44x44px; marcar um item como comprado deve ser um toque só e fácil.
 - No celular, navegação principal acessível com o polegar (barra inferior ou equivalente); no desktop, layout com mais respiro e largura máxima de leitura.
 - Estilo minimalista: muito espaço em branco, poucos elementos por tela, hierarquia tipográfica clara, sem sombras pesadas nem gradientes chamativos. Transições curtas e discretas.
-- Paleta sóbria em preto, cinza e roxo, definida como variáveis CSS em `:root`. Tema escuro como padrão, com tema claro via `prefers-color-scheme`.
-  - Tema escuro (referência): fundo `#0E0E11`, superfície `#17171C`, borda `#2A2A31`, texto `#EDEDF0`, texto secundário `#9A9AA5`, destaque roxo `#8B5CF6`, roxo hover `#7C3AED`
-  - Tema claro (referência): fundo `#FAFAFB`, superfície `#FFFFFF`, borda `#E4E4E8`, texto `#18181B`, texto secundário `#6B6B76`, destaque roxo `#6D28D9`
-  - Use o roxo com moderação: ações principais, estado ativo e foco.
+- Paleta no padrão de cores da EcomSmart (azul e navy), definida como variáveis CSS em `:root`. Tema claro como padrão; o usuário pode mudar para o escuro (escolha salva no aparelho, aplicada via `data-theme="dark"`).
+  - Tema claro (referência): fundo `#F6F8FC`, superfície `#FFFFFF`, borda `#E1E6F0`, texto `#0B1033`, texto secundário `#4A5670`, destaque azul `#0A5BF0`, azul hover `#0849C4`, barra lateral navy `#0B1033`
+  - Tema escuro (azul-noite): fundo `#070B1E`, superfície `#0E1436`, borda `#232B57`, texto `#EEF1F7`, texto secundário `#9AA5B8`, destaque azul claro `#8DB0FF`
+  - Use o azul com moderação: ações principais, estado ativo, foco e dados de destaque.
 - Fonte: pilha de fontes do sistema (sem dependência externa).
 - Acessibilidade: contraste AA, foco visível, labels em todos os campos, HTML semântico, `aria-*` onde necessário, navegação por teclado.
 - Estados sempre tratados: carregando (skeletons discretos, incluindo o "servidor acordando"), erro, vazio ("nenhuma lista ainda") e confirmação de ações destrutivas.

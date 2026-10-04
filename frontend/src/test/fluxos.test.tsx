@@ -161,3 +161,18 @@ describe('itens', () => {
     expect(screen.getByRole('button', { name: /Pão/, pressed: false })).toBeInTheDocument();
   });
 });
+
+describe('tema', () => {
+  it('começa claro, alterna para escuro e lembra a escolha', async () => {
+    criarApiFalsa();
+    const { usuario } = renderizarApp('/');
+
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+    await usuario.click(screen.getByRole('button', { name: 'Usar tema escuro' }));
+
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('familyctrl.tema')).toBe('escuro');
+    await usuario.click(screen.getByRole('button', { name: 'Usar tema claro' }));
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+});

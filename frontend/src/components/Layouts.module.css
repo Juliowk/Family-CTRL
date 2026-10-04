@@ -132,6 +132,13 @@
   border-bottom: 1px solid var(--cor-borda);
 }
 
+.topoAcoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
 /* Família atual no topo: um toque leva à troca de família */
 .topoFamilia {
   display: inline-flex;
@@ -165,7 +172,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 10rem;
+  max-width: 6.5rem;
+}
+
+@media (min-width: 30rem) {
+  .topoFamiliaNome {
+    max-width: 12rem;
+  }
 }
 
 .conteudo {
@@ -266,7 +279,7 @@
     border-right: 1px solid var(--cor-lateral-borda);
     color: var(--cor-lateral-texto);
     overflow-y: auto;
-    /* A lateral é sempre escura: o roxo de destaque e o foco usam o tom claro nos dois temas */
+    /* A lateral é sempre escura: o azul de destaque e o foco usam o tom claro nos dois temas */
     --cor-destaque: var(--cor-lateral-destaque);
     --cor-destaque-suave: var(--cor-lateral-ativo);
     --cor-foco: var(--cor-lateral-destaque);
@@ -315,7 +328,7 @@
     background: var(--cor-lateral-ativo);
   }
 
-  /* Ativo: fundo claro translúcido + filete roxo à esquerda */
+  /* Ativo: fundo claro translúcido + filete azul à esquerda */
   .lateral .navLinkAtivo,
   .lateral .navLinkAtivo:hover {
     color: var(--cor-lateral-texto);
@@ -331,6 +344,23 @@
     width: 3px;
     border-radius: 0 var(--raio-pilula) var(--raio-pilula) 0;
     background: var(--cor-destaque);
+  }
+
+  .lateralRodape {
+    display: flex;
+    padding: 0 var(--espaco-1);
+  }
+
+  /* Botão de tema sobre o fundo navy: cores da lateral */
+  .lateralTema {
+    border-color: var(--cor-lateral-divisoria);
+    color: var(--cor-lateral-texto-2);
+  }
+
+  .lateralTema:hover {
+    border-color: var(--cor-lateral-texto-2);
+    color: var(--cor-lateral-texto);
+    background: var(--cor-lateral-ativo);
   }
 
   .lateralConta {

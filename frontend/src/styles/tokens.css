@@ -1,34 +1,38 @@
 /*
  * Tokens de design em duas camadas:
- *  1. Primitivos: a paleta crua. Só esta camada cita valores hexadecimais.
+ *  1. Primitivos: a paleta crua (padrão de cores da EcomSmart). Só esta camada cita hexadecimal.
  *  2. Semânticos: o papel de cada cor na interface (fundo, texto, borda...). Componentes
  *     usam só os semânticos, então trocar de tema é só trocar o mapeamento.
- * Tema escuro é o padrão; o claro é aplicado quando o sistema prefere "light".
+ * Tema claro é o padrão. O escuro (azul-noite) vale quando o <html> tem data-theme="dark",
+ * definido pelo botão de tema (ver src/estado/tema.ts e public/tema.js).
  */
 :root {
   /* ---------- 1. Primitivos ---------- */
-  --roxo-300: #c4b5fd;
-  --roxo-400: #a78bfa;
-  --roxo-500: #8b5cf6;
-  --roxo-600: #7c3aed;
-  --roxo-700: #6d28d9;
-  --roxo-800: #5b21b6;
+  --azul-50: #eef4ff;
+  --azul-100: #dce7ff;
+  --azul-200: #b9ceff;
+  --azul-300: #8db0ff;
+  --azul-400: #5a8cfa;
+  --azul-500: #2f70f5;
+  --azul-600: #0a5bf0;
+  --azul-700: #0849c4;
+  --azul-800: #073a9a;
 
-  --grafite-950: #08080a;
-  --grafite-900: #0e0e11;
-  --grafite-850: #17171c;
-  --grafite-800: #1f1f26;
-  --grafite-700: #2a2a31;
-  --grafite-600: #3a3a43;
-  --grafite-400: #9a9aa5;
-  --grafite-100: #ededf0;
+  --navy-1000: #04061a;
+  --navy-950: #070b1e;
+  --navy-900: #0b1033;
+  --navy-850: #0e1436;
+  --navy-800: #151c45;
+  --navy-700: #232b57;
+  --navy-600: #323b6b;
 
-  --cinza-50: #fafafb;
-  --cinza-100: #f3f3f6;
-  --cinza-200: #e4e4e8;
-  --cinza-300: #d0d0d7;
-  --cinza-500: #6b6b76;
-  --cinza-900: #18181b;
+  --cinza-50: #f6f8fc;
+  --cinza-100: #eef1f7;
+  --cinza-200: #e1e6f0;
+  --cinza-300: #c9d1df;
+  --cinza-400: #9aa5b8;
+  --cinza-500: #6b7790;
+  --cinza-600: #4a5670;
   --branco: #ffffff;
 
   --verde-400: #4ade80;
@@ -36,48 +40,48 @@
   --ambar-400: #fbbf24;
   --ambar-700: #b45309;
   --vermelho-400: #f87171;
-  --vermelho-700: #b91c1c;
+  --vermelho-600: #dc2626;
 
-  /* ---------- 2. Semânticos (tema escuro) ---------- */
-  color-scheme: dark;
+  /* ---------- 2. Semânticos (tema claro, o padrão) ---------- */
+  color-scheme: light;
 
-  --cor-fundo: var(--grafite-900);
-  --cor-fundo-2: var(--grafite-950);
-  --cor-superficie: var(--grafite-850);
-  --cor-superficie-2: var(--grafite-800);
-  --cor-borda: var(--grafite-700);
-  --cor-borda-forte: var(--grafite-600);
-  --cor-texto: var(--grafite-100);
-  --cor-texto-secundario: var(--grafite-400);
-  /* Roxo para texto/foco/estado ativo (contraste AA sobre o fundo escuro) */
-  --cor-destaque: var(--roxo-400);
-  /* Roxo para fundo de botão primário (contraste AA com texto branco) */
-  --cor-primaria: var(--roxo-600);
-  --cor-primaria-hover: var(--roxo-700);
+  --cor-fundo: var(--cinza-50);
+  --cor-fundo-2: var(--cinza-100);
+  --cor-superficie: var(--branco);
+  --cor-superficie-2: var(--cinza-100);
+  --cor-borda: var(--cinza-200);
+  --cor-borda-forte: var(--cinza-300);
+  --cor-texto: var(--navy-900);
+  --cor-texto-secundario: var(--cinza-600);
+  /* Azul só em ações, estado ativo e dados de destaque */
+  --cor-destaque: var(--azul-600);
+  --cor-primaria: var(--azul-600);
+  --cor-primaria-hover: var(--azul-700);
   --cor-primaria-texto: var(--branco);
-  --cor-destaque-suave: rgb(139 92 246 / 0.14);
-  --cor-destaque-linha: rgb(139 92 246 / 0.35);
-  --cor-perigo: var(--vermelho-400);
-  --cor-perigo-fundo: rgb(248 113 113 / 0.12);
-  --cor-sucesso: var(--verde-400);
-  --cor-sucesso-fundo: rgb(74 222 128 / 0.12);
-  --cor-atencao: var(--ambar-400);
-  --cor-atencao-fundo: rgb(251 191 36 / 0.12);
-  --cor-foco: var(--roxo-500);
-  --cor-overlay: rgb(0 0 0 / 0.6);
-  /* Barra lateral: sempre a superfície mais escura do app, nos dois temas */
-  --cor-lateral: var(--grafite-950);
-  --cor-lateral-texto: var(--grafite-100);
-  --cor-lateral-texto-2: var(--grafite-400);
-  --cor-lateral-ativo: rgb(255 255 255 / 0.08);
-  --cor-lateral-borda: var(--grafite-700);
-  --cor-lateral-divisoria: rgb(255 255 255 / 0.08);
-  --cor-lateral-destaque: var(--roxo-400);
-  --cor-topo-vidro: rgb(14 14 17 / 0.85);
-  /* Brilho discreto atrás do herói da landing (sem gradiente chamativo) */
+  --cor-destaque-suave: var(--azul-50);
+  --cor-destaque-linha: var(--azul-100);
+  --cor-perigo: var(--vermelho-600);
+  --cor-perigo-fundo: rgb(220 38 38 / 0.08);
+  /* Verde e âmbar mais escuros que os da referência para manter contraste AA em texto */
+  --cor-sucesso: var(--verde-700);
+  --cor-sucesso-fundo: rgb(21 128 61 / 0.08);
+  --cor-atencao: var(--ambar-700);
+  --cor-atencao-fundo: rgb(180 83 9 / 0.08);
+  --cor-foco: var(--azul-600);
+  --cor-overlay: rgb(11 16 51 / 0.45);
+  /* Barra lateral navy nos dois temas */
+  --cor-lateral: var(--navy-900);
+  --cor-lateral-texto: var(--branco);
+  --cor-lateral-texto-2: rgb(255 255 255 / 0.72);
+  --cor-lateral-ativo: rgb(255 255 255 / 0.12);
+  --cor-lateral-borda: var(--navy-900);
+  --cor-lateral-divisoria: rgb(255 255 255 / 0.1);
+  --cor-lateral-destaque: var(--azul-300);
+  --cor-topo-vidro: rgb(255 255 255 / 0.88);
+  /* Brilho azul discreto atrás do herói da landing */
   --brilho-heroi: radial-gradient(
     ellipse 60% 55% at 85% 0%,
-    rgb(139 92 246 / 0.14),
+    rgb(90 140 250 / 0.2),
     transparent 65%
   );
 
@@ -123,8 +127,8 @@
   --raio-pilula: 999px; /* botões, chips, selos, navegação */
 
   /* ---------- Elevação: só o que flutua tem sombra ---------- */
-  --sombra-leve: 0 1px 2px rgb(0 0 0 / 0.3);
-  --sombra-flutuante: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  --sombra-leve: 0 1px 2px rgb(11 16 51 / 0.08);
+  --sombra-flutuante: 0 24px 60px -24px rgb(11 16 51 / 0.45);
   --sombra-primaria: 0 10px 24px -14px var(--cor-primaria);
   --anel-foco: 0 0 0 3px var(--cor-destaque-linha);
 
@@ -146,44 +150,40 @@
   --transicao-lenta: 320ms var(--curva);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
+:root[data-theme='dark'] {
+  color-scheme: dark;
 
-    --cor-fundo: var(--cinza-50);
-    --cor-fundo-2: var(--cinza-100);
-    --cor-superficie: var(--branco);
-    --cor-superficie-2: var(--cinza-100);
-    --cor-borda: var(--cinza-200);
-    --cor-borda-forte: var(--cinza-300);
-    --cor-texto: var(--cinza-900);
-    --cor-texto-secundario: var(--cinza-500);
-    --cor-destaque: var(--roxo-700);
-    --cor-primaria: var(--roxo-700);
-    --cor-primaria-hover: var(--roxo-800);
-    --cor-destaque-suave: rgb(109 40 217 / 0.08);
-    --cor-destaque-linha: rgb(109 40 217 / 0.25);
-    --cor-perigo: var(--vermelho-700);
-    --cor-perigo-fundo: rgb(185 28 28 / 0.08);
-    --cor-sucesso: var(--verde-700);
-    --cor-sucesso-fundo: rgb(21 128 61 / 0.08);
-    --cor-atencao: var(--ambar-700);
-    --cor-atencao-fundo: rgb(180 83 9 / 0.08);
-    --cor-foco: var(--roxo-700);
-    --cor-overlay: rgb(24 24 27 / 0.4);
-    --cor-lateral: var(--cinza-900);
-    --cor-lateral-texto: var(--cinza-50);
-    --cor-lateral-texto-2: var(--grafite-400);
-    --cor-lateral-ativo: rgb(255 255 255 / 0.12);
-    --cor-lateral-borda: var(--cinza-900);
-    --cor-topo-vidro: rgb(250 250 251 / 0.85);
-    --brilho-heroi: radial-gradient(
-      ellipse 60% 55% at 85% 0%,
-      rgb(109 40 217 / 0.08),
-      transparent 65%
-    );
+  --cor-fundo: var(--navy-950);
+  --cor-fundo-2: var(--navy-1000);
+  --cor-superficie: var(--navy-850);
+  --cor-superficie-2: var(--navy-800);
+  --cor-borda: var(--navy-700);
+  --cor-borda-forte: var(--navy-600);
+  --cor-texto: var(--cinza-100);
+  --cor-texto-secundario: var(--cinza-400);
+  /* Azul claro para texto/estado ativo (contraste AA sobre o navy) */
+  --cor-destaque: var(--azul-300);
+  --cor-primaria: var(--azul-600);
+  --cor-primaria-hover: var(--azul-500);
+  --cor-destaque-suave: rgb(90 140 250 / 0.16);
+  --cor-destaque-linha: rgb(90 140 250 / 0.4);
+  --cor-perigo: var(--vermelho-400);
+  --cor-perigo-fundo: rgb(248 113 113 / 0.12);
+  --cor-sucesso: var(--verde-400);
+  --cor-sucesso-fundo: rgb(74 222 128 / 0.12);
+  --cor-atencao: var(--ambar-400);
+  --cor-atencao-fundo: rgb(251 191 36 / 0.12);
+  --cor-foco: var(--azul-400);
+  --cor-overlay: rgb(4 6 26 / 0.7);
+  --cor-lateral: var(--navy-1000);
+  --cor-lateral-borda: var(--navy-700);
+  --cor-topo-vidro: rgb(7 11 30 / 0.85);
+  --brilho-heroi: radial-gradient(
+    ellipse 60% 55% at 85% 0%,
+    rgb(90 140 250 / 0.16),
+    transparent 65%
+  );
 
-    --sombra-leve: 0 1px 2px rgb(24 24 27 / 0.08);
-    --sombra-flutuante: 0 24px 60px -24px rgb(24 24 27 / 0.35);
-  }
+  --sombra-leve: 0 1px 2px rgb(0 0 0 / 0.4);
+  --sombra-flutuante: 0 24px 60px -24px rgb(0 0 0 / 0.7);
 }

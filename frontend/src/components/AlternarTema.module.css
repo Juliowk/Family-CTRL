@@ -1,0 +1,22 @@
+.botao {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 1px solid var(--cor-borda);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition:
+    border-color var(--transicao),
+    color var(--transicao),
+    background-color var(--transicao);
+}
+
+.botao:hover {
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
+  background: var(--cor-superficie-2);
+}

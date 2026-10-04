@@ -4,6 +4,7 @@ import { familiasApi } from '../api/endpoints';
 import { useAuth } from '../estado/auth';
 import { chaves } from '../estado/chaves';
 import { useFamiliaAtual } from '../estado/familiaAtual';
+import { AlternarTema } from './AlternarTema';
 import { Avatar } from './Avatar';
 import { LinkBotao } from './Botao';
 import { Carregando, MensagemErro } from './Estados';
@@ -44,6 +45,7 @@ export function LayoutPublico() {
             <Marca />
           </Link>
           <nav className={estilos.publicoNav} aria-label="Acesso">
+            <AlternarTema />
             {pathname !== '/login' && (
               <LinkBotao to="/login" variante="fantasma" pequeno>
                 Entrar
@@ -143,6 +145,10 @@ export function LayoutAutenticado() {
           </NavLink>
         </nav>
 
+        <div className={estilos.lateralRodape}>
+          <AlternarTema className={estilos.lateralTema} />
+        </div>
+
         <NavLink to="/conta" className={estilos.lateralConta}>
           <Avatar nome={usuario.nome} pequeno />
           <span className={estilos.lateralContaTexto}>
@@ -156,13 +162,16 @@ export function LayoutAutenticado() {
         <Link to="/inicio" className={estilos.linkMarca}>
           <Marca />
         </Link>
-        {nomeFamilia && (
-          <Link to="/familias" className={estilos.topoFamilia}>
-            <span className={estilos.topoFamiliaNome}>{nomeFamilia}</span>
-            <IconeTrocar tamanho={16} />
-            <span className="sr-only">(trocar família)</span>
-          </Link>
-        )}
+        <div className={estilos.topoAcoes}>
+          {nomeFamilia && (
+            <Link to="/familias" className={estilos.topoFamilia}>
+              <span className={estilos.topoFamiliaNome}>{nomeFamilia}</span>
+              <IconeTrocar tamanho={16} />
+              <span className="sr-only">(trocar família)</span>
+            </Link>
+          )}
+          <AlternarTema />
+        </div>
       </header>
 
       <main className={estilos.conteudo}>

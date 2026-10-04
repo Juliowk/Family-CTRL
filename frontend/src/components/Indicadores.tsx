@@ -3,7 +3,7 @@ import estilos from './Indicadores.module.css';
 export interface Indicador {
   rotulo: string;
   valor: number | undefined;
-  /** Número em roxo: reservado ao dado principal da tela. */
+  /** Número em azul: reservado ao dado principal da tela. */
   destaque?: boolean;
 }
 

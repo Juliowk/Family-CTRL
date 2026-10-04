@@ -2,13 +2,16 @@ import { Avatar } from '../components/Avatar';
 import { Botao, LinkBotao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Card } from '../components/Card';
+import { FiltroChips } from '../components/FiltroChips';
 import { IconeSair, IconeTrocar } from '../components/Icones';
 import { useAuth } from '../estado/auth';
+import { useTema } from '../estado/tema';
 import estilos from './Conta.module.css';
 import paginas from './Paginas.module.css';
 
 export function Conta() {
   const { usuario, sair } = useAuth();
+  const [tema, definirTema] = useTema();
   return (
     <div className={[paginas.pagina, paginas.estreita].join(' ')}>
       <CabecalhoPagina rotulo="Conta" titulo="Sua conta" />
@@ -20,6 +23,24 @@ export function Conta() {
           <p className={paginas.subtitulo}>{usuario?.email}</p>
         </div>
       </Card>
+
+      <section className={paginas.secao} aria-labelledby="titulo-aparencia">
+        <h2 id="titulo-aparencia" className={paginas.secaoTitulo}>
+          Aparência
+        </h2>
+        <Card className={estilos.linha}>
+          <p className={paginas.subtitulo}>O tema escolhido fica salvo neste aparelho.</p>
+          <FiltroChips
+            rotulo="Tema"
+            valor={tema}
+            aoMudar={definirTema}
+            opcoes={[
+              { valor: 'claro', rotulo: 'Claro' },
+              { valor: 'escuro', rotulo: 'Escuro' },
+            ]}
+          />
+        </Card>
+      </section>
 
       <section className={paginas.secao} aria-labelledby="titulo-familias">
         <h2 id="titulo-familias" className={paginas.secaoTitulo}>

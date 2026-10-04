@@ -256,19 +256,26 @@ para permitir revogação.
 - **Família atual** guardada no `localStorage`: o app abre direto na última família usada.
 - **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: alvos de
   toque de no mínimo 44 px; a linha inteira do item é o botão de marcar.
-- **Design system** (detalhado abaixo): a linguagem visual segue a do EcomSmart (referência de
-  produto SaaS), mantendo a paleta, a fonte e o tema deste projeto.
+- **Design system** (detalhado abaixo): a linguagem visual e o padrão de cores seguem os da
+  EcomSmart (referência de produto SaaS).
 
 ### Design system
 
-A referência foi usada pela **estrutura** (como as telas se organizam), não pela marca. Cores
-azul/navy, a fonte Figtree e o tema claro como padrão da referência **não** foram adotados: o
-`CLAUDE.md` fixa preto/cinza/roxo, fonte do sistema e tema escuro como padrão, e copiar a
-identidade de outra empresa não faria sentido.
+A referência foi usada pela **estrutura** (como as telas se organizam) e pelo **padrão de cores**
+(azul `#0A5BF0`, navy `#0B1033`, cinzas azulados). Logo, nome, textos e a fonte Figtree **não**
+foram copiados: a fonte continua a do sistema, sem dependência externa.
 
-- **Tokens em duas camadas.** Primitivos (`--roxo-600`, `--grafite-850`...) são a paleta crua e o
+- **Tema claro por padrão, escuro por escolha.** O botão de sol/lua (topo, barra lateral e tela
+  Conta) grava a escolha no `localStorage` e coloca `data-theme="dark"` no `<html>`. O
+  `public/tema.js` aplica o tema salvo antes do React carregar, para quem usa o escuro não ver a
+  tela piscar em claro. Ele é um arquivo e não um `<script>` inline porque a CSP só permite
+  scripts da própria origem.
+- **Contraste.** O verde e o âmbar da referência (`#16A34A`, `#D97706`) não atingem 4,5:1 sobre
+  branco; em texto usamos tons mais escuros (`#15803D`, `#B45309`). No tema escuro, links e estado
+  ativo usam o azul claro `#8DB0FF`.
+- **Tokens em duas camadas.** Primitivos (`--azul-600`, `--navy-900`...) são a paleta crua e o
   único lugar com hexadecimal. Semânticos (`--cor-superficie`, `--cor-texto-secundario`...) dizem
-  o papel de cada cor. Componentes só usam semânticos; o tema claro apenas remapeia os semânticos.
+  o papel de cada cor. Componentes só usam semânticos; o tema escuro apenas remapeia os semânticos.
 - **Escalas fixas.** Espaçamento de 4 em 4 px (`--espaco-1` = 4 px até `--espaco-9` = 96 px),
   raios `8/12/16/24/pílula` (campos, cards, painéis, blocos de demonstração, botões), tipografia
   com `clamp()` para títulos crescerem com a tela sem saltos de breakpoint.
@@ -281,8 +288,8 @@ identidade de outra empresa não faria sentido.
 - **Rótulo em caixa alta acima do título** ("FAMÍLIA", "LISTA DE COMPRAS") dá contexto sem
   ocupar uma linha de texto comum.
 - **O dado é o destaque.** A tela da família abre com indicadores (itens a comprar, comprados,
-  listas, membros): números grandes e tabulares, o principal em roxo. Sem dado, mostra "—".
-- **Navegação.** Desktop (≥ 64 rem): barra lateral escura com a família atual, as seções e a conta
+  listas, membros): números grandes e tabulares, o principal em azul. Sem dado, mostra "—".
+- **Navegação.** Desktop (≥ 64 rem): barra lateral navy com a família atual, as seções e a conta
   no rodapé (a lateral é sempre escura, por isso tem tokens próprios de destaque). Celular e
   tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
   Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
@@ -300,10 +307,8 @@ identidade de outra empresa não faria sentido.
 - **Acessibilidade:** rótulos em todos os campos (visíveis ou só para leitores de tela), foco
   visível, `aria-pressed` nos itens, modal com foco preso e Esc para fechar, mensagens com
   `role="alert"`/`role="status"`, respeito a `prefers-reduced-motion`.
-- **Cores e contraste:** a paleta de referência foi mantida, com dois ajustes para passar no
-  contraste AA: o texto branco sobre `#8B5CF6` não atinge 4,5:1, então botões primários usam
-  `#7C3AED` (hover `#6D28D9`); links e estado ativo no tema escuro usam `#A78BFA`, que tem mais
-  contraste sobre o fundo. `#8B5CF6` ficou como cor do anel de foco.
+- **Cores e contraste:** padrão de cores da EcomSmart; os ajustes para contraste AA estão na
+  seção "Design system".
 
 ## 11. Testes
 
