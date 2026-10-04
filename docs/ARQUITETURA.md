@@ -254,9 +254,49 @@ para permitir revogação.
   a chamada falhar, o estado anterior é restaurado e uma mensagem aparece. No supermercado, com
   sinal ruim, isso faz o app parecer instantâneo.
 - **Família atual** guardada no `localStorage`: o app abre direto na última família usada.
-- **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: navegação
-  numa barra inferior no celular (alcance do polegar) e no topo no desktop; alvos de toque de no
-  mínimo 44 px; a linha inteira do item é o botão de marcar.
+- **CSS próprio** com CSS Modules e tokens em `src/styles/tokens.css`. Mobile-first: alvos de
+  toque de no mínimo 44 px; a linha inteira do item é o botão de marcar.
+- **Design system** (detalhado abaixo): a linguagem visual segue a do EcomSmart (referência de
+  produto SaaS), mantendo a paleta, a fonte e o tema deste projeto.
+
+### Design system
+
+A referência foi usada pela **estrutura** (como as telas se organizam), não pela marca. Cores
+azul/navy, a fonte Figtree e o tema claro como padrão da referência **não** foram adotados: o
+`CLAUDE.md` fixa preto/cinza/roxo, fonte do sistema e tema escuro como padrão, e copiar a
+identidade de outra empresa não faria sentido.
+
+- **Tokens em duas camadas.** Primitivos (`--roxo-600`, `--grafite-850`...) são a paleta crua e o
+  único lugar com hexadecimal. Semânticos (`--cor-superficie`, `--cor-texto-secundario`...) dizem
+  o papel de cada cor. Componentes só usam semânticos; o tema claro apenas remapeia os semânticos.
+- **Escalas fixas.** Espaçamento de 4 em 4 px (`--espaco-1` = 4 px até `--espaco-9` = 96 px),
+  raios `8/12/16/24/pílula` (campos, cards, painéis, blocos de demonstração, botões), tipografia
+  com `clamp()` para títulos crescerem com a tela sem saltos de breakpoint.
+- **Elevação mínima.** Cards são planos, só com borda. Sombra apenas no que flutua (modal, demo da
+  landing) e um brilho discreto no hover do botão primário.
+- **Formas que comunicam.** Botões, chips e navegação em pílula ("isto é uma ação"); campos com
+  raio menor e altura de 48 px ("isto recebe texto"). Estado também é indicado por forma, não só
+  por cor: ponto nos selos, filete à esquerda em cards atuais/concluídos e erros, barrinha no item
+  ativo da navegação.
+- **Rótulo em caixa alta acima do título** ("FAMÍLIA", "LISTA DE COMPRAS") dá contexto sem
+  ocupar uma linha de texto comum.
+- **O dado é o destaque.** A tela da família abre com indicadores (itens a comprar, comprados,
+  listas, membros): números grandes e tabulares, o principal em roxo. Sem dado, mostra "—".
+- **Navegação.** Desktop (≥ 64 rem): barra lateral escura com a família atual, as seções e a conta
+  no rodapé (a lateral é sempre escura, por isso tem tokens próprios de destaque). Celular e
+  tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
+  Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
+  item "Listas" continua ativo.
+- **Filtros na URL.** "Ativas / Arquivadas" é um grupo de chips que grava `?ver=arquivadas`:
+  recarregar ou compartilhar o link abre a mesma visão.
+- **Componentes compartilhados:** `Botao`/`LinkBotao`, `Campo`, `Card`/`CardNumerado`, `Selo`,
+  `Avatar`, `CabecalhoPagina`, `Indicadores`, `FiltroChips`, `Modal` (folha que sobe de baixo no
+  celular, diálogo centralizado no desktop), `Progresso` e os estados `Carregando`, `EstadoVazio`
+  (ícone, título, texto e ação) e `MensagemErro` (o que houve e "Tentar de novo").
+- **Landing** segue a composição da referência: herói com selo, título grande, CTAs e uma
+  demonstração ilustrativa do produto; passos numerados; recursos; bloco de dados (números com
+  filete acima); perguntas frequentes; chamada final. Os números citados são fatos do app
+  (1 toque, código de 8 caracteres, tela mínima de 320 px), nunca métricas inventadas.
 - **Acessibilidade:** rótulos em todos os campos (visíveis ou só para leitores de tela), foco
   visível, `aria-pressed` nos itens, modal com foco preso e Esc para fechar, mensagens com
   `role="alert"`/`role="status"`, respeito a `prefers-reduced-motion`.
