@@ -24,6 +24,22 @@
     box-shadow var(--transicao);
 }
 
+.area {
+  min-height: 9rem;
+  padding: var(--espaco-3) var(--espaco-4);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* iOS: abaixo de 16px o foco dá zoom; no toque, mantém 16px */
+@media (pointer: coarse) {
+  .area {
+    font-size: var(--texto-md);
+  }
+}
+
 .entrada::placeholder {
   color: var(--cor-texto-secundario);
 }

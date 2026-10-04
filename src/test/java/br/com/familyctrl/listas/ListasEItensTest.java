@@ -92,6 +92,46 @@ class ListasEItensTest extends IntegracaoTest {
 	}
 
 	@Test
+	void importaListaComItens() throws Exception {
+		String corpo = "{\"nome\":\"Importada\",\"itens\":[{\"nome\":\"Pão\",\"categoriaId\":" + padaria
+				+ ",\"quantidadePlanejada\":\"6 un\"},{\"nome\":\"Bolo\",\"categoriaId\":" + padaria + "}]}";
+		long listaId = lerId(mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas/importar")).content(corpo))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.nome").value("Importada"))
+			.andExpect(jsonPath("$.totalItens").value(2))
+			.andReturn(), "$.id");
+
+		mvc.perform(como(ana, get("/api/listas/" + listaId)))
+			.andExpect(jsonPath("$.itens", hasSize(2)))
+			.andExpect(jsonPath("$.itens[0].nome").value("Pão"))
+			.andExpect(jsonPath("$.itens[0].quantidadePlanejada").value("6 un"))
+			.andExpect(jsonPath("$.itens[1].quantidadePlanejada").doesNotExist());
+	}
+
+	@Test
+	void importacaoComCategoriaDeOutraFamiliaNaoCriaALista() throws Exception {
+		String corpo = "{\"nome\":\"Importada\",\"itens\":[{\"nome\":\"Pão\",\"categoriaId\":" + padaria
+				+ "},{\"nome\":\"Bolo\",\"categoriaId\":" + outraFamiliaCategoria + "}]}";
+		mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas/importar")).content(corpo))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros[0].campo").value("itens[1].categoriaId"));
+
+		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/listas"))).andExpect(jsonPath("$", hasSize(0)));
+	}
+
+	@Test
+	void importacaoValidaOsItensEExigeSerMembro() throws Exception {
+		mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas/importar"))
+			.content("{\"nome\":\"Vazia\",\"itens\":[]}")).andExpect(status().isBadRequest());
+		mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas/importar"))
+			.content("{\"nome\":\"X\",\"itens\":[{\"nome\":\"\",\"categoriaId\":" + padaria + "}]}"))
+			.andExpect(status().isBadRequest());
+		mvc.perform(como(intruso, post("/api/familias/" + familiaId + "/listas/importar"))
+			.content("{\"nome\":\"X\",\"itens\":[{\"nome\":\"Pão\",\"categoriaId\":" + padaria + "}]}"))
+			.andExpect(status().isNotFound());
+	}
+
+	@Test
 	void pegaItemComPrecoEQuantidadeECalculaSubtotal() throws Exception {
 		long listaId = criarLista("Mercado");
 		long pao = adicionarItem(listaId, "Pão");

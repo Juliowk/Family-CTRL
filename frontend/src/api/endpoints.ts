@@ -49,6 +49,9 @@ export const listasApi = {
   listar: (familiaId: number) => api<Lista[]>(`/api/familias/${familiaId}/listas`),
   criar: (familiaId: number, nome: string) =>
     api<Lista>(`/api/familias/${familiaId}/listas`, { method: 'POST', body: { nome } }),
+  /** Cria a lista já com os itens (importação de CSV). */
+  importar: (familiaId: number, dados: { nome: string; itens: DadosItem[] }) =>
+    api<Lista>(`/api/familias/${familiaId}/listas/importar`, { method: 'POST', body: dados }),
   detalhar: (id: number) => api<ListaDetalhe>(`/api/listas/${id}`),
   renomear: (id: number, nome: string) =>
     api<Lista>(`/api/listas/${id}`, { method: 'PATCH', body: { nome } }),

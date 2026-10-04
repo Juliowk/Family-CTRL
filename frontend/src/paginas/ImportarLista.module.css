@@ -1,0 +1,102 @@
+/* Ajuda da importação (prompt e formato) e resumo do CSV colado */
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border-radius: var(--raio-sm);
+  background: var(--cor-fundo);
+}
+
+.blocoCabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.blocoTitulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+}
+
+.detalhes summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.detalhes[open] summary {
+  margin-bottom: var(--espaco-2);
+}
+
+/* Texto pré-formatado: quebra linhas longas para não criar rolagem horizontal no celular */
+.codigo {
+  margin: 0;
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-xs);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.regras {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding-left: var(--espaco-5);
+  list-style: disc;
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.regras code {
+  font-family: var(--fonte-mono);
+  color: var(--cor-texto);
+}
+
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
+}
+
+.ok {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  color: var(--cor-sucesso);
+  font-weight: var(--peso-forte);
+}
+
+/* Aviso e erros com filete à esquerda: o estado aparece pela forma, não só pela cor */
+.aviso,
+.erros {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-left: 3px solid currentColor;
+  border-radius: var(--raio-sm);
+}
+
+.aviso {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-fundo);
+}
+
+.erros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  list-style: none;
+  color: var(--cor-perigo);
+  background: var(--cor-perigo-fundo);
+}

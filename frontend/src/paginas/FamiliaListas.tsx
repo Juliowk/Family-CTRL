@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { comprasApi, listasApi } from '../api/endpoints';
 import type { CompraResumo, Lista } from '../api/tipos';
+import { AbasPainel } from '../components/AbasPainel';
 import { Botao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Campo } from '../components/Campo';
@@ -19,6 +20,7 @@ import { chaves } from '../estado/chaves';
 import { formatarData, formatarDinheiro, mesAtual } from '../util/compra';
 import cartoes from './Cartoes.module.css';
 import { ErroFamilia } from './FamiliaNaoEncontrada';
+import { ImportarLista } from './ImportarLista';
 import estilos from './Paginas.module.css';
 import { useFamiliaDaRota } from './useFamiliaDaRota';
 
@@ -99,7 +101,7 @@ export function FamiliaListas() {
       <section className={estilos.secao} aria-labelledby="titulo-listas">
         <div className={estilos.secaoCabecalho}>
           <h2 id="titulo-listas" className={estilos.secaoTitulo}>
-            {visao === 'listas' ? 'Listas' : 'Compras concluídas'}
+            Listas
           </h2>
           <FiltroChips
             rotulo="Mostrar"
@@ -132,25 +134,36 @@ export function FamiliaListas() {
           Criar lista
         </h2>
         <Card>
-          <form className={form.linha} onSubmit={enviar}>
-            <Campo
-              rotulo="Nome da nova lista"
-              rotuloOculto
-              placeholder="Ex.: Compras do mês"
-              maxLength={100}
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              erro={criar.error instanceof ApiError ? criar.error.message : undefined}
-            />
-            <Botao
-              type="submit"
-              variante="primario"
-              carregando={criar.isPending}
-              disabled={!nome.trim()}
-            >
-              Criar lista
-            </Botao>
-          </form>
+          <AbasPainel
+            rotulo="Como criar a lista"
+            abas={[
+              {
+                rotulo: 'Nova lista',
+                conteudo: (
+                  <form className={form.linha} onSubmit={enviar}>
+                    <Campo
+                      rotulo="Nome da nova lista"
+                      rotuloOculto
+                      placeholder="Ex.: Compras do mês"
+                      maxLength={100}
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      erro={criar.error instanceof ApiError ? criar.error.message : undefined}
+                    />
+                    <Botao
+                      type="submit"
+                      variante="primario"
+                      carregando={criar.isPending}
+                      disabled={!nome.trim()}
+                    >
+                      Criar lista
+                    </Botao>
+                  </form>
+                ),
+              },
+              { rotulo: 'Importar CSV', conteudo: <ImportarLista familiaId={familiaId} /> },
+            ]}
+          />
         </Card>
       </section>
     </div>

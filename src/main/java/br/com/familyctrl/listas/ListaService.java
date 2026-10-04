@@ -11,6 +11,7 @@ import br.com.familyctrl.familia.FamiliaService;
 import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
 import br.com.familyctrl.itens.ItemService;
 import br.com.familyctrl.itens.Progresso;
+import br.com.familyctrl.itens.dto.ItemRequest;
 import br.com.familyctrl.listas.dto.ListaDetalhe;
 import br.com.familyctrl.listas.dto.ListaResponse;
 
@@ -55,6 +56,17 @@ public class ListaService {
 		familiaService.verificarMembro(familiaId, usuarioId);
 		Lista lista = listas.save(new Lista(familiaId, nome.trim(), usuarioId));
 		return paraResponse(lista, Progresso.VAZIO);
+	}
+
+	/**
+	 * Cria a lista já com os itens importados. Tudo numa transação: se algum item for inválido,
+	 * nem a lista fica criada.
+	 */
+	public ListaResponse importar(Long familiaId, Long usuarioId, String nome, List<ItemRequest> itens) {
+		familiaService.verificarMembro(familiaId, usuarioId);
+		Lista lista = listas.save(new Lista(familiaId, nome.trim(), usuarioId));
+		itemService.importar(lista.getId(), familiaId, usuarioId, itens);
+		return paraResponse(lista, new Progresso(itens.size(), 0));
 	}
 
 	/** Lista com categorias e itens. Não é readOnly: o 1º acesso cria as categorias padrão. */

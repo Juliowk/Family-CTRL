@@ -207,6 +207,22 @@ export function criarApiFalsa() {
       return json(201, lista);
     }
 
+    if ((m = rota.match(/^POST \/api\/familias\/(\d+)\/listas\/importar$/))) {
+      const lista: Lista = {
+        id: ++proximoId,
+        familiaId: Number(m[1]),
+        nome: corpo.nome,
+        criadaEm: agora,
+        totalItens: corpo.itens.length,
+        itensPegos: 0,
+      };
+      estado.listas.push(lista);
+      for (const dados of corpo.itens) {
+        estado.itens.push(novoItem({ id: ++proximoId, listaId: lista.id, ...dados }));
+      }
+      return json(201, lista);
+    }
+
     if ((m = rota.match(/^GET \/api\/listas\/(\d+)$/))) {
       const lista = estado.listas.find((l) => l.id === Number(m![1]));
       if (!lista) return problema(404, 'Lista não encontrada.');

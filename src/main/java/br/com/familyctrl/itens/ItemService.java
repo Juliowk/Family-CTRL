@@ -1,5 +1,6 @@
 package br.com.familyctrl.itens;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,24 @@ public class ItemService {
 		Item item = itens.save(new Item(listaId, request.categoriaId(), request.nome().trim(),
 				vazioParaNulo(request.quantidadePlanejada()), false, usuarioId));
 		return paraResponse(item);
+	}
+
+	/**
+	 * Adiciona vários itens planejados de uma vez (importação). Uso interno do módulo de listas,
+	 * que já verificou o acesso à família e acabou de criar a lista.
+	 */
+	public void importar(Long listaId, Long familiaId, Long usuarioId, List<ItemRequest> requests) {
+		Set<Long> categoriasDaFamilia = categoriaService.mapaDaFamilia(familiaId).keySet();
+		List<Item> novos = new ArrayList<>();
+		for (int i = 0; i < requests.size(); i++) {
+			ItemRequest request = requests.get(i);
+			if (!categoriasDaFamilia.contains(request.categoriaId())) {
+				throw new ValidacaoException("itens[" + i + "].categoriaId", "Escolha uma categoria válida.");
+			}
+			novos.add(new Item(listaId, request.categoriaId(), request.nome().trim(),
+					vazioParaNulo(request.quantidadePlanejada()), false, usuarioId));
+		}
+		itens.saveAll(novos);
 	}
 
 	public ItemResponse atualizar(Long itemId, Long usuarioId, AtualizarItemRequest request) {

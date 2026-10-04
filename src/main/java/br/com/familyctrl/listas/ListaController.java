@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.familyctrl.infra.seguranca.UsuarioLogado;
 import br.com.familyctrl.listas.dto.AtualizarListaRequest;
+import br.com.familyctrl.listas.dto.ImportarListaRequest;
 import br.com.familyctrl.listas.dto.ListaDetalhe;
 import br.com.familyctrl.listas.dto.ListaRequest;
 import br.com.familyctrl.listas.dto.ListaResponse;
@@ -41,6 +42,13 @@ class ListaController {
 	ListaResponse criar(UsuarioLogado usuario, @PathVariable Long familiaId,
 			@Valid @RequestBody ListaRequest request) {
 		return service.criar(familiaId, usuario.id(), request.nome());
+	}
+
+	@PostMapping("/familias/{familiaId}/listas/importar")
+	@ResponseStatus(HttpStatus.CREATED)
+	ListaResponse importar(UsuarioLogado usuario, @PathVariable Long familiaId,
+			@Valid @RequestBody ImportarListaRequest request) {
+		return service.importar(familiaId, usuario.id(), request.nome(), request.itens());
 	}
 
 	@GetMapping("/listas/{id}")

@@ -100,6 +100,7 @@ Prefixo `/api`. Corpo em JSON. Erros em ProblemDetail (seção 7).
 | DELETE | `/api/categorias/{id}`                        | Exclui (itens vão para "Outros")        | 204     |
 | GET    | `/api/familias/{id}/listas`                   | Listas com total de itens e pegos       | 200     |
 | POST   | `/api/familias/{id}/listas`                   | Cria lista                              | 201     |
+| POST   | `/api/familias/{id}/listas/importar`          | Cria lista já com itens (CSV importado) | 201     |
 | GET    | `/api/listas/{id}`                            | Lista com categorias e itens            | 200     |
 | PATCH  | `/api/listas/{id}`                            | Renomeia                                | 200     |
 | DELETE | `/api/listas/{id}`                            | Exclui (compras concluídas ficam)       | 204     |
@@ -370,8 +371,21 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
   item "Listas" continua ativo.
 - **Filtros e abas na URL.** "Listas / Concluídas" é um grupo de chips que grava
   `?ver=concluidas`, e as abas da lista são rotas (`/listas/:id/planejar` e `/comprar`):
-  recarregar ou compartilhar o link abre a mesma visão.
-- **Componentes compartilhados:** `Botao`/`LinkBotao`, `Campo`, `Card`/`CardNumerado`, `Selo`,
+  recarregar ou compartilhar o link abre a mesma visão. O título da seção continua "Listas" nas
+  duas visões: só o conteúdo muda.
+- **Abas dentro de card** (`AbasPainel`): "Entrar com código / Criar família" e "Nova lista /
+  Importar CSV" são caminhos alternativos para a mesma tarefa, então ficam num único card com
+  abas (padrão ARIA, setas trocam de aba) e não mudam a URL. Os painéis ficam montados e só
+  escondidos, para trocar de aba não apagar o que foi digitado.
+- **Importar lista de CSV.** O usuário cola um texto CSV (`nome;categoria;quantidade`), muitas
+  vezes gerado por uma IA com o prompt que a tela oferece para copiar (já com as categorias da
+  família). Por quê ler o CSV no navegador: o resumo ("12 itens prontos", linhas com erro,
+  categorias desconhecidas) aparece enquanto se digita, sem ida ao servidor, e a API recebe
+  itens estruturados, validados como os adicionados à mão. A categoria é casada pelo nome sem
+  diferenciar maiúsculas e acentos; vazia ou desconhecida vai para "Outros". Separador `;`
+  recomendado porque quantidades como "1,5 kg" têm vírgula. O endpoint cria lista e itens numa
+  transação só: se um item for inválido, nada é criado.
+- **Componentes compartilhados:** `Botao`/`LinkBotao`, `Campo`, `Card`, `AbasPainel`, `AreaTexto`, `Selo`,
   `Avatar`, `CabecalhoPagina`, `Indicadores`, `FiltroChips`, `Modal` (folha que sobe de baixo no
   celular, diálogo centralizado no desktop), `Progresso` e os estados `Carregando`, `EstadoVazio`
   (ícone, título, texto e ação) e `MensagemErro` (o que houve e "Tentar de novo").

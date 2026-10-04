@@ -102,6 +102,40 @@ describe('listas', () => {
     );
   });
 
+  it('importa uma lista colada em CSV', async () => {
+    const { chamadas } = criarApiFalsa();
+    const { usuario } = renderizarApp('/familias/10', { logado: true });
+
+    await usuario.click(await screen.findByRole('tab', { name: 'Importar CSV' }));
+    expect(await screen.findByRole('button', { name: 'Copiar prompt' })).toBeInTheDocument();
+
+    await usuario.type(screen.getByLabelText('Nome da lista importada'), 'Feira');
+    await usuario.type(
+      screen.getByLabelText('Lista em CSV'),
+      'nome;categoria;quantidade{Enter}Pão;padaria;6 un{Enter}Cerveja;Bebidas;',
+    );
+    expect(screen.getByText('2 itens prontos para importar.')).toBeInTheDocument();
+    expect(screen.getByText(/os itens vão para “Outros”: Bebidas/)).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Importar lista' }));
+
+    expect(await screen.findByRole('heading', { name: 'Feira' })).toBeInTheDocument();
+    expect(screen.getByText('Pão')).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'POST',
+        caminho: '/api/familias/10/listas/importar',
+        corpo: {
+          nome: 'Feira',
+          itens: [
+            { nome: 'Pão', categoriaId: 1, quantidadePlanejada: '6 un' },
+            { nome: 'Cerveja', categoriaId: 3 },
+          ],
+        },
+      }),
+    );
+  });
+
   it('mostra estado vazio quando a família não tem listas', async () => {
     const { estado } = criarApiFalsa();
     estado.listas = [];
