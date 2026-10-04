@@ -1,35 +1,42 @@
 .campo {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-1);
+  gap: var(--espaco-2);
   min-width: 0;
 }
 
 .rotulo {
   font-size: var(--texto-sm);
-  font-weight: 550;
+  font-weight: var(--peso-forte);
 }
 
 .entrada {
   width: 100%;
-  min-height: var(--alvo-toque);
-  padding: 0 var(--espaco-3);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio);
+  min-height: var(--altura-campo);
+  padding: 0 var(--espaco-4);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
   /* 16px evita o zoom automático do iOS ao focar o campo */
   font-size: var(--texto-md);
-  transition: border-color var(--transicao);
+  transition:
+    border-color var(--transicao),
+    box-shadow var(--transicao);
 }
 
 .entrada::placeholder {
   color: var(--cor-texto-secundario);
 }
 
+.entrada:hover {
+  border-color: var(--cor-texto-secundario);
+}
+
+/* Foco: borda roxa + anel suave de 3px (mais visível que só a borda) */
 .entrada:focus-visible {
   outline: none;
   border-color: var(--cor-foco);
-  box-shadow: 0 0 0 1px var(--cor-foco);
+  box-shadow: var(--anel-foco);
 }
 
 .entrada[aria-invalid='true'] {
@@ -41,7 +48,27 @@
   color: var(--cor-texto-secundario);
 }
 
+/* Erro com ícone de forma (não só cor) */
 .erro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-1);
   font-size: var(--texto-sm);
   color: var(--cor-perigo);
+}
+
+.erro::before {
+  content: '!' / '';
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15em;
+  border-radius: 50%;
+  background: var(--cor-perigo);
+  color: var(--cor-fundo);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-titulo);
+  line-height: 1;
 }

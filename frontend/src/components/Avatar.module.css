@@ -1,0 +1,19 @@
+.avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--cor-destaque-suave);
+  color: var(--cor-destaque);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.02em;
+}
+
+.pequeno {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--texto-rotulo);
+}

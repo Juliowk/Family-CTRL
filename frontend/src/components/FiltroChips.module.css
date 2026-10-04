@@ -1,0 +1,36 @@
+/* Controle segmentado em pílula: a opção ativa "sobe" como uma superfície */
+.chips {
+  display: inline-flex;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-2);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chip {
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-4);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--transicao),
+    color var(--transicao);
+}
+
+.chip:hover {
+  color: var(--cor-texto);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-leve);
+}

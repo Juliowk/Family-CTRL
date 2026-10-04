@@ -1,15 +1,16 @@
+/* Botões em formato pílula: o formato já diz "isto é uma ação" */
 .botao {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--espaco-2);
-  min-height: var(--alvo-toque);
+  min-height: var(--altura-campo);
   min-width: var(--alvo-toque);
-  padding: 0 var(--espaco-4);
+  padding: 0 var(--espaco-5);
   border: 1px solid transparent;
-  border-radius: var(--raio);
+  border-radius: var(--raio-pilula);
   font-size: var(--texto-md);
-  font-weight: 550;
+  font-weight: var(--peso-forte);
   line-height: 1;
   cursor: pointer;
   text-decoration: none;
@@ -17,12 +18,27 @@
   transition:
     background-color var(--transicao),
     border-color var(--transicao),
-    color var(--transicao);
+    color var(--transicao),
+    box-shadow var(--transicao-lenta);
 }
 
 .botao:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+.botao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.botao svg {
+  flex-shrink: 0;
+  transition: transform var(--transicao-lenta);
+}
+
+/* Seta "→" anda um pouco no hover, como nos CTAs da referência */
+.botao:hover:not(:disabled) svg:last-child:not(:first-child) {
+  transform: translateX(3px);
 }
 
 .primario {
@@ -32,15 +48,18 @@
 
 .primario:hover:not(:disabled) {
   background: var(--cor-primaria-hover);
+  box-shadow: var(--sombra-primaria);
 }
 
 .secundario {
-  background: var(--cor-superficie);
-  border-color: var(--cor-borda);
+  background: transparent;
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
 }
 
 .secundario:hover:not(:disabled) {
-  background: var(--cor-superficie-2);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
 }
 
 .fantasma {
@@ -55,11 +74,12 @@
 
 .perigo {
   background: transparent;
-  border-color: var(--cor-borda);
+  border-color: var(--cor-borda-forte);
   color: var(--cor-perigo);
 }
 
 .perigo:hover:not(:disabled) {
+  border-color: var(--cor-perigo);
   background: var(--cor-perigo-fundo);
 }
 
@@ -68,8 +88,9 @@
 }
 
 .pequeno {
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-4);
   font-size: var(--texto-sm);
-  padding: 0 var(--espaco-3);
 }
 
 .spinner {

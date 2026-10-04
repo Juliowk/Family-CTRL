@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { IconeFechar } from './Icones';
 import estilos from './Modal.module.css';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const FOCAVEIS = 'button:not([disabled]), input:not([disabled]), textarea, select, a[href]';
+const CAMPOS = 'input:not([disabled]), textarea, select';
 
 /**
  * Janela modal acessível: foca o primeiro campo ao abrir, mantém o foco dentro dela (Tab),
@@ -27,7 +29,11 @@ export function Modal({ aberto, titulo, aoFechar, children }: Props) {
   useEffect(() => {
     if (!aberto) return;
     const anterior = document.activeElement as HTMLElement | null;
-    painel.current?.querySelector<HTMLElement>(FOCAVEIS)?.focus();
+    // Foca o primeiro campo (ou, se não houver, o primeiro botão do conteúdo)
+    const conteudo = painel.current?.querySelector<HTMLElement>(`.${estilos.conteudo}`);
+    (
+      conteudo?.querySelector<HTMLElement>(CAMPOS) ?? conteudo?.querySelector<HTMLElement>(FOCAVEIS)
+    )?.focus();
 
     function aoTeclar(evento: KeyboardEvent) {
       if (evento.key === 'Escape') {
@@ -71,10 +77,15 @@ export function Modal({ aberto, titulo, aoFechar, children }: Props) {
         aria-modal="true"
         aria-labelledby={idTitulo}
       >
-        <h2 id={idTitulo} className={estilos.titulo}>
-          {titulo}
-        </h2>
-        {children}
+        <div className={estilos.cabecalho}>
+          <h2 id={idTitulo} className={estilos.titulo}>
+            {titulo}
+          </h2>
+          <button type="button" className={estilos.fechar} aria-label="Fechar" onClick={aoFechar}>
+            <IconeFechar tamanho={20} />
+          </button>
+        </div>
+        <div className={estilos.conteudo}>{children}</div>
       </div>
     </div>,
     document.body,

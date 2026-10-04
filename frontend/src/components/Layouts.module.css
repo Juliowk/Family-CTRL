@@ -2,26 +2,35 @@
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-2);
-  font-weight: 650;
+  font-weight: var(--peso-titulo);
   letter-spacing: -0.01em;
 }
 
 .marcaIcone {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--raio-sm);
   background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
 }
 
 .linkMarca {
   display: inline-flex;
   align-items: center;
   min-height: var(--alvo-toque);
-  color: var(--cor-texto);
+  color: inherit;
   text-decoration: none;
 }
 
-/* ---------- Área pública ---------- */
+.telaCheia {
+  max-width: var(--largura-form);
+  margin: 0 auto;
+  padding: var(--espaco-7) var(--espaco-4);
+}
+
+/* ================= Área pública ================= */
 
 .publico {
   min-height: 100dvh;
@@ -29,53 +38,137 @@
   flex-direction: column;
 }
 
+/* Topo translúcido que fica preso ao rolar */
 .publicoTopo {
-  padding: var(--espaco-3) var(--espaco-4);
-  max-width: var(--largura-conteudo);
-  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--cor-topo-vidro);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.publicoTopoInterno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  max-width: var(--largura-site);
+  min-height: var(--altura-topo);
   margin: 0 auto;
+  padding: 0 var(--espaco-4);
+}
+
+.publicoNav {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
 }
 
 .publicoConteudo {
   flex: 1;
   width: 100%;
-  max-width: 26rem;
-  margin: 0 auto;
-  padding: var(--espaco-5) var(--espaco-4) var(--espaco-7);
 }
 
-.telaCheia {
-  max-width: 26rem;
-  margin: 0 auto;
-  padding: var(--espaco-7) var(--espaco-4);
+.rodape {
+  border-top: 1px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
 }
 
-/* ---------- Área logada (mobile-first) ---------- */
+.rodapeInterno {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  max-width: var(--largura-site);
+  margin: 0 auto;
+  padding: var(--espaco-6) var(--espaco-4);
+}
+
+.rodapeInterno .marca {
+  color: var(--cor-texto);
+}
+
+@media (min-width: 40rem) {
+  .publicoTopoInterno,
+  .rodapeInterno {
+    padding-left: var(--espaco-6);
+    padding-right: var(--espaco-6);
+  }
+
+  .rodapeInterno {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* ================= Área logada (mobile-first) ================= */
 
 .app {
   min-height: 100dvh;
+}
+
+/* ---------- Celular e tablet: topo compacto + barra inferior ---------- */
+
+.lateral {
+  display: none;
 }
 
 .topo {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--cor-fundo);
-  border-bottom: 1px solid var(--cor-borda);
-}
-
-.topoInterno {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--largura-conteudo);
-  margin: 0 auto;
+  gap: var(--espaco-3);
+  min-height: var(--altura-topo);
   padding: 0 var(--espaco-4);
+  background: var(--cor-topo-vidro);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Família atual no topo: um toque leva à troca de família */
+.topoFamilia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-width: 0;
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pilula);
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: none;
+  transition:
+    border-color var(--transicao),
+    color var(--transicao);
+}
+
+.topoFamilia:hover {
+  border-color: var(--cor-borda-forte);
+  color: var(--cor-texto);
+}
+
+.topoFamilia svg {
+  flex-shrink: 0;
+}
+
+.topoFamiliaNome {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 10rem;
 }
 
 .conteudo {
-  max-width: var(--largura-conteudo);
-  margin: 0 auto;
   padding: var(--espaco-5) var(--espaco-4);
   /* Espaço para a barra inferior fixa não cobrir o conteúdo */
   padding-bottom: calc(
@@ -83,8 +176,12 @@
   );
 }
 
-/* No celular a navegação é uma barra fixa na parte de baixo */
-.nav {
+.conteudoInterno {
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+}
+
+.barraInferior {
   position: fixed;
   left: 0;
   right: 0;
@@ -98,55 +195,185 @@
   border-top: 1px solid var(--cor-borda);
 }
 
-.navLink {
-  display: flex;
+.barraInferior .navLink {
   flex-direction: column;
-  align-items: center;
   justify-content: center;
   gap: 2px;
+  font-size: var(--texto-rotulo);
+}
+
+.barraInferior .navLinkAtivo {
+  color: var(--cor-destaque);
+}
+
+/* Item ativo: barrinha no topo (estado também pela forma, não só pela cor) */
+.barraInferior .navLinkAtivo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1.5rem;
+  height: 3px;
+  border-radius: 0 0 var(--raio-pilula) var(--raio-pilula);
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
   min-height: var(--alvo-toque);
   color: var(--cor-texto-secundario);
   text-decoration: none;
-  font-size: var(--texto-xs);
-  font-weight: 550;
-  transition: color var(--transicao);
+  font-weight: var(--peso-medio);
+  transition:
+    color var(--transicao),
+    background-color var(--transicao);
 }
 
 .navLink:hover {
   color: var(--cor-texto);
 }
 
-.navLinkAtivo,
-.navLinkAtivo:hover {
-  color: var(--cor-destaque);
+.navLink svg {
+  flex-shrink: 0;
 }
 
-/* No desktop a navegação sobe para o topo */
-@media (min-width: 48rem) {
-  .nav {
-    position: static;
-    display: flex;
-    gap: var(--espaco-1);
-    height: auto;
-    padding: 0;
-    background: none;
-    border: 0;
+/* ---------- Desktop: barra lateral escura ---------- */
+
+@media (min-width: 64rem) {
+  .app {
+    display: grid;
+    grid-template-columns: var(--largura-lateral) minmax(0, 1fr);
   }
 
-  .navLink {
-    flex-direction: row;
-    gap: var(--espaco-2);
+  .topo,
+  .barraInferior {
+    display: none;
+  }
+
+  .lateral {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-6);
+    padding: var(--espaco-4) var(--espaco-3);
+    background: var(--cor-lateral);
+    border-right: 1px solid var(--cor-lateral-borda);
+    color: var(--cor-lateral-texto);
+    overflow-y: auto;
+    /* A lateral é sempre escura: o roxo de destaque e o foco usam o tom claro nos dois temas */
+    --cor-destaque: var(--cor-lateral-destaque);
+    --cor-destaque-suave: var(--cor-lateral-ativo);
+    --cor-foco: var(--cor-lateral-destaque);
+  }
+
+  .lateralMarca {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--alvo-toque);
     padding: 0 var(--espaco-3);
-    border-radius: var(--raio);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .lateralNav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .lateralRotulo {
+    padding: 0 var(--espaco-3);
+    font-size: var(--texto-rotulo);
+    font-weight: var(--peso-forte);
+    letter-spacing: var(--tracking-rotulo);
+    text-transform: uppercase;
+    color: var(--cor-lateral-texto-2);
+  }
+
+  .lateralFamilia {
+    padding: var(--espaco-1) var(--espaco-3) var(--espaco-3);
+    font-weight: var(--peso-forte);
+    overflow-wrap: anywhere;
+  }
+
+  .lateral .navLink {
+    padding: 0 var(--espaco-3);
+    border-radius: var(--raio-sm);
+    color: var(--cor-lateral-texto-2);
     font-size: var(--texto-sm);
   }
 
-  .navLinkAtivo {
-    background: var(--cor-destaque-suave);
+  .lateral .navLink:hover {
+    color: var(--cor-lateral-texto);
+    background: var(--cor-lateral-ativo);
+  }
+
+  /* Ativo: fundo claro translúcido + filete roxo à esquerda */
+  .lateral .navLinkAtivo,
+  .lateral .navLinkAtivo:hover {
+    color: var(--cor-lateral-texto);
+    background: var(--cor-lateral-ativo);
+  }
+
+  .lateral .navLinkAtivo::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    bottom: 25%;
+    width: 3px;
+    border-radius: 0 var(--raio-pilula) var(--raio-pilula) 0;
+    background: var(--cor-destaque);
+  }
+
+  .lateralConta {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-3);
+    min-height: var(--alvo-toque);
+    padding: var(--espaco-3);
+    border-top: 1px solid var(--cor-lateral-divisoria);
+    border-radius: var(--raio-sm);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color var(--transicao);
+  }
+
+  .lateralConta:hover,
+  .lateralConta[aria-current='page'] {
+    background: var(--cor-lateral-ativo);
+  }
+
+  .lateralContaTexto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: var(--texto-sm);
+  }
+
+  .lateralContaNome {
+    font-weight: var(--peso-forte);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lateralContaEmail {
+    color: var(--cor-lateral-texto-2);
+    font-size: var(--texto-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .conteudo {
-    padding-top: var(--espaco-6);
-    padding-bottom: var(--espaco-7);
+    padding: var(--espaco-7) var(--espaco-7) var(--espaco-8);
   }
 }

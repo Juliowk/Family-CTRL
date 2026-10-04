@@ -1,39 +1,46 @@
 import type { ButtonHTMLAttributes } from 'react';
+import { Link, type LinkProps } from 'react-router';
 import estilos from './Botao.module.css';
 
 type Variante = 'primario' | 'secundario' | 'fantasma' | 'perigo';
 
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface Aparencia {
   variante?: Variante;
-  carregando?: boolean;
   larguraTotal?: boolean;
   pequeno?: boolean;
 }
 
+interface Props extends ButtonHTMLAttributes<HTMLButtonElement>, Aparencia {
+  carregando?: boolean;
+}
+
+function classes({ variante = 'secundario', larguraTotal, pequeno }: Aparencia, extra?: string) {
+  return [
+    estilos.botao,
+    estilos[variante],
+    larguraTotal && estilos.larguraTotal,
+    pequeno && estilos.pequeno,
+    extra,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 export function Botao({
-  variante = 'secundario',
+  variante,
   carregando = false,
-  larguraTotal = false,
-  pequeno = false,
+  larguraTotal,
+  pequeno,
   disabled,
   className,
   type = 'button',
   children,
   ...resto
 }: Props) {
-  const classes = [
-    estilos.botao,
-    estilos[variante],
-    larguraTotal && estilos.larguraTotal,
-    pequeno && estilos.pequeno,
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
   return (
     <button
       type={type}
-      className={classes}
+      className={classes({ variante, larguraTotal, pequeno }, className)}
       disabled={disabled || carregando}
       aria-busy={carregando || undefined}
       {...resto}
@@ -42,4 +49,15 @@ export function Botao({
       {children}
     </button>
   );
+}
+
+/** Link de navegação com aparência de botão (ex.: CTAs da landing). */
+export function LinkBotao({
+  variante,
+  larguraTotal,
+  pequeno,
+  className,
+  ...resto
+}: LinkProps & Aparencia) {
+  return <Link className={classes({ variante, larguraTotal, pequeno }, className)} {...resto} />;
 }

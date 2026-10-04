@@ -6,29 +6,86 @@
   align-items: flex-end;
   justify-content: center;
   background: var(--cor-overlay);
-  animation: aparecer 150ms ease;
+  animation: aparecer var(--transicao-lenta);
 }
 
+/* No celular é uma folha que sobe de baixo (mais perto do polegar) */
 .painel {
+  position: relative;
   width: 100%;
-  max-width: 28rem;
+  max-width: 30rem;
   max-height: 90dvh;
   overflow-y: auto;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-bottom: 0;
   border-radius: var(--raio-lg) var(--raio-lg) 0 0;
-  padding: var(--espaco-5) var(--espaco-4);
+  box-shadow: var(--sombra-flutuante);
+  padding: var(--espaco-6) var(--espaco-4) var(--espaco-5);
   padding-bottom: calc(var(--espaco-5) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  animation: subir var(--transicao-lenta);
+}
+
+/* Alça da folha (indicação visual de que é um painel sobreposto) */
+.painel::before {
+  content: '';
+  position: absolute;
+  top: var(--espaco-2);
+  left: 50%;
+  width: 2.5rem;
+  height: 4px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-borda-forte);
+  transform: translateX(-50%);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.titulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
+  padding-top: var(--espaco-2);
+  overflow-wrap: anywhere;
+}
+
+.fechar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  margin: calc(-1 * var(--espaco-1)) calc(-1 * var(--espaco-2)) 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition:
+    background-color var(--transicao),
+    color var(--transicao);
+}
+
+.fechar:hover {
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+}
+
+.conteudo {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-4);
 }
 
-.titulo {
-  font-size: var(--texto-lg);
-}
-
-/* No desktop o modal fica centralizado; no celular sobe de baixo (mais perto do polegar) */
+/* No desktop o modal fica centralizado */
 @media (min-width: 40rem) {
   .fundo {
     align-items: center;
@@ -36,13 +93,25 @@
   }
 
   .painel {
+    border-bottom: 1px solid var(--cor-borda);
     border-radius: var(--raio-lg);
-    padding-bottom: var(--espaco-5);
+    padding: var(--espaco-5) var(--espaco-6) var(--espaco-6);
+  }
+
+  .painel::before {
+    display: none;
   }
 }
 
 @keyframes aparecer {
   from {
+    opacity: 0;
+  }
+}
+
+@keyframes subir {
+  from {
+    transform: translateY(12px);
     opacity: 0;
   }
 }

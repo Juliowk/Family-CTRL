@@ -7,27 +7,39 @@
 .texto {
   font-size: var(--texto-sm);
   color: var(--cor-texto-secundario);
+  font-variant-numeric: tabular-nums;
 }
 
 .barra {
   appearance: none;
   width: 100%;
-  height: 4px;
+  height: 6px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--raio-pilula);
   overflow: hidden;
-  background: var(--cor-borda);
+  background: var(--cor-superficie-2);
 }
 
 .barra::-webkit-progress-bar {
-  background: var(--cor-borda);
+  background: var(--cor-superficie-2);
 }
 
 .barra::-webkit-progress-value {
   background: var(--cor-destaque);
-  transition: width var(--transicao);
+  border-radius: var(--raio-pilula);
+  transition: width var(--transicao-lenta);
 }
 
 .barra::-moz-progress-bar {
   background: var(--cor-destaque);
+  border-radius: var(--raio-pilula);
+}
+
+/* Lista completa: barra verde (o texto "x de x" também indica, não só a cor) */
+.completo::-webkit-progress-value {
+  background: var(--cor-sucesso);
+}
+
+.completo::-moz-progress-bar {
+  background: var(--cor-sucesso);
 }

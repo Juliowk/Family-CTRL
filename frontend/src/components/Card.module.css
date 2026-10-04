@@ -1,6 +1,43 @@
 .card {
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-lg);
+  border-radius: var(--raio);
   padding: var(--espaco-4);
+}
+
+@media (min-width: 40rem) {
+  .card {
+    padding: var(--espaco-5);
+  }
+}
+
+.numerado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.numeradoCabecalho {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-3);
+}
+
+.numero {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-destaque);
+}
+
+.numeradoTitulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
+  letter-spacing: -0.01em;
+}
+
+.numeradoDescricao {
+  margin-top: var(--espaco-1);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
 }

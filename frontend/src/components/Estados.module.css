@@ -5,9 +5,22 @@
 }
 
 .aviso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
   font-size: var(--texto-sm);
   color: var(--cor-texto-secundario);
   text-align: center;
+}
+
+.avisoPonto {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cor-destaque);
+  animation: pulsar 1.2s ease-in-out infinite;
 }
 
 .skeletons {
@@ -17,42 +30,84 @@
 }
 
 .skeleton {
-  height: 3.5rem;
-  border-radius: var(--raio-lg);
+  height: 4.5rem;
+  border-radius: var(--raio);
   background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
   animation: pulsar 1.4s ease-in-out infinite;
 }
 
 @keyframes pulsar {
   50% {
-    opacity: 0.5;
+    opacity: 0.45;
   }
 }
 
 .vazio {
-  padding: var(--espaco-6) var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-7) var(--espaco-5);
   text-align: center;
-  border: 1px dashed var(--cor-borda);
-  border-radius: var(--raio-lg);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio);
+}
+
+.vazioIcone {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--espaco-2);
+  border-radius: 50%;
+  background: var(--cor-destaque-suave);
+  color: var(--cor-destaque);
 }
 
 .vazioTitulo {
-  font-weight: 600;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-forte);
 }
 
 .vazioTexto {
-  margin-top: var(--espaco-2);
+  max-width: 28rem;
   color: var(--cor-texto-secundario);
   font-size: var(--texto-sm);
 }
 
+.vazioAcao {
+  margin-top: var(--espaco-3);
+}
+
 .erro {
+  display: flex;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-left: 3px solid var(--cor-perigo);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.erro > svg {
+  flex-shrink: 0;
+  color: var(--cor-perigo);
+}
+
+.erroCorpo {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--espaco-3);
-  padding: var(--espaco-4);
-  border-radius: var(--raio-lg);
-  background: var(--cor-perigo-fundo);
-  color: var(--cor-perigo);
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
+.erroTitulo {
+  font-weight: var(--peso-forte);
+}
+
+.erroTexto {
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-secundario);
 }

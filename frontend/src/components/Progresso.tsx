@@ -7,7 +7,9 @@ export function Progresso({ comprados, total }: { comprados: number; total: numb
     <div className={estilos.progresso}>
       <span className={estilos.texto}>{texto}</span>
       <progress
-        className={estilos.barra}
+        className={[estilos.barra, total > 0 && comprados === total && estilos.completo]
+          .filter(Boolean)
+          .join(' ')}
         value={comprados}
         max={Math.max(total, 1)}
         aria-label={texto}

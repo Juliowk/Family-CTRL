@@ -3,9 +3,10 @@
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-4);
+  gap: var(--espaco-5);
 }
 
+/* Campo + botão na mesma linha (ex.: "Nova lista" + "Criar lista") */
 .linha {
   display: flex;
   gap: var(--espaco-2);
@@ -28,7 +29,12 @@
   color: var(--cor-texto-secundario);
 }
 
+/* Erro geral do formulário: faixa com filete vermelho (estado pela forma, não só pela cor) */
 .erro {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-left: 3px solid var(--cor-perigo);
+  border-radius: var(--raio-sm);
+  background: var(--cor-perigo-fundo);
   color: var(--cor-perigo);
   font-size: var(--texto-sm);
 }
@@ -43,7 +49,9 @@
 }
 
 .caixa input {
+  flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
+  margin: 0;
   accent-color: var(--cor-primaria);
 }

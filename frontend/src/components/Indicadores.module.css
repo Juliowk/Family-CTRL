@@ -1,0 +1,43 @@
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+  margin: 0;
+}
+
+/* Número em cima, rótulo embaixo (o <dt> vem antes no HTML para leitores de tela) */
+.indicador {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  min-width: 0;
+}
+
+.rotulo {
+  font-size: var(--texto-xs);
+  color: var(--cor-texto-secundario);
+}
+
+.valor {
+  margin: 0;
+  font-size: var(--texto-numero);
+  font-weight: var(--peso-titulo);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.destaque {
+  color: var(--cor-destaque);
+}
+
+@media (min-width: 48rem) {
+  .indicadores {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+}
