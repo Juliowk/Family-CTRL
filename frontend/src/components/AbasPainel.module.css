@@ -1,0 +1,66 @@
+/* Abas sublinhadas dentro de um card: mesmo visual das abas de rota (Abas.module.css) */
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.abas {
+  display: flex;
+  gap: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+  overflow-x: auto;
+}
+
+.aba {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--altura-campo);
+  padding: 0 var(--espaco-4);
+  border: 0;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-weight: var(--peso-forte);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transicao);
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.aba[aria-selected='true'] {
+  color: var(--cor-destaque);
+}
+
+.aba[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: var(--espaco-2);
+  right: var(--espaco-2);
+  bottom: -1px;
+  height: 3px;
+  border-radius: var(--raio-pilula) var(--raio-pilula) 0 0;
+  background: currentColor;
+}
+
+/* No celular as abas dividem a largura: alvo de toque maior e sem rolagem */
+@media (max-width: 30rem) {
+  .aba {
+    flex: 1;
+    padding: 0 var(--espaco-2);
+  }
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.conteudo[hidden] {
+  display: none;
+}

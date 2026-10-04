@@ -8,7 +8,8 @@ import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { Avatar } from '../components/Avatar';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
-import { CardNumerado } from '../components/Card';
+import { AbasPainel } from '../components/AbasPainel';
+import { Card } from '../components/Card';
 import { Carregando, EstadoVazio, MensagemErro } from '../components/Estados';
 import { IconeFamilia, IconeSeta } from '../components/Icones';
 import { Selo } from '../components/Selo';
@@ -108,56 +109,71 @@ export function Familias() {
         </ul>
       )}
 
-      <div className={estilos.grade}>
-        <CardNumerado
-          numero={1}
-          titulo="Criar família"
-          descricao="Você vira ADMIN e recebe um código para convidar os outros."
-        >
-          <form className={form.linha} onSubmit={enviarCriar}>
-            <Campo
-              rotulo="Nome da família"
-              rotuloOculto
-              placeholder="Ex.: Casa da Ana"
-              maxLength={100}
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              erro={criar.error instanceof ApiError ? criar.error.message : undefined}
-            />
-            <Botao
-              type="submit"
-              variante="primario"
-              carregando={criar.isPending}
-              disabled={!nome.trim()}
-            >
-              Criar
-            </Botao>
-          </form>
-        </CardNumerado>
-
-        <CardNumerado
-          numero={2}
-          titulo="Entrar com código"
-          descricao="Peça o código de convite a alguém da família."
-        >
-          <form className={form.linha} onSubmit={enviarEntrar}>
-            <Campo
-              rotulo="Código de convite"
-              rotuloOculto
-              placeholder="Ex.: K7M2Q9XA"
-              autoCapitalize="characters"
-              autoComplete="off"
-              maxLength={12}
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
-              erro={erroEntrar}
-            />
-            <Botao type="submit" carregando={entrar.isPending} disabled={!codigo.trim()}>
-              Entrar
-            </Botao>
-          </form>
-        </CardNumerado>
-      </div>
+      <Card>
+        <AbasPainel
+          rotulo="Entrar ou criar família"
+          abas={[
+            {
+              rotulo: 'Entrar com código',
+              conteudo: (
+                <>
+                  <p className={form.texto}>Peça o código de convite a alguém da família.</p>
+                  <form className={form.linha} onSubmit={enviarEntrar}>
+                    <Campo
+                      rotulo="Código de convite"
+                      rotuloOculto
+                      placeholder="Ex.: K7M2Q9XA"
+                      autoCapitalize="characters"
+                      autoComplete="off"
+                      maxLength={12}
+                      value={codigo}
+                      onChange={(e) => setCodigo(e.target.value)}
+                      erro={erroEntrar}
+                    />
+                    <Botao
+                      type="submit"
+                      variante="primario"
+                      carregando={entrar.isPending}
+                      disabled={!codigo.trim()}
+                    >
+                      Entrar
+                    </Botao>
+                  </form>
+                </>
+              ),
+            },
+            {
+              rotulo: 'Criar família',
+              conteudo: (
+                <>
+                  <p className={form.texto}>
+                    Você vira ADMIN e recebe um código para convidar os outros.
+                  </p>
+                  <form className={form.linha} onSubmit={enviarCriar}>
+                    <Campo
+                      rotulo="Nome da família"
+                      rotuloOculto
+                      placeholder="Ex.: Casa da Ana"
+                      maxLength={100}
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      erro={criar.error instanceof ApiError ? criar.error.message : undefined}
+                    />
+                    <Botao
+                      type="submit"
+                      variante="primario"
+                      carregando={criar.isPending}
+                      disabled={!nome.trim()}
+                    >
+                      Criar
+                    </Botao>
+                  </form>
+                </>
+              ),
+            },
+          ]}
+        />
+      </Card>
     </div>
   );
 }
