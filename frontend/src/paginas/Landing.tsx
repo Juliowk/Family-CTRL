@@ -1,11 +1,15 @@
-import { LinkBotao } from '../components/Botao';
+import { useState } from 'react';
+import { Botao, LinkBotao } from '../components/Botao';
 import {
   IconeCarrinho,
   IconeCheck,
+  IconeCompartilhar,
+  IconeCopiar,
   IconeFamilia,
   IconeSeta,
   IconeTrocar,
 } from '../components/Icones';
+import { QrCode } from '../components/QrCode';
 import { Selo } from '../components/Selo';
 import estilos from './Landing.module.css';
 
@@ -114,6 +118,65 @@ function Demonstracao() {
   );
 }
 
+/** Link e QR code do próprio app, para mandar a quem mora junto ou abrir no celular. */
+function Compartilhar() {
+  // Endereço atual sem o "#/...": em produção, https://juliowk.github.io/Family-CTRL/
+  const url = `${window.location.origin}${window.location.pathname}`;
+  const [copiado, setCopiado] = useState(false);
+  const podeCompartilhar = typeof navigator.share === 'function';
+
+  async function copiarLink() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      setCopiado(false);
+    }
+  }
+
+  async function compartilhar() {
+    try {
+      await navigator.share({ title: 'Family Ctrl', text: 'Listas de compras em família', url });
+    } catch {
+      // Usuário fechou a janela de compartilhamento: nada a fazer
+    }
+  }
+
+  return (
+    <section className={estilos.secao} aria-labelledby="titulo-compartilhar">
+      <div className={estilos.container}>
+        <div className={estilos.compartilhar}>
+          <div className={estilos.compartilharTexto}>
+            <p className={estilos.rotulo}>Compartilhe</p>
+            <h2 id="titulo-compartilhar">Mande o Family Ctrl para quem faz as compras com você.</h2>
+            <p>Aponte a câmera do celular para o QR code ou envie o link.</p>
+            <p className={estilos.url}>{url}</p>
+            <div className={estilos.heroiAcoes}>
+              <Botao onClick={copiarLink}>
+                {copiado ? <IconeCheck tamanho={20} /> : <IconeCopiar tamanho={20} />}
+                {copiado ? 'Link copiado!' : 'Copiar link'}
+              </Botao>
+              {podeCompartilhar && (
+                <Botao onClick={compartilhar}>
+                  <IconeCompartilhar tamanho={20} />
+                  Compartilhar
+                </Botao>
+              )}
+            </div>
+            <span className="sr-only" role="status">
+              {copiado ? 'Link copiado' : ''}
+            </span>
+          </div>
+          <div className={estilos.qr}>
+            <QrCode valor={url} rotulo={`QR code com o link ${url}`} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function Landing() {
   return (
     <>
@@ -214,6 +277,8 @@ export function Landing() {
           </div>
         </div>
       </section>
+
+      <Compartilhar />
 
       <section className={estilos.secaoFinal} aria-labelledby="titulo-final">
         <div className={estilos.container}>

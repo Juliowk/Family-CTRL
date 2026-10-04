@@ -1,0 +1,14 @@
+.qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--raio-sm);
+}
+
+.fundo {
+  fill: var(--cor-qr-fundo);
+}
+
+.modulo {
+  fill: var(--cor-qr-modulo);
+}

@@ -71,6 +71,9 @@
   --cor-lateral-divisoria: var(--fc-cinza-800);
   --cor-lateral-destaque: var(--fc-roxo-400);
   --cor-topo-vidro: rgb(15 15 20 / 0.85);
+  /* QR code: sempre escuro sobre branco, nos dois temas (leitores de QR esperam esse contraste) */
+  --cor-qr-fundo: var(--fc-branco);
+  --cor-qr-modulo: var(--fc-preto);
 
   /* ---------- Tipografia ---------- */
   --fonte:

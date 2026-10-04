@@ -21,6 +21,7 @@ import {
   Moon,
   Pencil,
   Plus,
+  Share2,
   ShoppingBasket,
   ShoppingCart,
   Sun,
@@ -66,5 +67,6 @@ export const IconeSubir = criar(ChevronUp);
 export const IconeDescer = criar(ChevronDown);
 export const IconeLixeira = criar(Trash2);
 export const IconeEtiqueta = criar(Tag);
+export const IconeCompartilhar = criar(Share2);
 /** "ctrl": painel com as funcionalidades da família (grade 2×2). */
 export const IconeCtrl = criar(LayoutGrid);
