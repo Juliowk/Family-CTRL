@@ -25,7 +25,7 @@ Projeto de estudo de backend e peça de portfólio.
 - Categorias por família (padrão + personalizadas), com ordem configurável
 - Listas como planejamento reutilizável, em duas abas:
   - **Planejar**: itens com nome, categoria e quantidade desejada, agrupados por categoria
-  - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade ou por kg) e marca,
+  - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade ou total) e marca,
     todos opcionais; total parcial ao vivo; itens não planejados; "desmarcar todos" com confirmação
 - Finalizar compra: valor dos itens sem preço (descoberto no caixa), mercado e data; pergunta se os
   itens não planejados ficam na lista; a lista volta zerada para a próxima compra

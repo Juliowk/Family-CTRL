@@ -10,21 +10,21 @@ public final class Valores {
 	}
 
 	/**
-	 * Subtotal = preço × quantidade, arredondado a centavos.
+	 * Subtotal de um item pego, arredondado a centavos.
 	 * <ul>
 	 * <li>Sem preço: {@code null} (o valor só é conhecido no caixa: entra como "valor variável").</li>
-	 * <li>Por unidade sem quantidade: conta 1 unidade.</li>
-	 * <li>Por kg sem o peso: {@code null} (não dá para calcular).</li>
+	 * <li>Preço total: o próprio preço (a quantidade é só informativa).</li>
+	 * <li>Por unidade: preço × quantidade; sem quantidade, conta 1 unidade.</li>
 	 * </ul>
 	 */
 	public static BigDecimal subtotal(TipoPreco tipo, BigDecimal preco, BigDecimal quantidade) {
 		if (preco == null) {
 			return null;
 		}
-		BigDecimal qtd = quantidade != null ? quantidade : (tipo == TipoPreco.UNIDADE ? BigDecimal.ONE : null);
-		if (qtd == null) {
-			return null;
+		if (tipo == TipoPreco.TOTAL) {
+			return preco.setScale(2, RoundingMode.HALF_UP);
 		}
+		BigDecimal qtd = quantidade != null ? quantidade : BigDecimal.ONE;
 		return preco.multiply(qtd).setScale(2, RoundingMode.HALF_UP);
 	}
 

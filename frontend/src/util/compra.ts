@@ -30,9 +30,9 @@ export const paraCampo = (valor: number | null | undefined) =>
   valor === null || valor === undefined ? '' : String(valor).replace('.', ',');
 
 /**
- * Subtotal = preço × quantidade (mesma regra do backend, em Valores.java).
- * Sem preço: undefined (valor descoberto no caixa). Por unidade sem quantidade: conta 1.
- * Por kg sem o peso: undefined.
+ * Subtotal de um item pego (mesma regra do backend, em Valores.java).
+ * Sem preço: undefined (valor descoberto no caixa). Preço total: o próprio preço.
+ * Por unidade: preço × quantidade; sem quantidade, conta 1.
  */
 export function subtotal(
   tipo: TipoPreco,
@@ -40,13 +40,34 @@ export function subtotal(
   quantidade: number | null | undefined,
 ): number | undefined {
   if (preco === null || preco === undefined) return undefined;
-  const qtd = quantidade ?? (tipo === 'UNIDADE' ? 1 : undefined);
-  if (qtd === undefined) return undefined;
+  if (tipo === 'TOTAL') return Math.round(preco * 100) / 100;
+  const qtd = quantidade ?? 1;
   // Em inteiros (centavos × milésimos) para não sofrer com o arredondamento do ponto flutuante:
   // 6,90 × 1,255 tem de dar 8,66, como no BigDecimal do backend
   const centavos = Math.round(preco * 100);
   const milesimos = Math.round(qtd * 1000);
   return Math.round((centavos * milesimos) / 1000) / 100;
+}
+
+/**
+ * Detalhe de um item pego para as listas: "4 un · R$ 7,88/un · Pullman" (por unidade) ou
+ * "Qtd. 1,25 · Marca" (preço total: o valor já aparece ao lado, como subtotal).
+ */
+export function descreverPego(item: {
+  tipoPreco: TipoPreco;
+  quantidadePega: number | null;
+  preco: number | null;
+  marca: string | null;
+}) {
+  const partes: string[] = [];
+  const porUnidade = item.tipoPreco === 'UNIDADE';
+  if (item.quantidadePega !== null) {
+    const qtd = formatarDecimal(item.quantidadePega);
+    partes.push(porUnidade ? `${qtd} un` : `Qtd. ${qtd}`);
+  }
+  if (porUnidade && item.preco !== null) partes.push(`${formatarDinheiro(item.preco)}/un`);
+  if (item.marca) partes.push(item.marca);
+  return partes.join(' · ');
 }
 
 /** Total parcial da compra em andamento e quantos itens pegos ainda não têm valor. */
@@ -63,8 +84,8 @@ export function totalDaCompra(itens: Item[]) {
 }
 
 /**
- * Sugestão para o formulário de pegar a partir da quantidade planejada ("2 kg" → 2 e KG;
- * "6 un" → 6 e UNIDADE). Texto sem número → nada.
+ * Sugestão para o formulário de pegar a partir da quantidade planejada ("6 un" → 6). Itens
+ * pesados ("2 kg", "500 g") sugerem preço total, que é o que vem na etiqueta da balança.
  */
 export function sugestaoDaQuantidade(planejada: string | null): {
   quantidade?: number;
@@ -72,7 +93,9 @@ export function sugestaoDaQuantidade(planejada: string | null): {
 } {
   if (!planejada) return {};
   const numero = planejada.match(/\d+(?:[.,]\d+)?/);
-  const tipo: TipoPreco | undefined = /\bkg\b|quilo/i.test(planejada) ? 'KG' : undefined;
+  const tipo: TipoPreco | undefined = /\d\s*(kg|g)\b|quilo|grama/i.test(planejada)
+    ? 'TOTAL'
+    : undefined;
   return { quantidade: numero ? lerDecimal(numero[0]) : undefined, tipo };
 }
 

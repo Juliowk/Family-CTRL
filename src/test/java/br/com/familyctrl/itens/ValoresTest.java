@@ -21,15 +21,22 @@ class ValoresTest {
 	}
 
 	@Test
-	void porKgArredondaParaCentavos() {
-		// 1,255 kg × R$ 6,90 = 8,6595 → 8,66
-		assertThat(Valores.subtotal(TipoPreco.KG, new BigDecimal("6.90"), new BigDecimal("1.255")))
+	void porUnidadeArredondaParaCentavos() {
+		// 1,255 × R$ 6,90 = 8,6595 → 8,66
+		assertThat(Valores.subtotal(TipoPreco.UNIDADE, new BigDecimal("6.90"), new BigDecimal("1.255")))
 			.isEqualByComparingTo("8.66");
 	}
 
 	@Test
-	void porKgSemPesoOuSemPrecoNaoTemSubtotal() {
-		assertThat(Valores.subtotal(TipoPreco.KG, new BigDecimal("6.90"), null)).isNull();
+	void precoTotalIgnoraAQuantidade() {
+		assertThat(Valores.subtotal(TipoPreco.TOTAL, new BigDecimal("8.63"), new BigDecimal("1.25")))
+			.isEqualByComparingTo("8.63");
+		assertThat(Valores.subtotal(TipoPreco.TOTAL, new BigDecimal("8.63"), null)).isEqualByComparingTo("8.63");
+	}
+
+	@Test
+	void semPrecoNaoTemSubtotal() {
+		assertThat(Valores.subtotal(TipoPreco.TOTAL, null, BigDecimal.TEN)).isNull();
 		assertThat(Valores.subtotal(TipoPreco.UNIDADE, null, BigDecimal.TEN)).isNull();
 	}
 

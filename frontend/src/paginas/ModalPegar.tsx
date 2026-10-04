@@ -79,7 +79,7 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
     salvar.mutate();
   }
 
-  const porKg = tipo === 'KG';
+  const total = tipo === 'TOTAL';
   const titulo = item?.nome ?? 'Item não planejado';
 
   return (
@@ -118,18 +118,18 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
             valor={tipo}
             aoMudar={setTipo}
             opcoes={[
-              { valor: 'UNIDADE', rotulo: 'Unidade' },
-              { valor: 'KG', rotulo: 'Kg' },
+              { valor: 'UNIDADE', rotulo: 'Por unidade' },
+              { valor: 'TOTAL', rotulo: 'Total' },
             ]}
           />
         </div>
 
         <div className={estilos.duasColunas}>
           <Campo
-            rotulo={porKg ? 'Peso (kg)' : 'Quantidade'}
+            rotulo="Quantidade"
             inputMode="decimal"
             autoComplete="off"
-            placeholder={porKg ? 'Ex.: 1,250' : 'Ex.: 2'}
+            placeholder={total ? 'Ex.: 1,250' : 'Ex.: 2'}
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value)}
             erro={
@@ -139,7 +139,7 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
             }
           />
           <Campo
-            rotulo={porKg ? 'Preço do kg (R$)' : 'Preço da unidade (R$)'}
+            rotulo={total ? 'Preço total (R$)' : 'Preço da unidade (R$)'}
             inputMode="decimal"
             autoComplete="off"
             placeholder="Ex.: 7,88"
@@ -163,10 +163,8 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
             <>
               Subtotal <strong>{formatarDinheiro(previa)}</strong>
             </>
-          ) : valor === undefined ? (
-            'Sem preço: o valor será informado ao finalizar a compra.'
           ) : (
-            'Informe o peso para calcular o subtotal.'
+            'Sem preço: o valor será informado ao finalizar a compra.'
           )}
         </p>
 

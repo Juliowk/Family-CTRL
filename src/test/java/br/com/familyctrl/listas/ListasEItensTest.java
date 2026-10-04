@@ -110,14 +110,14 @@ class ListasEItensTest extends IntegracaoTest {
 	}
 
 	@Test
-	void pegaPorKgEItemSemPrecoFicaSemSubtotal() throws Exception {
+	void pegaComPrecoTotalEItemSemPrecoFicaSemSubtotal() throws Exception {
 		long listaId = criarLista("Feira");
 		long banana = adicionarItem(listaId, "Banana");
 		long alface = adicionarItem(listaId, "Alface");
 
 		mvc.perform(como(ana, put("/api/itens/" + banana + "/pego"))
-			.content("{\"quantidadePega\":1.25,\"tipoPreco\":\"KG\",\"preco\":6.90}"))
-			.andExpect(jsonPath("$.tipoPreco").value("KG"))
+			.content("{\"quantidadePega\":1.25,\"tipoPreco\":\"TOTAL\",\"preco\":8.63}"))
+			.andExpect(jsonPath("$.tipoPreco").value("TOTAL"))
 			.andExpect(jsonPath("$.subtotal").value(8.63));
 
 		// Sem preço: valor só será conhecido no caixa

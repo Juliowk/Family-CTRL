@@ -12,20 +12,13 @@ import { Indicadores } from '../components/Indicadores';
 import { Progresso } from '../components/Progresso';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
-import { formatarData, formatarDecimal, formatarDinheiro } from '../util/compra';
+import { descreverPego, formatarData, formatarDinheiro } from '../util/compra';
 import listaEstilos from './ListaPagina.module.css';
 import paginas from './Paginas.module.css';
 
 function detalhe(item: CompraItem) {
   if (!item.pego) return item.quantidadePlanejada ? `Planejado: ${item.quantidadePlanejada}` : '';
-  const kg = item.tipoPreco === 'KG';
-  const partes: string[] = [];
-  if (item.quantidadePega !== null) {
-    partes.push(`${formatarDecimal(item.quantidadePega)} ${kg ? 'kg' : 'un'}`);
-  }
-  if (item.preco !== null) partes.push(`${formatarDinheiro(item.preco)}/${kg ? 'kg' : 'un'}`);
-  if (item.marca) partes.push(item.marca);
-  return partes.join(' · ');
+  return descreverPego(item);
 }
 
 /** Agrupa pelo nome da categoria guardado na compra, na ordem que ela tinha na época. */

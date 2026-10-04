@@ -166,6 +166,34 @@ describe('comprar', () => {
     );
   });
 
+  it('com preço total, o subtotal é o valor informado (a quantidade só informa)', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Banana', quantidadePlanejada: '1 kg' }));
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Banana' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
+    // Item pesado ("1 kg") já sugere preço total, o valor da etiqueta da balança
+    expect(within(dialogo).getByRole('button', { name: 'Total' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await usuario.clear(within(dialogo).getByLabelText('Quantidade'));
+    await usuario.type(within(dialogo).getByLabelText('Quantidade'), '1,25');
+    await usuario.type(within(dialogo).getByLabelText('Preço total (R$)'), '8,63');
+    expect(within(dialogo).getByText(/8,63/, { selector: 'strong' })).toBeInTheDocument();
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    const total = await screen.findByRole('region', { name: 'Total da compra' });
+    await waitFor(() => expect(within(total).getByText(/8,63/)).toBeInTheDocument());
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'PUT',
+        corpo: { tipoPreco: 'TOTAL', quantidadePega: 1.25, preco: 8.63 },
+      }),
+    );
+  });
+
   it('desmarcar todos pede confirmação e zera a compra', async () => {
     const { estado, chamadas } = criarApiFalsa();
     estado.itens.push(

@@ -13,7 +13,7 @@ import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
 import {
   agruparPorCategoria,
-  formatarDecimal,
+  descreverPego,
   formatarDinheiro,
   subtotal,
   totalDaCompra,
@@ -24,18 +24,6 @@ import { ModalPegar } from './ModalPegar';
 
 /** Formulário aberto: um item (pegar/corrigir) ou "extra" (item não planejado). */
 type Formulario = { item: Item } | { extra: true } | null;
-
-/** "4 un · R$ 7,88/un · Pullman" */
-function detalheDoPego(item: Item) {
-  const partes: string[] = [];
-  const kg = item.tipoPreco === 'KG';
-  if (item.quantidadePega !== null) {
-    partes.push(`${formatarDecimal(item.quantidadePega)} ${kg ? 'kg' : 'un'}`);
-  }
-  if (item.preco !== null) partes.push(`${formatarDinheiro(item.preco)}/${kg ? 'kg' : 'un'}`);
-  if (item.marca) partes.push(item.marca);
-  return partes.join(' · ');
-}
 
 /** Aba Comprar: no mercado, marcar o que foi pego e acompanhar o total. */
 export function ListaComprar({ lista }: { lista: ListaDetalhe }) {
@@ -215,7 +203,7 @@ function LinhaCompra({
   aoDesmarcar: () => void;
 }) {
   const valor = item.pego ? subtotal(item.tipoPreco, item.preco, item.quantidadePega) : undefined;
-  const detalhe = item.pego ? detalheDoPego(item) : item.quantidadePlanejada;
+  const detalhe = item.pego ? descreverPego(item) : item.quantidadePlanejada;
   return (
     <li className={estilos.item} data-pego={item.pego}>
       {/* Pendente: o checkbox abre o formulário (marca ao confirmar). Pego: desmarca. */}

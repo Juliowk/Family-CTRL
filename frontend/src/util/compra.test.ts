@@ -47,8 +47,10 @@ describe('subtotal', () => {
   it('segue a mesma regra do backend', () => {
     expect(subtotal('UNIDADE', 7.88, 4)).toBe(31.52);
     expect(subtotal('UNIDADE', 3.9, null)).toBe(3.9);
-    expect(subtotal('KG', 6.9, 1.255)).toBe(8.66);
-    expect(subtotal('KG', 6.9, null)).toBeUndefined();
+    expect(subtotal('UNIDADE', 6.9, 1.255)).toBe(8.66);
+    expect(subtotal('TOTAL', 8.63, 1.25)).toBe(8.63);
+    expect(subtotal('TOTAL', 8.63, null)).toBe(8.63);
+    expect(subtotal('TOTAL', null, 2)).toBeUndefined();
     expect(subtotal('UNIDADE', null, 2)).toBeUndefined();
   });
 });
@@ -66,7 +68,8 @@ describe('totalDaCompra', () => {
 
 describe('sugestaoDaQuantidade', () => {
   it('extrai número e tipo da quantidade planejada', () => {
-    expect(sugestaoDaQuantidade('2 kg')).toEqual({ quantidade: 2, tipo: 'KG' });
+    expect(sugestaoDaQuantidade('2 kg')).toEqual({ quantidade: 2, tipo: 'TOTAL' });
+    expect(sugestaoDaQuantidade('500 g')).toEqual({ quantidade: 500, tipo: 'TOTAL' });
     expect(sugestaoDaQuantidade('6 un')).toEqual({ quantidade: 6, tipo: undefined });
     expect(sugestaoDaQuantidade('bastante')).toEqual({ quantidade: undefined, tipo: undefined });
   });

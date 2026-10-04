@@ -61,7 +61,8 @@ export interface Pessoa {
   nome: string | null;
 }
 
-export type TipoPreco = 'UNIDADE' | 'KG';
+/** UNIDADE: preço de uma unidade. TOTAL: valor total do item (ex.: etiqueta da balança). */
+export type TipoPreco = 'UNIDADE' | 'TOTAL';
 
 /** Item: planejamento (nome, categoria, quantidade desejada) + estado da compra em andamento. */
 export interface Item {

@@ -143,7 +143,7 @@ listas (id, familia_id, nome, criada_por → usuarios, criada_em)
 itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada,
        -- compra em andamento:
        pego, pego_por → usuarios, pego_em, quantidade_pega numeric(10,3),
-       tipo_preco UNIDADE|KG, preco numeric(10,2), marca, extra,
+       tipo_preco UNIDADE|TOTAL, preco numeric(10,2), marca, extra,
        adicionado_por → usuarios, criado_em, atualizado_em)
 compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mercado, data_compra,
          valor_itens, valor_variavel, valor_total, finalizada_por → usuarios, finalizada_em)
@@ -154,9 +154,11 @@ compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planej
 
 - **Flyway** versiona o schema (`src/main/resources/db/migration/`). `V1` criou o schema inicial;
   `V2__categorias_e_compras.sql` trouxe categorias, o estado da compra nos itens e as compras
-  (movendo os itens existentes para "Outros"). Nunca se edita uma migration já aplicada.
+  (movendo os itens existentes para "Outros"). `V3__preco_total.sql` trocou "preço por kg" por
+  "preço total", convertendo os registros (preço do kg × peso). Nunca se edita uma migration já
+  aplicada.
 - **Dinheiro em `numeric(10,2)` e `BigDecimal`**, nunca `double`: ponto flutuante não representa
-  centavos com exatidão (0,1 + 0,2 ≠ 0,3). Quantidades em `numeric(10,3)` aceitam kg como 1,250.
+  centavos com exatidão (0,1 + 0,2 ≠ 0,3). Quantidades em `numeric(10,3)` aceitam pesos como 1,250.
 - **`compra_itens` é uma cópia, não uma referência.** A compra guarda nome, categoria e valores
   como estavam no dia: editar a lista, renomear categoria ou excluir a lista não muda o histórico.
 - **`ddl-auto=validate`**: o Hibernate não cria nem altera tabelas, só confere se as entidades
@@ -176,8 +178,8 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
 
 1. **Planejar** (em casa): itens com nome, categoria e quantidade desejada. Na tela, agrupados por
    categoria na ordem configurada pela família.
-2. **Comprar** (no mercado): o checkbox abre um formulário (quantidade, preço por unidade ou por
-   kg, marca, todos opcionais) e o item só fica marcado ao confirmar. O item pego vai para o fim
+2. **Comprar** (no mercado): o checkbox abre um formulário (quantidade, preço por unidade ou
+   preço total, marca, todos opcionais) e o item só fica marcado ao confirmar. O item pego vai para o fim
    da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
    soma o **total parcial** (`util/compra.ts`) e mostra quantos itens estão sem preço.
 3. **Finalizar**: o usuário informa o **valor variável** (itens cujo preço só aparece no caixa,
@@ -189,7 +191,13 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
 **Por que o cálculo existe nos dois lados?** O front calcula para mostrar o total enquanto se
 compra, sem ir ao servidor a cada toque. O backend recalcula ao finalizar porque o valor gravado
 não pode depender do navegador. As duas implementações têm testes com os mesmos casos
-(ex.: 1,255 kg × R$ 6,90 = R$ 8,66, arredondando meio centavo para cima).
+(ex.: 1,255 × R$ 6,90 = R$ 8,66, arredondando meio centavo para cima).
+
+**Por unidade ou total.** Por unidade, o subtotal é preço × quantidade (sem quantidade, conta 1).
+Com preço total, o subtotal é o valor digitado e a quantidade é só informativa. Foi a troca do
+"preço por kg": no mercado é mais fácil digitar o valor da etiqueta da balança do que o preço do
+quilo e o peso. Quando a quantidade planejada tem peso ("2 kg", "500 g"), o formulário já sugere
+"Total".
 
 **Indicadores do mês:** o mês vem da tela (`?mes=2026-10`) porque o servidor roda em UTC e o "mês
 atual" é o do usuário.
@@ -378,7 +386,7 @@ foram copiados: a fonte continua a do sistema, sem dependência externa.
 | Onde     | O quê                                                                                   |
 | -------- | --------------------------------------------------------------------------------------- |
 | Backend  | Integração com PostgreSQL real (Testcontainers): autenticação, famílias, listas, itens, autorização entre famílias (404), validação (400), 401 sem token/token inválido/assinado com outro segredo, CORS, health público |
-| Backend  | Integração: categorias (padrão, ordem, "Outros" fixa, exclusão move itens), compra em andamento (pegar por unidade/kg, desmarcar, extras, desmarcar todos), finalizar (cópia, valor recalculado, lista zerada, extras mantidos), resumo do mês, 404 entre famílias em todas as rotas |
+| Backend  | Integração: categorias (padrão, ordem, "Outros" fixa, exclusão move itens), compra em andamento (pegar por unidade ou total, desmarcar, extras, desmarcar todos), finalizar (cópia, valor recalculado, lista zerada, extras mantidos), resumo do mês, 404 entre famílias em todas as rotas |
 | Backend  | Unitários (Mockito) das regras de membros: último ADMIN, único membro, permissões; cálculo do subtotal (`ValoresTest`) |
 | Frontend | Cliente HTTP (ProblemDetail, 401, falha de rede, retry)                                  |
 | Frontend | Fluxos com API simulada: login, token expirado, cadastro, criar lista, planejar com categoria, pegar pelo formulário com total, desmarcar todos com confirmação, rollback otimista, finalizar com valor variável, tema |
