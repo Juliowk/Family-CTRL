@@ -1,16 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router';
 import { ApiError } from '../api/cliente';
-import { categoriasApi } from '../api/endpoints';
+import { categoriasApi, listasApi } from '../api/endpoints';
 import type { Categoria } from '../api/tipos';
-import { Botao } from '../components/Botao';
+import { Botao, LinkBotao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { ConfirmarDialogo } from '../components/ConfirmarDialogo';
 import { Carregando, MensagemErro } from '../components/Estados';
 import form from '../components/Formulario.module.css';
-import { IconeDescer, IconeEditar, IconeLixeira, IconeSubir } from '../components/Icones';
+import {
+  IconeDescer,
+  IconeEditar,
+  IconeLixeira,
+  IconeSubir,
+  IconeVoltar,
+} from '../components/Icones';
 import { ModalNome } from '../components/ModalNome';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
@@ -24,6 +31,16 @@ const mensagemDe = (erro: unknown) => (erro instanceof ApiError ? erro.message :
 /** Categorias da família: a ordem daqui é a ordem dos grupos nas listas. */
 export function Categorias() {
   const { familiaId, familia } = useFamiliaDaRota();
+  // Aberta a partir de uma lista (?lista=48&aba=comprar): o "voltar" retorna para ela
+  const [parametros] = useSearchParams();
+  const listaOrigem = Number(parametros.get('lista')) || undefined;
+  const abaOrigem = parametros.get('aba') === 'comprar' ? 'comprar' : 'planejar';
+  const lista = useQuery({
+    queryKey: chaves.lista(listaOrigem ?? 0),
+    queryFn: () => listasApi.detalhar(listaOrigem ?? 0),
+    enabled: listaOrigem !== undefined,
+  });
+  const voltarPara = listaOrigem ? `/listas/${listaOrigem}/${abaOrigem}` : undefined;
   const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [renomeando, setRenomeando] = useState<Categoria | null>(null);
@@ -90,10 +107,19 @@ export function Categorias() {
         trilha={[
           { rotulo: 'Famílias', para: '/familias' },
           { rotulo: familia.data.nome, para: `/familias/${familiaId}` },
+          ...(voltarPara ? [{ rotulo: lista.data?.nome ?? 'Lista', para: voltarPara }] : []),
         ]}
         rotulo="Família"
         titulo="Categorias"
         descricao="A ordem daqui é a ordem dos grupos nas listas. Organize como os corredores do seu mercado."
+        acoes={
+          voltarPara && (
+            <LinkBotao to={voltarPara} pequeno>
+              <IconeVoltar tamanho={18} />
+              Voltar para {lista.data?.nome ?? 'a lista'}
+            </LinkBotao>
+          )
+        }
       />
 
       {categorias.isPending ? (

@@ -124,7 +124,10 @@ export function ListaPagina() {
           >
             Renomear
           </Botao>
-          <LinkBotao larguraTotal to={`/familias/${dados.familiaId}/categorias`}>
+          <LinkBotao
+            larguraTotal
+            to={`/familias/${dados.familiaId}/categorias?lista=${listaId}&aba=${aba}`}
+          >
             Gerenciar categorias
           </LinkBotao>
           <Botao

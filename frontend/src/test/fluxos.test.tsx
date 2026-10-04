@@ -118,7 +118,7 @@ describe('planejar', () => {
 
     // Sem aba na URL, a lista abre no planejamento
     await usuario.type(await screen.findByLabelText('Item'), 'Bananas');
-    await usuario.selectOptions(screen.getByLabelText('Categoria'), 'Hortifrúti e Congelados');
+    await usuario.click(screen.getByRole('radio', { name: 'Hortifrúti e Congelados' }));
     await usuario.type(screen.getByLabelText('Quantidade (opcional)'), '1 dúzia');
     await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
 
@@ -133,6 +133,16 @@ describe('planejar', () => {
         corpo: { nome: 'Bananas', categoriaId: 2, quantidadePlanejada: '1 dúzia' },
       }),
     );
+  });
+});
+
+describe('categorias', () => {
+  it('aberta a partir de uma lista, o botão volta para a lista e a aba de origem', async () => {
+    criarApiFalsa();
+    renderizarApp('/familias/10/categorias?lista=100&aba=comprar', { logado: true });
+
+    const voltar = await screen.findByRole('link', { name: 'Voltar para Mercado' });
+    expect(voltar).toHaveAttribute('href', '/listas/100/comprar');
   });
 });
 

@@ -6,18 +6,15 @@ import { itensApi } from '../api/endpoints';
 import type { Categoria, Item, ListaDetalhe } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
-import { CampoSelecao } from '../components/CampoSelecao';
 import { Card } from '../components/Card';
 import { EstadoVazio } from '../components/Estados';
 import form from '../components/Formulario.module.css';
 import { IconeEditar, IconeLista, IconeMais } from '../components/Icones';
 import { Modal } from '../components/Modal';
+import { SeletorCategoria } from '../components/SeletorCategoria';
 import { agruparPorCategoria } from '../util/compra';
 import { apagarItem, gravarItem, invalidarResumoDasListas } from './cacheLista';
 import estilos from './ListaPagina.module.css';
-
-const opcoesDe = (categorias: Categoria[]) =>
-  categorias.map((c) => ({ valor: c.id, rotulo: c.nome }));
 
 /** Aba Planejar: cadastrar o que comprar, com categoria e quantidade desejada. */
 export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
@@ -71,7 +68,9 @@ export function ListaPlanejar({ lista }: { lista: ListaDetalhe }) {
 
       <p className={estilos.rodapeAba}>
         A ordem das categorias segue a configuração da família.{' '}
-        <Link to={`/familias/${lista.familiaId}/categorias`}>Gerenciar categorias</Link>
+        <Link to={`/familias/${lista.familiaId}/categorias?lista=${lista.id}&aba=planejar`}>
+          Gerenciar categorias
+        </Link>
       </p>
 
       {editando && (
@@ -120,7 +119,6 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
     <Card>
       <form className={estilos.formItem} onSubmit={enviar}>
         <Campo
-          className={estilos.formNome}
           rotulo="Item"
           placeholder="Ex.: Arroz"
           maxLength={120}
@@ -132,11 +130,10 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
             (erro && erro.erros.length === 0 ? erro.message : undefined)
           }
         />
-        <CampoSelecao
-          rotulo="Categoria"
-          value={categoriaId}
-          onChange={(e) => setCategoriaId(Number(e.target.value))}
-          opcoes={opcoesDe(lista.categorias)}
+        <SeletorCategoria
+          categorias={lista.categorias}
+          valor={categoriaId}
+          aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
         />
         <Campo
@@ -150,7 +147,6 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
         <Botao
           type="submit"
           variante="primario"
-          className={estilos.formBotao}
           carregando={adicionar.isPending}
           disabled={!nome.trim()}
         >
@@ -217,11 +213,10 @@ function ModalEditarItem({
           onChange={(e) => setNome(e.target.value)}
           erro={erro?.erroDoCampo('nome')}
         />
-        <CampoSelecao
-          rotulo="Categoria"
-          value={categoriaId}
-          onChange={(e) => setCategoriaId(Number(e.target.value))}
-          opcoes={opcoesDe(categorias)}
+        <SeletorCategoria
+          categorias={categorias}
+          valor={categoriaId}
+          aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
         />
         <Campo

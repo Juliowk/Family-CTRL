@@ -8,25 +8,16 @@
 
 /* ---------- Planejar: formulário ---------- */
 
+/* Item e categorias ocupam a linha toda; quantidade e botão dividem a última */
 .formItem {
   display: grid;
-  gap: var(--espaco-4);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espaco-4) var(--espaco-2);
   align-items: end;
 }
 
-@media (min-width: 40rem) {
-  .formItem {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  }
-
-  .formNome {
-    grid-column: 1 / -1;
-  }
-
-  .formBotao {
-    grid-column: 1 / -1;
-    justify-self: end;
-  }
+.formItem > :not(:nth-last-child(-n + 2)) {
+  grid-column: 1 / -1;
 }
 
 /* ---------- Grupos por categoria ---------- */

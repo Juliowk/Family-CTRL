@@ -72,20 +72,3 @@
   font-weight: var(--peso-titulo);
   line-height: 1;
 }
-
-/* Select com seta própria (a nativa varia muito entre navegadores) */
-.selecao {
-  appearance: none;
-  padding-right: var(--espaco-7);
-  background-image:
-    linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 20px) 50%,
-    calc(100% - 15px) 50%;
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
-  cursor: pointer;
-}

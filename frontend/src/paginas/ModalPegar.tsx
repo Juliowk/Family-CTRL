@@ -5,10 +5,10 @@ import { itensApi, type DadosPego } from '../api/endpoints';
 import type { Categoria, Item, TipoPreco } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
-import { CampoSelecao } from '../components/CampoSelecao';
 import { FiltroChips } from '../components/FiltroChips';
 import form from '../components/Formulario.module.css';
 import { Modal } from '../components/Modal';
+import { SeletorCategoria } from '../components/SeletorCategoria';
 import {
   formatarDinheiro,
   lerDecimal,
@@ -99,11 +99,10 @@ export function ModalPegar({ listaId, categorias, item, aoFechar }: Props) {
               onChange={(e) => setNome(e.target.value)}
               erro={erro?.erroDoCampo('nome')}
             />
-            <CampoSelecao
-              rotulo="Categoria"
-              value={categoriaId}
-              onChange={(e) => setCategoriaId(Number(e.target.value))}
-              opcoes={categorias.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+            <SeletorCategoria
+              categorias={categorias}
+              valor={categoriaId}
+              aoMudar={setCategoriaId}
               erro={erro?.erroDoCampo('categoriaId')}
             />
           </>
