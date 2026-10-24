@@ -79,7 +79,7 @@ class ComprasTest extends IntegracaoTest {
 		long frutas = item("Frutas", hortifruti);
 		item("Bolo", padaria); // planejado, não pego
 		pegar(pao, "{\"quantidadePega\":4,\"preco\":7.88,\"marca\":\"Pullman\"}");
-		pegar(frutas, "{\"tipoPreco\":\"KG\",\"preco\":12.50}");
+		pegar(frutas, "{}"); // preço descoberto no caixa
 
 		String compra = finalizar("44.02", "[]");
 
@@ -88,8 +88,8 @@ class ComprasTest extends IntegracaoTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.listaNome").value("Compra do mês"))
 			.andExpect(jsonPath("$.mercado").value("Atacadão"))
-			.andExpect(jsonPath("$.valorItens").value(44.02))
-			.andExpect(jsonPath("$.valorVariavel").value(0))
+			.andExpect(jsonPath("$.valorItens").value(31.52))
+			.andExpect(jsonPath("$.valorVariavel").value(12.5))
 			.andExpect(jsonPath("$.valorTotal").value(44.02))
 			.andExpect(jsonPath("$.totalItens").value(3))
 			.andExpect(jsonPath("$.itensPegos").value(2))

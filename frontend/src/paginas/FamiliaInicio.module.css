@@ -45,7 +45,14 @@
   }
 }
 
+/* No celular, à direita como o "voltar" do cabeçalho (alcance do polegar) */
 .voltar {
-  align-self: flex-start;
+  align-self: flex-end;
   margin-bottom: calc(var(--espaco-6) * -0.5);
+}
+
+@media (min-width: 64rem) {
+  .voltar {
+    align-self: flex-start;
+  }
 }

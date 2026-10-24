@@ -1,25 +1,35 @@
-/* Ajuda da importação (prompt e formato) e resumo do CSV colado */
+/* Ajuda da importação (pedido para a IA e formato) e resumo do CSV colado */
 
-.bloco {
+.passo {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
-  padding: var(--espaco-4);
-  border-radius: var(--raio-sm);
-  background: var(--cor-fundo);
 }
 
-.blocoCabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--espaco-2);
+/* No celular, à direita: perto do polegar */
+.copiar {
+  align-self: flex-end;
 }
 
-.blocoTitulo {
+@media (min-width: 64rem) {
+  .copiar {
+    align-self: flex-start;
+  }
+}
+
+.ajuda {
+  margin-bottom: var(--espaco-2);
   font-size: var(--texto-sm);
-  font-weight: var(--peso-forte);
+  color: var(--cor-texto-secundario);
+}
+
+.ajuda code {
+  font-family: var(--fonte-mono);
+  color: var(--cor-texto);
+}
+
+.detalhes {
+  margin-top: calc(-1 * var(--espaco-3));
 }
 
 .detalhes summary {
@@ -47,21 +57,6 @@
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.regras {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-1);
-  padding-left: var(--espaco-5);
-  list-style: disc;
-  font-size: var(--texto-sm);
-  color: var(--cor-texto-secundario);
-}
-
-.regras code {
-  font-family: var(--fonte-mono);
-  color: var(--cor-texto);
 }
 
 .resumo {

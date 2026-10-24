@@ -122,7 +122,7 @@ Ao final:
 
 ### Itens
 - Planejar (aba própria): nome, categoria (obrigatória), medida (padrão: por unidade) e quantidade numérica com botões − e + (começa em 1 unidade ou 100 g; passo de 1 unidade ou 100 g); editar e remover
-- Comprar (aba própria): campo "O que você pegou?" no topo abre o painel do item da lista com aquele nome ou de um item não planejado (funciona em lista sem planejamento); o checkbox abre o mesmo painel curto: quantidade (− e +) e preço obrigatório (por unidade: preço da unidade; por kg: preço total pago); "preço por", categoria e marca em "Mais detalhes"; marca ao confirmar
+- Comprar (aba própria): campo "O que você pegou?" no topo abre o painel do item da lista com aquele nome ou de um item não planejado (funciona em lista sem planejamento); o checkbox abre o mesmo painel curto: quantidade (− e +) e preço opcional (por unidade: preço da unidade; por kg: preço total pago; sem preço, o item fica "no caixa" e o valor entra no valor final); "preço por", categoria e marca em "Mais detalhes"; marca ao confirmar
 - Item pego vai para o fim da sua categoria, com destaque simples além do check
 - Itens não planejados podem ser adicionados durante a compra (pelo "O que você pegou?")
 - Total parcial calculado ao vivo; "Desmarcar todos" (com confirmação) apaga quantidades, preços e marcas
@@ -159,6 +159,7 @@ Tempo real (WebSocket), notificações, e-mail, recuperação de senha, refresh 
 - Layout fluido com CSS Grid e Flexbox, unidades relativas, sem rolagem horizontal.
 - Alvos de toque com no mínimo 44x44px; marcar um item como comprado deve ser um toque só e fácil.
 - No celular, navegação principal acessível com o polegar (barra inferior ou equivalente); no desktop, layout com mais respiro e largura máxima de leitura.
+- No celular, o cabeçalho das páginas (voltar, título e botões principais como "Criar lista" e "Opções") fica alinhado à direita, perto do polegar da mão direita. No desktop, título à esquerda e ações à direita.
 - **Identidade visual: siga `docs/marca.md`** (cores, logo, ícones, tema e componentes). Ao mexer no frontend, esse guia é a fonte oficial.
 - Estilo minimalista: muito espaço em branco, poucos elementos por tela, hierarquia tipográfica clara, sem gradientes. Transições curtas e discretas. O único "volume" é a sombra sólida de tecla (`--sombra-tecla`) no botão primário, que afunda ao ser pressionado.
 - Paleta da marca Family Ctrl (preto, cinzas neutros e roxo), em `frontend/src/styles/tokens.css`: primitivos `--fc-*` e tokens semânticos `--cor-*`. Componentes usam só `var(--cor-*)`, nunca hex (exceção: o logo, com cores oficiais fixas).

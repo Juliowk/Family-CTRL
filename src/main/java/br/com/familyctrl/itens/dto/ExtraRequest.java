@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import br.com.familyctrl.itens.TipoPreco;
 
-/** Item não planejado, adicionado durante a compra: já entra como pego, com o preço. */
+/** Item não planejado, adicionado durante a compra: já entra como pego (o preço é opcional). */
 public record ExtraRequest(
 		@NotBlank(message = "Informe o nome do item.") @Size(max = 120,
 				message = "O nome deve ter no máximo 120 caracteres.") String nome,
@@ -18,8 +18,7 @@ public record ExtraRequest(
 		@DecimalMin(value = "0.001", message = "A quantidade deve ser maior que zero.") @Digits(integer = 7,
 				fraction = 3, message = "Quantidade inválida.") BigDecimal quantidadePega,
 		TipoPreco tipoPreco,
-		@NotNull(message = "Informe o preço.") @DecimalMin(value = "0.00",
-				message = "O preço não pode ser negativo.") @Digits(integer = 8, fraction = 2,
-						message = "Preço inválido.") BigDecimal preco,
+		@DecimalMin(value = "0.00", message = "O preço não pode ser negativo.") @Digits(integer = 8,
+				fraction = 2, message = "Preço inválido.") BigDecimal preco,
 		@Size(max = 60, message = "A marca deve ter no máximo 60 caracteres.") String marca) {
 }

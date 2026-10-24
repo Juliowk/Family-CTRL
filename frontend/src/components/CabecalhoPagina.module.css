@@ -1,3 +1,7 @@
+/*
+ * No celular, o cabeçalho fica à direita (voltar, título e ações): é o lado que o polegar da mão
+ * direita alcança sem esticar. No desktop volta ao padrão: título à esquerda e ações à direita.
+ */
 .cabecalho {
   display: flex;
   flex-direction: column;
@@ -47,10 +51,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-1);
-  align-self: flex-start;
+  align-self: flex-end;
   min-height: var(--alvo-toque);
-  margin: calc(-1 * var(--espaco-3)) 0 calc(-1 * var(--espaco-2)) calc(-1 * var(--espaco-2));
-  padding: 0 var(--espaco-3) 0 var(--espaco-1);
+  margin: calc(-1 * var(--espaco-3)) calc(-1 * var(--espaco-2)) calc(-1 * var(--espaco-2)) 0;
+  padding: 0 var(--espaco-2) 0 var(--espaco-1);
   border-radius: var(--raio-pilula);
   color: var(--cor-texto-secundario);
   font-size: var(--texto-sm);
@@ -73,8 +77,10 @@
 .textos {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: var(--espaco-2);
   min-width: 0;
+  text-align: right;
 }
 
 .rotulo {
@@ -89,6 +95,7 @@
 .tituloLinha {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--espaco-2) var(--espaco-3);
   min-width: 0;
@@ -106,6 +113,7 @@
 
 .acoes {
   display: flex;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--espaco-2);
 }
@@ -123,6 +131,15 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
+  }
+
+  .textos {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .tituloLinha {
+    justify-content: flex-start;
   }
 
   .acoes {

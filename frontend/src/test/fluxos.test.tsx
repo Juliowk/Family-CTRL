@@ -170,11 +170,13 @@ describe('listas', () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/familias/10?ctrl=listas', { logado: true });
 
-    expect(await screen.findByRole('button', { name: 'Copiar prompt' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Copiar pedido para a IA' }),
+    ).toBeInTheDocument();
 
-    await usuario.type(screen.getByLabelText('Nome da lista importada'), 'Feira');
+    await usuario.type(screen.getByLabelText('Nome da lista'), 'Feira');
     await usuario.type(
-      screen.getByLabelText('Lista em CSV'),
+      screen.getByLabelText('Resposta da IA'),
       'nome;categoria;quantidade{Enter}Pão;padaria;6 un{Enter}Cerveja;Bebidas;',
     );
     expect(screen.getByText('2 itens prontos para importar.')).toBeInTheDocument();
@@ -408,17 +410,24 @@ describe('comprar', () => {
     );
   });
 
-  it('não marca sem o preço', async () => {
+  it('marca sem o preço, que fica para o caixa', async () => {
     const { estado, chamadas } = criarApiFalsa();
-    estado.itens.push(novoItem({ id: 1, nome: 'Leite' }));
+    estado.itens.push(novoItem({ id: 1, nome: 'Banana', medida: 'KG' }));
     const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
-    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Leite' }));
-    const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Banana' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
     await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
 
-    expect(within(dialogo).getByText('Informe o preço.')).toBeInTheDocument();
-    expect(chamadas.some((c) => c.caminho === '/api/itens/1/pego')).toBe(false);
+    expect(await screen.findByRole('checkbox', { name: 'Desmarcar Banana' })).toBeInTheDocument();
+    expect(screen.getByText('no caixa')).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({ metodo: 'PUT', caminho: '/api/itens/1/pego' }),
+    );
+    expect(chamadas.find((c) => c.caminho === '/api/itens/1/pego')?.corpo).not.toHaveProperty(
+      'preco',
+      expect.anything(),
+    );
   });
 
   it('sem planejar, "O que você pegou?" adiciona o item com quantidade e preço', async () => {

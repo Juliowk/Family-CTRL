@@ -29,7 +29,7 @@ Projeto de estudo de backend e peça de portfólio.
   - **Planejar**: itens com nome, categoria, medida e quantidade (botões − e +: de 1 em 1
     unidade ou de 100 em 100 g), agrupados por categoria
   - **Comprar**: campo "O que você pegou?" no topo (funciona sem planejar a lista); o painel de
-    cada item pede só quantidade (− e +) e preço (obrigatório), com "preço por", categoria e marca em
+    cada item pede só quantidade (− e +) e preço (opcional), com "preço por", categoria e marca em
     "Mais detalhes"; total parcial ao vivo; "desmarcar todos" com confirmação
 - Finalizar compra: só o valor final pago (do cupom) é obrigatório, já preenchido com a soma dos
   itens (menor que a soma fica como desconto); mercado opcional e data de hoje; pergunta se os

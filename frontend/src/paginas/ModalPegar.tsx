@@ -43,9 +43,10 @@ interface Props {
 }
 
 /**
- * Painel curto de "pegar" um item: só quantidade (− e +) e preço, que é obrigatório. O "preço
- * por", a categoria (de item não planejado) e a marca ficam em "Mais detalhes", fechado por
- * padrão. O item só fica marcado ao confirmar.
+ * Painel curto de "pegar" um item: só quantidade (− e +) e preço. O preço é opcional (ex.: fruta
+ * pesada no caixa): sem ele, o valor entra no total ao finalizar. O "preço por", a categoria (de
+ * item não planejado) e a marca ficam em "Mais detalhes", fechado por padrão. O item só fica
+ * marcado ao confirmar.
  */
 export function ModalPegar({
   listaId,
@@ -90,7 +91,7 @@ export function ModalPegar({
   const qtd = lerDecimal(quantidade);
   const valor = lerDecimal(preco);
   const qtdInvalida = quantidade.trim() !== '' && (qtd === undefined || qtd <= 0);
-  const precoInvalido = valor === undefined || valor < 0;
+  const precoInvalido = preco.trim() !== '' && (valor === undefined || valor < 0);
   const previa = subtotal(tipo, valor, qtd);
 
   const salvar = useMutation({
@@ -136,11 +137,7 @@ export function ModalPegar({
 
   const porKg = tipo === 'KG';
   const erroPreco =
-    tentouEnviar && precoInvalido
-      ? preco.trim()
-        ? 'Informe um valor válido.'
-        : 'Informe o preço.'
-      : erro?.erroDoCampo('preco');
+    tentouEnviar && precoInvalido ? 'Informe um valor válido.' : erro?.erroDoCampo('preco');
   // Algo em "Mais detalhes" com erro: abre sozinho para a pessoa ver
   const erroDetalhes = erro?.erroDoCampo('categoriaId') ?? erro?.erroDoCampo('marca');
 
@@ -172,6 +169,7 @@ export function ModalPegar({
           inputMode="decimal"
           autoComplete="off"
           placeholder="Ex.: 7,88"
+          dica="Opcional. Sem preço, o valor entra no total ao finalizar."
           autoFocus
           value={preco}
           onChange={(e) => setPreco(e.target.value)}

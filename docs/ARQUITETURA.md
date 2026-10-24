@@ -217,15 +217,16 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
 2. **Comprar** (no mercado): no topo, um campo grande "O que você pegou?". Digitar o nome abre o
    painel do item da lista com esse nome ou, se não houver, de um item não planejado (que entra
    já pego, com `extra = true`). Tocar num item da lista abre o mesmo painel. O painel é curto:
-   só **quantidade** (− e +) e **preço**, que é **obrigatório**; o "preço por" (unidade ou kg), a
+   só **quantidade** (− e +) e **preço**, que é **opcional**; o "preço por" (unidade ou kg), a
    categoria e a marca ficam em "Mais detalhes", fechado por padrão. O item só fica marcado ao
    confirmar e vai para o fim da categoria (ordem de `pego_em`). A tela soma o **total parcial**
    (`util/compra.ts`). Numa lista vazia, a aba já abre nesse modo: dá para comprar sem planejar.
 
-   **Por que o preço virou obrigatório?** Com o preço de todos os itens, o total da compra é
-   sempre conhecido e a finalização vira só conferir o cupom. Antes existia o "valor variável"
-   (itens com preço só no caixa), que obrigava a digitar mais um valor no fim. Itens pegos sem
-   preço antes dessa mudança continuam aparecendo como "no caixa" até a compra ser finalizada.
+   **Por que o preço é opcional?** Frutas, verduras e frios costumam ter o preço só na balança ou
+   no caixa. Sem preço, o item aparece como "no caixa" e fica fora do total parcial; ao finalizar,
+   o valor final pago (que é o que importa) já cobre esses itens, e a diferença para a soma fica
+   registrada no valor variável. O preço chegou a ser obrigatório, mas travava justamente o
+   hortifrúti.
 3. **Finalizar**: só o **valor final pago** (o total do cupom) é obrigatório. Ele já vem
    preenchido com a soma dos itens e pode ser corrigido. O mercado é opcional e a data já vem
    como hoje. O usuário também escolhe quais itens não planejados ficam na lista. Numa transação,
@@ -517,7 +518,10 @@ roxo `#7C3AED` como cor de ação e lavanda `#A78BFA` como destaque no escuro.
 - **Navegação.** Desktop (≥ 64 rem): barra lateral escura com a família atual, as seções e a conta
   no rodapé (a lateral é sempre escura, por isso tem tokens próprios de destaque). Celular e
   tablet: topo compacto com a família atual (um toque troca de família) e barra inferior fixa.
-  Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. Dentro de uma lista, o
+  Breadcrumb no desktop; no celular vira um "‹ voltar" no topo da página. No celular, o
+  cabeçalho da página (voltar, título e ações como "Criar lista" e "Opções") fica alinhado à
+  direita, o lado que o polegar da mão direita alcança sem esticar; no desktop, título à esquerda
+  e ações à direita. Dentro de uma lista, o
   item "Listas" continua ativo. Sem família escolhida (logo após o login ou na tela "Suas
   famílias") não há listas nem membros para navegar: some a barra lateral/inferior e fica só o
   topo, com o tema e a conta (avatar) no canto superior direito.
@@ -533,8 +537,10 @@ roxo `#7C3AED` como cor de ação e lavanda `#A78BFA` como destaque no escuro.
   escondidos, para trocar de aba não apagar o que foi digitado.
 - **Importar lista de CSV.** O usuário cola um texto CSV (`nome;categoria;quantidade;medida`,
   medida `un` ou `kg`; vazia, é deduzida da quantidade: "500 g" e "2 kg" são por kg), muitas
-  vezes gerado por uma IA com o prompt que a tela oferece para copiar (já com as categorias da
-  família). Por quê ler o CSV no navegador: o resumo ("12 itens prontos", linhas com erro,
+  vezes gerado por uma IA com o pedido que a tela oferece para copiar (já com as categorias da
+  família). A tela é pensada para quem nunca viu um CSV: um parágrafo, o botão "Copiar pedido
+  para a IA", o campo "Resposta da IA" e o nome da lista; o formato, para quem escreve à mão,
+  fica num "Sem IA? Veja como escrever" fechado. Por quê ler o CSV no navegador: o resumo ("12 itens prontos", linhas com erro,
   categorias desconhecidas) aparece enquanto se digita, sem ida ao servidor, e a API recebe
   itens estruturados, validados como os adicionados à mão. A categoria é casada pelo nome sem
   diferenciar maiúsculas e acentos; vazia ou desconhecida vai para "Outros". Separador `;`

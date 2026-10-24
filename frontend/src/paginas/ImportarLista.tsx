@@ -12,10 +12,8 @@ import { chaves } from '../estado/chaves';
 import { lerCsvLista, promptParaIa } from '../util/csvLista';
 import estilos from './ImportarLista.module.css';
 
-const EXEMPLO = `nome;categoria;quantidade;medida
-Arroz 5 kg;Mercearia e Alimentos Básicos;1 pacote;un
-Banana;Hortifrúti e Congelados;1,5 kg;kg
-Sabonete;Higiene Pessoal;;un`;
+const EXEMPLO = `Arroz 5 kg;Mercearia;1;un
+Banana;Hortifrúti;1,5 kg;kg`;
 
 /** Até quantos erros de linha mostrar (o resto vira "e mais N"). */
 const ERROS_VISIVEIS = 5;
@@ -23,6 +21,9 @@ const ERROS_VISIVEIS = 5;
 /**
  * Cria uma lista a partir de um texto CSV colado (ex.: gerado por uma IA). O CSV é lido no
  * navegador, que mostra o resumo antes de enviar; a API recebe os itens já estruturados.
+ *
+ * A tela fala com quem nunca viu um CSV: copiar o pedido para a IA e colar a resposta. O formato
+ * fica só para quem quiser escrever à mão, num "Sem IA?" fechado.
  */
 export function ImportarLista({ familiaId }: { familiaId: number }) {
   const queryClient = useQueryClient();
@@ -78,88 +79,65 @@ export function ImportarLista({ familiaId }: { familiaId: number }) {
   const erroApi = importar.error instanceof ApiError ? importar.error : undefined;
 
   return (
-    <>
-      <p className={form.texto}>
-        Cole uma lista em formato CSV. Não tem uma? Copie o prompt abaixo, cole na IA que você usa
-        junto com a sua lista e traga a resposta para cá.
-      </p>
-
-      <div className={estilos.bloco}>
-        <div className={estilos.blocoCabecalho}>
-          <h3 className={estilos.blocoTitulo}>Prompt para a sua IA</h3>
-          <Botao pequeno onClick={copiarPrompt}>
-            {copiado ? <IconeCheck tamanho={16} /> : <IconeCopiar tamanho={16} />}
-            {copiado ? 'Copiado!' : 'Copiar prompt'}
-          </Botao>
-        </div>
-        <details className={estilos.detalhes}>
-          <summary>Ver o prompt</summary>
-          <pre className={estilos.codigo}>{prompt}</pre>
-        </details>
+    <form className={form.formulario} onSubmit={enviar}>
+      <div className={estilos.passo}>
+        <p className={form.texto}>
+          Tem a lista no papel ou no WhatsApp? Copie o pedido, cole no ChatGPT, Gemini ou outra IA
+          junto com a sua lista e traga a resposta para cá.
+        </p>
+        <Botao pequeno onClick={copiarPrompt} className={estilos.copiar}>
+          {copiado ? <IconeCheck tamanho={16} /> : <IconeCopiar tamanho={16} />}
+          {copiado ? 'Copiado!' : 'Copiar pedido para a IA'}
+        </Botao>
         <span className="sr-only" role="status">
-          {copiado ? 'Prompt copiado' : ''}
+          {copiado ? 'Pedido copiado' : ''}
         </span>
       </div>
 
-      <div className={estilos.bloco}>
-        <h3 className={estilos.blocoTitulo}>Formato aceito</h3>
+      <AreaTexto
+        rotulo="Resposta da IA"
+        placeholder="Cole aqui"
+        spellCheck={false}
+        autoCapitalize="off"
+        autoComplete="off"
+        rows={3}
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        erro={resultado && resultado.erros.length > 0 ? 'Corrija as linhas abaixo.' : undefined}
+      />
+
+      <details className={estilos.detalhes}>
+        <summary>Sem IA? Veja como escrever</summary>
+        <p className={estilos.ajuda}>
+          Um item por linha: nome; categoria; quantidade; medida (<code>un</code> ou <code>kg</code>
+          ). Só o nome é obrigatório.
+        </p>
         <pre className={estilos.codigo}>{EXEMPLO}</pre>
-        <ul className={estilos.regras}>
-          <li>
-            Uma linha por item, colunas separadas por <code>;</code> (vírgula também vale). O
-            cabeçalho é opcional.
-          </li>
-          <li>
-            <strong>nome</strong> é obrigatório. <strong>quantidade</strong> é opcional (até 30
-            caracteres).
-          </li>
-          <li>
-            <strong>medida</strong> é <code>un</code> (por unidade) ou <code>kg</code> (por kg). Se
-            ficar vazia, vem da quantidade: “500 g” ou “2 kg” é por kg; o resto, por unidade.
-          </li>
-          <li>
-            <strong>categoria</strong> deve ser uma das categorias da família:{' '}
-            {categorias.data.map((c) => c.nome).join(', ')}. Vazia ou diferente vai para “Outros”.
-          </li>
-          <li>Se um campo tiver ponto e vírgula, coloque-o entre aspas duplas.</li>
-        </ul>
+      </details>
+
+      <Campo
+        rotulo="Nome da lista"
+        placeholder="Ex.: Compras do mês"
+        maxLength={100}
+        value={nome}
+        onChange={(e) => setNome(e.target.value)}
+        erro={erroApi?.erroDoCampo('nome')}
+      />
+
+      {resultado && <Resumo resultado={resultado} />}
+
+      {erroApi && !erroApi.erroDoCampo('nome') && (
+        <p className={form.erro} role="alert">
+          {erroApi.message}
+        </p>
+      )}
+
+      <div className={form.acoes}>
+        <Botao type="submit" carregando={importar.isPending} disabled={!podeImportar}>
+          Importar lista
+        </Botao>
       </div>
-
-      <form className={form.formulario} onSubmit={enviar}>
-        <Campo
-          rotulo="Nome da lista importada"
-          placeholder="Ex.: Compras do mês"
-          maxLength={100}
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          erro={erroApi?.erroDoCampo('nome')}
-        />
-        <AreaTexto
-          rotulo="Lista em CSV"
-          placeholder={EXEMPLO}
-          spellCheck={false}
-          autoCapitalize="off"
-          autoComplete="off"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          erro={resultado && resultado.erros.length > 0 ? 'Corrija as linhas abaixo.' : undefined}
-        />
-
-        {resultado && <Resumo resultado={resultado} />}
-
-        {erroApi && !erroApi.erroDoCampo('nome') && (
-          <p className={form.erro} role="alert">
-            {erroApi.message}
-          </p>
-        )}
-
-        <div className={form.acoes}>
-          <Botao type="submit" carregando={importar.isPending} disabled={!podeImportar}>
-            Importar lista
-          </Botao>
-        </div>
-      </form>
-    </>
+    </form>
   );
 }
 

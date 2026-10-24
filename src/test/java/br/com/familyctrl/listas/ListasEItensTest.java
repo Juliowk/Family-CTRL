@@ -153,7 +153,7 @@ class ListasEItensTest extends IntegracaoTest {
 	}
 
 	@Test
-	void pegaPorKgComPrecoTotalEOPrecoEObrigatorio() throws Exception {
+	void pegaPorKgComPrecoTotalEItemSemPrecoFicaSemSubtotal() throws Exception {
 		long listaId = criarLista("Feira");
 		long banana = adicionarItem(listaId, "Banana");
 		long alface = adicionarItem(listaId, "Alface");
@@ -163,14 +163,15 @@ class ListasEItensTest extends IntegracaoTest {
 			.andExpect(jsonPath("$.tipoPreco").value("KG"))
 			.andExpect(jsonPath("$.subtotal").value(8.63));
 
-		// Sem preço não marca: o total da compra precisa ser conhecido
+		// Sem preço (ex.: hortifrúti pesado no caixa): marca, e o valor entra no total da compra
 		mvc.perform(como(ana, put("/api/itens/" + alface + "/pego")).content("{}"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.erros[0].campo").value("preco"));
+			.andExpect(jsonPath("$.pego").value(true))
+			.andExpect(jsonPath("$.tipoPreco").value("UNIDADE"))
+			.andExpect(jsonPath("$.subtotal").doesNotExist());
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
 			.content("{\"nome\":\"Chocolate\",\"categoriaId\":" + padaria + "}"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.erros[0].campo").value("preco"));
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.subtotal").doesNotExist());
 	}
 
 	@Test
