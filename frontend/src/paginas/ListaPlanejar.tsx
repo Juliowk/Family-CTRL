@@ -13,7 +13,15 @@ import { IconeEditar, IconeLista, IconeMais } from '../components/Icones';
 import { Modal } from '../components/Modal';
 import { SeletorCategoria } from '../components/SeletorCategoria';
 import { SeletorMedida } from '../components/SeletorMedida';
-import { agruparPorCategoria, rotuloMedida } from '../util/compra';
+import { SeletorQuantidade } from '../components/SeletorQuantidade';
+import {
+  agruparPorCategoria,
+  formatarQuantidade,
+  lerDecimal,
+  paraCampo,
+  passoDaMedida,
+  rotuloMedida,
+} from '../util/compra';
 import {
   antesDeAlterar,
   apagarItem,
@@ -62,9 +70,9 @@ export function ListaPlanejar({
                     <div className={estilos.planejado}>
                       <span className={estilos.itemNome}>{item.nome}</span>
                       <span className={estilos.itemDetalhe}>
-                        {[item.quantidadePlanejada, rotuloMedida(item.medida)]
-                          .filter(Boolean)
-                          .join(' · ')}
+                        {item.quantidadePlanejada !== null
+                          ? formatarQuantidade(item.quantidadePlanejada, item.medida)
+                          : rotuloMedida(item.medida)}
                       </span>
                     </div>
                     <button
@@ -102,51 +110,51 @@ export function ListaPlanejar({
   );
 }
 
+/** Quantidade digitada: vazio é "sem quantidade"; inválido ou zero, undefined. */
+function lerQuantidade(texto: string): number | null | undefined {
+  if (!texto.trim()) return null;
+  const valor = lerDecimal(texto);
+  return valor !== undefined && valor > 0 ? valor : undefined;
+}
+
+const ERRO_QUANTIDADE = 'Informe um número maior que zero.';
+
 function FormularioItem({ lista }: { lista: ListaDetalhe }) {
   const queryClient = useQueryClient();
   const ultimo = lista.itens.at(-1);
   const [nome, setNome] = useState('');
-  const [quantidade, setQuantidade] = useState('');
-  // Medida obrigatória e sem padrão: cada item é escolhido de propósito (por unidade ou por kg)
-  const [medida, setMedida] = useState<TipoPreco | null>(null);
-  const [faltaMedida, setFaltaMedida] = useState(false);
+  // Começa em 1 unidade; por kg, em 100 g. Os botões − e + andam nesse passo.
+  const [medida, setMedida] = useState<TipoPreco>('UNIDADE');
+  const [quantidade, setQuantidade] = useState(paraCampo(passoDaMedida('UNIDADE')));
   // Começa na categoria do último item adicionado: costuma-se planejar por seção do mercado
   const [categoriaId, setCategoriaId] = useState(
     ultimo?.categoriaId ?? lista.categorias[0]?.id ?? 0,
   );
+  const qtd = lerQuantidade(quantidade);
 
   const adicionar = useMutation({
-    mutationFn: (medidaEscolhida: TipoPreco) =>
-      itensApi.adicionar(lista.id, {
-        nome: nome.trim(),
-        categoriaId,
-        quantidadePlanejada: quantidade.trim() || undefined,
-        medida: medidaEscolhida,
-      }),
+    mutationFn: (quantidadePlanejada: number | undefined) =>
+      itensApi.adicionar(lista.id, { nome: nome.trim(), categoriaId, quantidadePlanejada, medida }),
     onMutate: () => antesDeAlterar(queryClient, lista.id),
     onSettled: () => depoisDeAlterar(queryClient, lista.id),
     onSuccess: (item) => {
       gravarItem(queryClient, item);
       setNome('');
-      setQuantidade('');
-      setMedida(null);
+      escolherMedida('UNIDADE');
     },
   });
   const erro = adicionar.error instanceof ApiError ? adicionar.error : undefined;
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
-    if (!nome.trim()) return;
-    if (!medida) {
-      setFaltaMedida(true);
-      return;
-    }
-    adicionar.mutate(medida);
+    if (!nome.trim() || qtd === undefined) return;
+    adicionar.mutate(qtd ?? undefined);
   }
 
+  /** Trocar a medida volta a quantidade para o início dela (1 unidade ou 100 g). */
   function escolherMedida(nova: TipoPreco) {
     setMedida(nova);
-    setFaltaMedida(false);
+    setQuantidade(paraCampo(passoDaMedida(nova)));
   }
 
   return (
@@ -170,26 +178,19 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
           aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
         />
-        <SeletorMedida
-          valor={medida}
-          aoMudar={escolherMedida}
-          erro={
-            faltaMedida ? 'Escolha a medida: por unidade ou por kg.' : erro?.erroDoCampo('medida')
-          }
-        />
-        <Campo
-          rotulo="Quantidade (opcional)"
-          placeholder="Ex.: 2 kg"
-          maxLength={30}
-          value={quantidade}
-          onChange={(e) => setQuantidade(e.target.value)}
-          erro={erro?.erroDoCampo('quantidadePlanejada')}
+        <SeletorMedida valor={medida} aoMudar={escolherMedida} erro={erro?.erroDoCampo('medida')} />
+        <SeletorQuantidade
+          rotulo={medida === 'KG' ? 'Peso' : 'Quantidade'}
+          medida={medida}
+          texto={quantidade}
+          aoMudar={setQuantidade}
+          erro={qtd === undefined ? ERRO_QUANTIDADE : erro?.erroDoCampo('quantidadePlanejada')}
         />
         <Botao
           type="submit"
           variante="primario"
           carregando={adicionar.isPending}
-          disabled={!nome.trim()}
+          disabled={!nome.trim() || qtd === undefined}
         >
           <IconeMais tamanho={20} />
           Adicionar
@@ -213,8 +214,9 @@ function ModalEditarItem({
   const queryClient = useQueryClient();
   const [nome, setNome] = useState(item.nome);
   const [categoriaId, setCategoriaId] = useState(item.categoriaId);
-  const [quantidade, setQuantidade] = useState(item.quantidadePlanejada ?? '');
+  const [quantidade, setQuantidade] = useState(paraCampo(item.quantidadePlanejada));
   const [medida, setMedida] = useState<TipoPreco>(item.medida);
+  const qtd = lerQuantidade(quantidade);
   const [confirmandoRemocao, setConfirmandoRemocao] = useState(false);
 
   /** Outra pessoa alterou ou removeu o item depois que o formulário abriu: nada foi gravado. */
@@ -224,13 +226,12 @@ function ModalEditarItem({
     aoDesatualizado(mensagemDesatualizado(erro));
   }
 
-  // String vazia apaga a quantidade desejada no backend
   const salvar = useMutation({
     mutationFn: () =>
       itensApi.atualizar(item.id, item.versao, {
         nome: nome.trim(),
         categoriaId,
-        quantidadePlanejada: quantidade.trim(),
+        quantidadePlanejada: qtd ?? undefined,
         medida,
       }),
     onMutate: () => antesDeAlterar(queryClient, item.listaId),
@@ -256,7 +257,13 @@ function ModalEditarItem({
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
-    if (nome.trim()) salvar.mutate();
+    if (nome.trim() && qtd !== undefined) salvar.mutate();
+  }
+
+  /** Trocar a medida volta a quantidade para o início dela (1 unidade ou 100 g). */
+  function escolherMedida(nova: TipoPreco) {
+    setMedida(nova);
+    setQuantidade(paraCampo(passoDaMedida(nova)));
   }
 
   return (
@@ -276,14 +283,13 @@ function ModalEditarItem({
           aoMudar={setCategoriaId}
           erro={erro?.erroDoCampo('categoriaId')}
         />
-        <SeletorMedida valor={medida} aoMudar={setMedida} erro={erro?.erroDoCampo('medida')} />
-        <Campo
-          rotulo="Quantidade (opcional)"
-          placeholder="Ex.: 2 kg"
-          maxLength={30}
-          value={quantidade}
-          onChange={(e) => setQuantidade(e.target.value)}
-          erro={erro?.erroDoCampo('quantidadePlanejada')}
+        <SeletorMedida valor={medida} aoMudar={escolherMedida} erro={erro?.erroDoCampo('medida')} />
+        <SeletorQuantidade
+          rotulo={medida === 'KG' ? 'Peso' : 'Quantidade'}
+          medida={medida}
+          texto={quantidade}
+          aoMudar={setQuantidade}
+          erro={qtd === undefined ? ERRO_QUANTIDADE : erro?.erroDoCampo('quantidadePlanejada')}
         />
         {erroGeral instanceof ApiError && erroGeral.erros.length === 0 && (
           <p className={form.erro} role="alert">
@@ -306,7 +312,7 @@ function ModalEditarItem({
               type="submit"
               variante="primario"
               carregando={salvar.isPending}
-              disabled={!nome.trim()}
+              disabled={!nome.trim() || qtd === undefined}
             >
               Salvar
             </Botao>

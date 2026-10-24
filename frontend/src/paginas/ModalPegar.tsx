@@ -11,10 +11,10 @@ import { Modal } from '../components/Modal';
 import { SeletorCategoria } from '../components/SeletorCategoria';
 import {
   formatarDinheiro,
+  formatarQuantidade,
   lerDecimal,
   paraCampo,
   subtotal,
-  sugestaoDaQuantidade,
 } from '../util/compra';
 import {
   antesDeAlterar,
@@ -42,19 +42,15 @@ interface Props {
 export function ModalPegar({ listaId, categorias, item, aoFechar, aoDesatualizado }: Props) {
   const queryClient = useQueryClient();
   const extra = !item;
-  const sugestao = item && !item.pego ? sugestaoDaQuantidade(item.quantidadePlanejada) : {};
   // O "preço por" começa na medida planejada do item (ou no que foi usado ao pegar)
   const tipoInicial: TipoPreco = item ? (item.pego ? item.tipoPreco : item.medida) : 'UNIDADE';
-  // A quantidade planejada só vira sugestão se combinar com a medida (ex.: "500 g" num item por kg)
-  const sugereQuantidade = (sugestao.tipo ?? 'UNIDADE') === tipoInicial;
 
   const [nome, setNome] = useState('');
   const [categoriaId, setCategoriaId] = useState(categorias[0]?.id ?? 0);
   const [tipo, setTipo] = useState<TipoPreco>(tipoInicial);
   const [quantidade, setQuantidade] = useState(
-    paraCampo(
-      item?.pego ? item.quantidadePega : sugereQuantidade ? sugestao.quantidade : undefined,
-    ),
+    // Ainda não pego: a quantidade planejada (já na medida do item) vira sugestão
+    paraCampo(item?.pego ? item.quantidadePega : item?.quantidadePlanejada),
   );
   const [preco, setPreco] = useState(paraCampo(item?.preco));
   const [marca, setMarca] = useState(item?.marca ?? '');
@@ -105,8 +101,10 @@ export function ModalPegar({ listaId, categorias, item, aoFechar, aoDesatualizad
   return (
     <Modal aberto titulo={titulo} aoFechar={aoFechar}>
       <form className={form.formulario} onSubmit={enviar} noValidate>
-        {item?.quantidadePlanejada && (
-          <p className={estilos.planejadoInfo}>Planejado: {item.quantidadePlanejada}</p>
+        {item && item.quantidadePlanejada !== null && (
+          <p className={estilos.planejadoInfo}>
+            Planejado: {formatarQuantidade(item.quantidadePlanejada, item.medida)}
+          </p>
         )}
         {extra && (
           <>

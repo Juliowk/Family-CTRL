@@ -26,7 +26,8 @@ Projeto de estudo de backend e peça de portfólio.
 - Sair da família (o último ADMIN precisa promover alguém antes)
 - Categorias por família (padrão + personalizadas), com ordem configurável
 - Listas como planejamento reutilizável, em duas abas:
-  - **Planejar**: itens com nome, categoria e quantidade desejada, agrupados por categoria
+  - **Planejar**: itens com nome, categoria, medida e quantidade (botões − e +: de 1 em 1
+    unidade ou de 100 em 100 g), agrupados por categoria
   - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade, ou por kg com o preço total pago) e marca,
     todos opcionais; total parcial ao vivo; itens não planejados; "desmarcar todos" com confirmação
 - Finalizar compra: só o valor final pago (do cupom) é obrigatório, já preenchido com a soma dos

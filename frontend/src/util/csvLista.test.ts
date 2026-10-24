@@ -16,8 +16,8 @@ describe('lerCsvLista', () => {
     );
     expect(r.erros).toEqual([]);
     expect(r.itens).toEqual([
-      { nome: 'Pão francês', categoriaId: 1, quantidadePlanejada: '6 un', medida: 'UNIDADE' },
-      { nome: 'Banana', categoriaId: 2, quantidadePlanejada: '1,5 kg', medida: 'KG' },
+      { nome: 'Pão francês', categoriaId: 1, quantidadePlanejada: 6, medida: 'UNIDADE' },
+      { nome: 'Banana', categoriaId: 2, quantidadePlanejada: 1.5, medida: 'KG' },
       { nome: 'Bolo', categoriaId: 1, medida: 'UNIDADE' },
     ]);
   });
@@ -31,7 +31,7 @@ describe('lerCsvLista', () => {
       {
         nome: 'Biscoito "recheado", chocolate',
         categoriaId: 1,
-        quantidadePlanejada: '2',
+        quantidadePlanejada: 2,
         medida: 'UNIDADE',
       },
       { nome: 'Leite', categoriaId: 3, medida: 'UNIDADE' },

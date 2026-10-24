@@ -91,7 +91,7 @@ public class ItemService {
 		Long familiaId = listaAcesso.travarParaAlterar(listaId, usuarioId, null);
 		categoriaService.verificarDaFamilia(request.categoriaId(), familiaId);
 		Item item = itens.save(new Item(listaId, request.categoriaId(), request.nome().trim(),
-				vazioParaNulo(request.quantidadePlanejada()), request.medida(), false, usuarioId));
+				request.quantidadePlanejada(), request.medida(), false, usuarioId));
 		return paraResponse(item);
 	}
 
@@ -107,8 +107,8 @@ public class ItemService {
 			if (!categoriasDaFamilia.contains(request.categoriaId())) {
 				throw new ValidacaoException("itens[" + i + "].categoriaId", "Escolha uma categoria válida.");
 			}
-			novos.add(new Item(listaId, request.categoriaId(), request.nome().trim(),
-					vazioParaNulo(request.quantidadePlanejada()), request.medida(), false, usuarioId));
+			novos.add(new Item(listaId, request.categoriaId(), request.nome().trim(), request.quantidadePlanejada(),
+					request.medida(), false, usuarioId));
 		}
 		itens.saveAll(novos);
 	}
@@ -124,8 +124,7 @@ public class ItemService {
 		}
 		item.editarPlanejamento(request.nome() != null ? request.nome().trim() : item.getNome(),
 				request.categoriaId() != null ? request.categoriaId() : item.getCategoriaId(),
-				request.quantidadePlanejada() != null ? vazioParaNulo(request.quantidadePlanejada())
-						: item.getQuantidadePlanejada(),
+				request.quantidadePlanejada() != null ? request.quantidadePlanejada() : item.getQuantidadePlanejada(),
 				request.medida() != null ? request.medida() : item.getMedida());
 		return gravado(item);
 	}

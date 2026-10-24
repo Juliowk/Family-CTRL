@@ -1,16 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
-import { ApiError } from '../api/cliente';
+import { useQuery } from '@tanstack/react-query';
+import { Link, useSearchParams } from 'react-router';
 import { comprasApi, listasApi } from '../api/endpoints';
 import type { CompraResumo, Lista } from '../api/tipos';
-import { AbasPainel } from '../components/AbasPainel';
-import { Botao } from '../components/Botao';
-import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { Carregando, EstadoVazio, MensagemErro } from '../components/Estados';
 import { FiltroChips } from '../components/FiltroChips';
-import form from '../components/Formulario.module.css';
 import { IconeArquivo, IconeCarrinho, IconeSeta } from '../components/Icones';
 import { Progresso } from '../components/Progresso';
 import { Selo } from '../components/Selo';
@@ -24,15 +18,12 @@ type Visao = 'listas' | 'concluidas';
 
 /**
  * Funcionalidade "Listas de compras", aberta na tela inicial da família: listas (planejamento),
- * compras concluídas e criação de listas.
+ * compras concluídas e importação. Criar uma lista em branco fica no topo da tela da família.
  */
 export function FuncionalidadeListas({ familiaId }: { familiaId: number }) {
-  const queryClient = useQueryClient();
-  const navegar = useNavigate();
   // A visão fica na URL (?ver=concluidas): recarregar ou compartilhar o link abre igual
   const [parametros, setParametros] = useSearchParams();
   const visao: Visao = parametros.get('ver') === 'concluidas' ? 'concluidas' : 'listas';
-  const [nome, setNome] = useState('');
 
   // Atualiza sozinho o progresso ("em andamento") quando outra pessoa está comprando
   const listas = useQuery({
@@ -40,20 +31,6 @@ export function FuncionalidadeListas({ familiaId }: { familiaId: number }) {
     queryFn: () => listasApi.listar(familiaId),
     refetchInterval: 10_000,
   });
-
-  const criar = useMutation({
-    mutationFn: (nomeLista: string) => listasApi.criar(familiaId, nomeLista),
-    onSuccess: (lista) => {
-      setNome('');
-      void queryClient.invalidateQueries({ queryKey: chaves.todasListas });
-      navegar(`/listas/${lista.id}/planejar`);
-    },
-  });
-
-  function enviar(evento: FormEvent) {
-    evento.preventDefault();
-    if (nome.trim()) criar.mutate(nome.trim());
-  }
 
   function mudarVisao(nova: Visao) {
     // Mantém os outros parâmetros (a funcionalidade aberta) e troca só a visão
@@ -94,48 +71,19 @@ export function FuncionalidadeListas({ familiaId }: { familiaId: number }) {
           <MensagemErro erro={listas.error} aoTentarDeNovo={() => void listas.refetch()} />
         ) : listas.data.length === 0 ? (
           <EstadoVazio icone={<IconeCarrinho />} titulo="Nenhuma lista ainda">
-            Crie a primeira lista logo abaixo. Ex.: Compras do mês, Feira, Farmácia.
+            Use o botão “Criar lista”, lá em cima. Ex.: Compras do mês, Feira, Farmácia.
           </EstadoVazio>
         ) : (
           <CartoesDeListas listas={listas.data} />
         )}
       </section>
 
-      <section className={estilos.secao} aria-labelledby="titulo-criar">
-        <h2 id="titulo-criar" className={estilos.secaoTitulo}>
-          Criar lista
+      <section className={estilos.secao} aria-labelledby="titulo-importar">
+        <h2 id="titulo-importar" className={estilos.secaoTitulo}>
+          Importar lista
         </h2>
         <Card>
-          <AbasPainel
-            rotulo="Como criar a lista"
-            abas={[
-              {
-                rotulo: 'Nova lista',
-                conteudo: (
-                  <form className={form.linha} onSubmit={enviar}>
-                    <Campo
-                      rotulo="Nome da nova lista"
-                      rotuloOculto
-                      placeholder="Ex.: Compras do mês"
-                      maxLength={100}
-                      value={nome}
-                      onChange={(e) => setNome(e.target.value)}
-                      erro={criar.error instanceof ApiError ? criar.error.message : undefined}
-                    />
-                    <Botao
-                      type="submit"
-                      variante="primario"
-                      carregando={criar.isPending}
-                      disabled={!nome.trim()}
-                    >
-                      Criar lista
-                    </Botao>
-                  </form>
-                ),
-              },
-              { rotulo: 'Importar', conteudo: <ImportarLista familiaId={familiaId} /> },
-            ]}
-          />
+          <ImportarLista familiaId={familiaId} />
         </Card>
       </section>
     </>

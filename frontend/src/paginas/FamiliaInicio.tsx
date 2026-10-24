@@ -1,12 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
+import { ApiError } from '../api/cliente';
 import { comprasApi, listasApi } from '../api/endpoints';
 import { Botao } from '../components/Botao';
 import { CabecalhoPagina } from '../components/CabecalhoPagina';
 import { Carregando } from '../components/Estados';
-import { IconeCarrinho, IconeSeta, IconeVoltar } from '../components/Icones';
+import { IconeCarrinho, IconeMais, IconeSeta, IconeVoltar } from '../components/Icones';
 import { Indicadores } from '../components/Indicadores';
+import { ModalNome } from '../components/ModalNome';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
 import { dataEMercado, mesAtual } from '../util/compra';
@@ -40,17 +42,29 @@ function lerFuncionalidade(valor: string | null): Funcionalidade | null {
 }
 
 /**
- * Tela inicial da família ("ctrl"): resumo do mês e os cards das funcionalidades. Escolher um card
- * troca a seção dos cards pela funcionalidade, na mesma página (sem recarregar nem mudar de rota).
+ * Tela inicial da família ("ctrl"): "Criar lista" logo no topo (a ação mais comum), resumo do mês e
+ * os cards das funcionalidades. Escolher um card troca a seção dos cards pela funcionalidade, na
+ * mesma página (sem recarregar nem mudar de rota).
  */
 export function FamiliaInicio() {
   const { familiaId, familia } = useFamiliaDaRota();
+  const queryClient = useQueryClient();
+  const navegar = useNavigate();
+  const [criandoLista, setCriandoLista] = useState(false);
   const [parametros, setParametros] = useSearchParams();
   const aberta = lerFuncionalidade(parametros.get(PARAMETRO_FUNCIONALIDADE));
   const mes = mesAtual();
   const troca = useRef<HTMLDivElement>(null);
   // Só move o foco quando a troca vem de um clique, não ao chegar na página
   const trocouAgora = useRef(false);
+
+  const criarLista = useMutation({
+    mutationFn: (nome: string) => listasApi.criar(familiaId, nome),
+    onSuccess: (lista) => {
+      void queryClient.invalidateQueries({ queryKey: chaves.todasListas });
+      navegar(`/listas/${lista.id}/planejar`);
+    },
+  });
 
   const resumo = useQuery({
     queryKey: chaves.resumo(familiaId, mes),
@@ -84,6 +98,27 @@ export function FamiliaInicio() {
         rotulo="Família"
         titulo={familia.data.nome}
         descricao="Tudo o que a família organiza junta, em um só lugar."
+        acoes={
+          <Botao variante="primario" onClick={() => setCriandoLista(true)}>
+            <IconeMais tamanho={20} />
+            Criar lista
+          </Botao>
+        }
+      />
+
+      <ModalNome
+        aberto={criandoLista}
+        titulo="Nova lista"
+        rotulo="Nome da lista"
+        valorInicial=""
+        textoSalvar="Criar lista"
+        carregando={criarLista.isPending}
+        erro={criarLista.error instanceof ApiError ? criarLista.error.message : undefined}
+        aoSalvar={(nome) => criarLista.mutate(nome)}
+        aoFechar={() => {
+          setCriandoLista(false);
+          criarLista.reset();
+        }}
       />
 
       <Indicadores

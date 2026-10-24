@@ -15,6 +15,7 @@ import {
   agruparPorCategoria,
   descreverPego,
   formatarDinheiro,
+  formatarQuantidade,
   subtotal,
   totalDaCompra,
 } from '../util/compra';
@@ -220,7 +221,11 @@ function LinhaCompra({
   aoDesmarcar: () => void;
 }) {
   const valor = item.pego ? subtotal(item.tipoPreco, item.preco, item.quantidadePega) : undefined;
-  const detalhe = item.pego ? descreverPego(item) : item.quantidadePlanejada;
+  const detalhe = item.pego
+    ? descreverPego(item)
+    : item.quantidadePlanejada !== null
+      ? formatarQuantidade(item.quantidadePlanejada, item.medida)
+      : null;
   return (
     <li className={estilos.item} data-pego={item.pego}>
       {/* Pendente: o checkbox abre o formulário (marca ao confirmar). Pego: desmarca. */}

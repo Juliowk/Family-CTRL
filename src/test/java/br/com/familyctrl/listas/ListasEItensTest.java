@@ -68,10 +68,10 @@ class ListasEItensTest extends IntegracaoTest {
 	void planejaItemComCategoriaEQuantidade() throws Exception {
 		long listaId = criarLista("Mercado");
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens"))
-			.content("{\"nome\":\"Pão\",\"categoriaId\":" + padaria + ",\"quantidadePlanejada\":\"6 un\",\"medida\":\"UNIDADE\"}"))
+			.content("{\"nome\":\"Pão\",\"categoriaId\":" + padaria + ",\"quantidadePlanejada\":6,\"medida\":\"UNIDADE\"}"))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.categoriaId").value(padaria))
-			.andExpect(jsonPath("$.quantidadePlanejada").value("6 un"))
+			.andExpect(jsonPath("$.quantidadePlanejada").value(6))
 			.andExpect(jsonPath("$.pego").value(false))
 			.andExpect(jsonPath("$.extra").value(false));
 
@@ -94,7 +94,7 @@ class ListasEItensTest extends IntegracaoTest {
 	@Test
 	void importaListaComItens() throws Exception {
 		String corpo = "{\"nome\":\"Importada\",\"itens\":[{\"nome\":\"Pão\",\"categoriaId\":" + padaria
-				+ ",\"quantidadePlanejada\":\"6 un\",\"medida\":\"UNIDADE\"},{\"nome\":\"Bolo\",\"categoriaId\":" + padaria
+				+ ",\"quantidadePlanejada\":6,\"medida\":\"UNIDADE\"},{\"nome\":\"Bolo\",\"categoriaId\":" + padaria
 				+ ",\"medida\":\"KG\"}]}";
 		long listaId = lerId(mvc.perform(como(ana, post("/api/familias/" + familiaId + "/listas/importar")).content(corpo))
 			.andExpect(status().isCreated())
@@ -105,7 +105,7 @@ class ListasEItensTest extends IntegracaoTest {
 		mvc.perform(como(ana, get("/api/listas/" + listaId)))
 			.andExpect(jsonPath("$.itens", hasSize(2)))
 			.andExpect(jsonPath("$.itens[0].nome").value("Pão"))
-			.andExpect(jsonPath("$.itens[0].quantidadePlanejada").value("6 un"))
+			.andExpect(jsonPath("$.itens[0].quantidadePlanejada").value(6))
 			.andExpect(jsonPath("$.itens[1].quantidadePlanejada").doesNotExist())
 			.andExpect(jsonPath("$.itens[1].medida").value("KG"));
 	}
@@ -241,11 +241,17 @@ class ListasEItensTest extends IntegracaoTest {
 		long laticinios = categoria(ana, familiaId, "Laticínios, Frios e Ovos");
 
 		mvc.perform(como(ana, patch("/api/itens/" + item))
-			.content("{\"nome\":\"Leite desnatado\",\"categoriaId\":" + laticinios + ",\"quantidadePlanejada\":\"\"}"))
+			.content("{\"nome\":\"Leite desnatado\",\"categoriaId\":" + laticinios
+					+ ",\"quantidadePlanejada\":0.3,\"medida\":\"KG\"}"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.nome").value("Leite desnatado"))
 			.andExpect(jsonPath("$.categoriaId").value(laticinios))
-			.andExpect(jsonPath("$.quantidadePlanejada").doesNotExist());
+			.andExpect(jsonPath("$.quantidadePlanejada").value(0.3))
+			.andExpect(jsonPath("$.medida").value("KG"));
+
+		mvc.perform(como(ana, patch("/api/itens/" + item)).content("{\"quantidadePlanejada\":0}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros[0].campo").value("quantidadePlanejada"));
 
 		mvc.perform(como(ana, delete("/api/itens/" + item))).andExpect(status().isNoContent());
 		mvc.perform(como(ana, get("/api/listas/" + listaId))).andExpect(jsonPath("$.itens", hasSize(0)));

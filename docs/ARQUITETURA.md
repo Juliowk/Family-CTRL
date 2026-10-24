@@ -144,8 +144,7 @@ Status de erro: **400** validação, **401** sem token/token inválido/credencia
 **403** membro sem papel de ADMIN, **404** recurso inexistente **ou de outra família**,
 **409** conflito (e-mail já cadastrado, último ADMIN saindo).
 
-**PATCH parcial:** campos ausentes (nulos) não são alterados. Para apagar a quantidade desejada
-de um item, envia-se string vazia.
+**PATCH parcial:** campos ausentes (nulos) não são alterados.
 
 **PUT em `/pego`:** marcar como pego é idempotente (repetir a chamada dá o mesmo resultado), por
 isso PUT; ele também serve para corrigir quantidade, preço ou marca de um item já pego.
@@ -164,7 +163,8 @@ familias (id, nome, codigo_convite UNIQUE, criado_em)
 categorias (id, familia_id, nome, ordem, fixa)          UNIQUE (familia_id, lower(nome))
 listas (id, familia_id, nome, criada_por → usuarios, criada_em)
     ▲ lista_id (ON DELETE CASCADE)
-itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada, medida UNIDADE|KG,
+itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada numeric(10,3),
+       medida UNIDADE|KG,
        -- compra em andamento:
        pego, pego_por → usuarios, pego_em, quantidade_pega numeric(10,3),
        tipo_preco UNIDADE|KG, preco numeric(10,2), marca, extra,
@@ -201,9 +201,11 @@ compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planej
 
 A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
 
-1. **Planejar** (em casa): itens com nome, categoria, **medida** (por unidade ou por kg,
-   obrigatória) e quantidade desejada (opcional). Na tela, agrupados por categoria na ordem
-   configurada pela família. A medida é o plano e fica em `itens.medida`; `tipo_preco` é o estado
+1. **Planejar** (em casa): itens com nome, categoria, **medida** (por unidade ou por kg) e
+   **quantidade desejada**, um número na medida do item (`itens.quantidade_planejada`,
+   `numeric(10,3)`: unidades ou kg). A tela começa em 1 unidade (ou 100 g, por kg) e tem botões
+   − e + que andam nesse passo; também dá para digitar o valor exato. Na tela, os itens ficam
+   agrupados por categoria na ordem configurada pela família. A medida é o plano e fica em `itens.medida`; `tipo_preco` é o estado
    da compra em andamento. Ao pegar, o "preço por" começa na medida planejada (dá para trocar no
    mercado); ao desmarcar (ou ao finalizar a compra), `tipo_preco` volta para a medida. Por que
    duas colunas: se o "preço por" trocado no mercado sobrescrevesse a medida, o plano mudaria sem
@@ -234,8 +236,15 @@ não pode depender do navegador. As duas implementações têm testes com os mes
 **Por unidade ou por kg.** Por unidade, o subtotal é preço × quantidade (sem quantidade, conta 1).
 Por kg, informa-se o peso e o **preço total pago** por ele (ex.: 1 kg por R$ 50,00), que é o
 subtotal; o peso fica só como registro. No mercado é mais fácil digitar o valor da etiqueta da
-balança do que o preço do quilo. Quando a quantidade planejada tem peso ("2 kg", "500 g"), o
-formulário já abre em "Por kg" com o peso em kg.
+balança do que o preço do quilo. Ao pegar um item planejado, o formulário já abre na medida dele
+e com a quantidade planejada.
+
+**Por que a quantidade planejada virou número?** Ela era texto livre ("2 kg", "1 pacote",
+"1 dúzia"), o que impedia os botões − e + e obrigava a adivinhar a quantidade ao pegar o item.
+Número na medida do item resolve os dois. A migration `V8` converteu os textos existentes pelo
+primeiro número ("2 pacotes" → 2; "500 g" num item por kg → 0,5); o que não dava para converter
+(sem número, ou peso num item por unidade) ficou sem quantidade. O histórico das compras
+(`compra_itens.quantidade_planejada`) continua texto ("2 un", "300 g"), porque é só registro.
 
 **Indicadores do mês:** o mês vem da tela (`?mes=2026-10`) porque o servidor roda em UTC e o "mês
 atual" é o do usuário.

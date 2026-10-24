@@ -76,7 +76,8 @@ export const categoriasApi = {
 export interface DadosItem {
   nome: string;
   categoriaId: number;
-  quantidadePlanejada?: string;
+  /** Na medida do item: unidades ou kg (ex.: 0,3 = 300 g). */
+  quantidadePlanejada?: number;
   /** Por unidade ou por kg (obrigatória). */
   medida: TipoPreco;
 }
@@ -96,7 +97,6 @@ export interface DadosPego {
 export const itensApi = {
   adicionar: (listaId: number, dados: DadosItem) =>
     api<Item>(`/api/listas/${listaId}/itens`, { method: 'POST', body: dados }),
-  /** Para apagar a quantidade desejada, envie string vazia. */
   atualizar: (id: number, versao: number, dados: Partial<DadosItem>) =>
     api<Item>(`/api/itens/${id}`, { method: 'PATCH', body: { ...dados, versao } }),
   remover: (id: number, versao: number) =>

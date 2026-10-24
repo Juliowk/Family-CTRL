@@ -190,7 +190,8 @@ class ExemploVisual {
 		Function<String, CategoriaResponse> categoria = nome -> categorias.getOrDefault(nome, outros);
 
 		List<ItemRequest> itens = PLANEJADOS.stream()
-			.map(p -> new ItemRequest(p.nome(), categoria.apply(p.categoria()).id(), p.planejado(), p.tipo()))
+			.map(p -> new ItemRequest(p.nome(), categoria.apply(p.categoria()).id(),
+					p.planejado() != null ? BigDecimal.valueOf(p.quantidade()) : null, p.tipo()))
 			.toList();
 		ListaResponse lista = listaService.importar(familiaId, usuarioId, NOME_LISTA, itens);
 

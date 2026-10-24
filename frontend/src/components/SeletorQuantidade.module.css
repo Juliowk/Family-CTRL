@@ -1,0 +1,61 @@
+/* − [ 1  un ] + : botões do tamanho do campo, fáceis de tocar com o polegar */
+.linha {
+  display: flex;
+  align-items: stretch;
+  gap: var(--espaco-2);
+}
+
+.botao {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--altura-campo);
+  min-height: var(--altura-campo);
+  padding: 0;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+  cursor: pointer;
+  transition:
+    border-color var(--transicao),
+    background-color var(--transicao);
+}
+
+.botao:hover:not(:disabled) {
+  border-color: var(--cor-texto-secundario);
+}
+
+.botao:focus-visible {
+  outline: none;
+  border-color: var(--cor-foco);
+  box-shadow: var(--anel-foco);
+}
+
+.botao:disabled {
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.entradaComUnidade {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.entrada {
+  padding-right: 3rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.unidade {
+  position: absolute;
+  top: 50%;
+  right: var(--espaco-4);
+  transform: translateY(-50%);
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+  pointer-events: none;
+}

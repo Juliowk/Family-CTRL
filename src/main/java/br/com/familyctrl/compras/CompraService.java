@@ -1,5 +1,6 @@
 package br.com.familyctrl.compras;
 
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import br.com.familyctrl.familia.FamiliaService;
 import br.com.familyctrl.infra.erro.RecursoNaoEncontradoException;
 import br.com.familyctrl.infra.erro.ValidacaoException;
 import br.com.familyctrl.itens.ItemService;
+import br.com.familyctrl.itens.TipoPreco;
 import br.com.familyctrl.itens.dto.ItemResponse;
 import br.com.familyctrl.listas.ListaAcesso;
 import br.com.familyctrl.listas.ListaService;
@@ -134,9 +136,28 @@ public class CompraService {
 	private static CompraItem copiar(ItemResponse item, Map<Long, CategoriaResponse> categorias) {
 		CategoriaResponse categoria = categorias.get(item.categoriaId());
 		return new CompraItem(item.nome(), categoria != null ? categoria.nome() : "Outros",
-				categoria != null ? categoria.ordem() : Integer.MAX_VALUE, item.quantidadePlanejada(), item.pego(),
+				categoria != null ? categoria.ordem() : Integer.MAX_VALUE,
+				textoDaQuantidade(item.quantidadePlanejada(), item.medida()), item.pego(),
 				item.pego() ? item.quantidadePega() : null, item.tipoPreco(), item.pego() ? item.preco() : null,
 				item.subtotal(), item.pego() ? item.marca() : null, item.extra());
+	}
+
+	/**
+	 * Quantidade planejada como texto para o histórico, que guarda como estava no dia:
+	 * "2 un", "300 g" ou "1,5 kg".
+	 */
+	static String textoDaQuantidade(BigDecimal quantidade, TipoPreco medida) {
+		if (quantidade == null) {
+			return null;
+		}
+		if (medida == TipoPreco.KG && quantidade.compareTo(BigDecimal.ONE) < 0) {
+			return numero(quantidade.movePointRight(3)) + " g";
+		}
+		return numero(quantidade) + (medida == TipoPreco.KG ? " kg" : " un");
+	}
+
+	private static String numero(BigDecimal valor) {
+		return valor.stripTrailingZeros().toPlainString().replace('.', ',');
 	}
 
 	private List<CompraResumo> resumos(List<Compra> lista) {

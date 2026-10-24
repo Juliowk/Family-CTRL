@@ -115,11 +115,11 @@ Ao final:
 ### Listas (planejamento) e compras
 - A lista é um planejamento reutilizável; cada ida ao mercado finalizada vira uma compra concluída
 - Membros criam, renomeiam e excluem listas. Não há "arquivar": o histórico são as compras concluídas
-- Tela inicial da família: indicadores (gasto no mês, compras no mês, última compra), seção Listas | Concluídas e "Criar lista" por último
+- Tela inicial da família: botão "Criar lista" no topo (antes dos indicadores), indicadores (gasto no mês, compras no mês, última compra), seção Listas | Concluídas e "Importar lista" por último
 - "x de y comprados", preço, data e mercado aparecem só nas compras concluídas
 
 ### Itens
-- Planejar (aba própria): nome, categoria (obrigatória) e quantidade desejada (opcional); editar e remover
+- Planejar (aba própria): nome, categoria (obrigatória), medida (padrão: por unidade) e quantidade numérica com botões − e + (começa em 1 unidade ou 100 g; passo de 1 unidade ou 100 g); editar e remover
 - Comprar (aba própria): checkbox abre formulário (quantidade pega, por unidade: quantidade e preço da unidade; por kg: peso e preço total pago; marca; tudo opcional) e marca ao confirmar
 - Item pego vai para o fim da sua categoria, com destaque simples além do check
 - Itens não planejados podem ser adicionados durante a compra

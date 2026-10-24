@@ -11,7 +11,8 @@ import { sugestaoDaQuantidade } from './compra';
  * - O cabeçalho é opcional (reconhecido quando a 1ª coluna da 1ª linha é "nome").
  * - Separador ";" (recomendado, porque "1,5 kg" tem vírgula); "," e tabulação também valem.
  * - Campos com o separador vão entre aspas duplas; aspas dentro do campo viram "".
- * - Categoria vazia ou desconhecida vai para "Outros". Quantidade é opcional.
+ * - Categoria vazia ou desconhecida vai para "Outros". Quantidade é opcional: vale o número dela
+ *   ("6 un" → 6, "500 g" → 0,5 kg). Peso num item por unidade é ignorado.
  * - Medida: "un" (por unidade) ou "kg" (por kg). Se vier vazia (CSV antigo, de 3 colunas), é
  *   deduzida da quantidade ("500 g" e "2 kg" são por kg; o resto, por unidade).
  */
@@ -23,7 +24,8 @@ const MAX_QUANTIDADE = 30;
 export interface ItemImportado {
   nome: string;
   categoriaId: number;
-  quantidadePlanejada?: string;
+  /** Na medida do item: "500 g" num item por kg vira 0,5. */
+  quantidadePlanejada?: number;
   medida: TipoPreco;
 }
 
@@ -135,9 +137,10 @@ export function lerCsvLista(texto: string, categorias: Categoria[]): ResultadoCs
       return;
     }
 
+    const sugestao = sugestaoDaQuantidade(quantidade);
     const medida = medidaTexto
       ? MEDIDAS[normalizar(medidaTexto).replace(/\.$/, '')]
-      : (sugestaoDaQuantidade(quantidade).tipo ?? 'UNIDADE');
+      : (sugestao.tipo ?? 'UNIDADE');
     if (!medida) {
       erros.push({ linha: numero, mensagem: `medida "${medidaTexto}" inválida; use un ou kg.` });
       return;
@@ -148,10 +151,15 @@ export function lerCsvLista(texto: string, categorias: Categoria[]): ResultadoCs
       categoriaId = outros;
       if (categoria) desconhecidas.set(normalizar(categoria), categoria);
     }
+    const pesoEmUnidade = sugestao.tipo === 'KG' && medida === 'UNIDADE';
+    const quantidadeNumero =
+      sugestao.quantidade !== undefined && sugestao.quantidade > 0 && !pesoEmUnidade
+        ? Math.round(sugestao.quantidade * 1000) / 1000
+        : undefined;
     itens.push({
       nome,
       categoriaId,
-      ...(quantidade && { quantidadePlanejada: quantidade }),
+      ...(quantidadeNumero !== undefined && { quantidadePlanejada: quantidadeNumero }),
       medida,
     });
   });

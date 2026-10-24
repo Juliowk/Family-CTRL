@@ -154,12 +154,7 @@ export function ImportarLista({ familiaId }: { familiaId: number }) {
         )}
 
         <div className={form.acoes}>
-          <Botao
-            type="submit"
-            variante="primario"
-            carregando={importar.isPending}
-            disabled={!podeImportar}
-          >
+          <Botao type="submit" carregando={importar.isPending} disabled={!podeImportar}>
             Importar lista
           </Botao>
         </div>

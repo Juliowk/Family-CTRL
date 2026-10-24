@@ -10,7 +10,7 @@ import br.com.familyctrl.itens.TipoPreco;
  * item não foi pego ou não tem preço (valor variável, descoberto no caixa). {@code versao} sobe a cada
  * alteração: quem altera o item envia a versão que está vendo.
  */
-public record ItemResponse(Long id, Long listaId, Long categoriaId, String nome, String quantidadePlanejada,
+public record ItemResponse(Long id, Long listaId, Long categoriaId, String nome, BigDecimal quantidadePlanejada,
 		TipoPreco medida, boolean pego, Instant pegoEm, PessoaResponse pegoPor, BigDecimal quantidadePega, TipoPreco tipoPreco,
 		BigDecimal preco, BigDecimal subtotal, String marca, boolean extra, PessoaResponse adicionadoPor,
 		Instant criadoEm, Instant atualizadoEm, long versao) {

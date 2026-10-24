@@ -38,8 +38,9 @@ class Item {
 	@Column(nullable = false, length = 120)
 	private String nome;
 
-	@Column(name = "quantidade_planejada", length = 30)
-	private String quantidadePlanejada;
+	/** Quantidade desejada, na medida do item: unidades ou kg (opcional). */
+	@Column(name = "quantidade_planejada", precision = 10, scale = 3)
+	private BigDecimal quantidadePlanejada;
 
 	/** Medida planejada (por unidade ou por kg): o "preço por" começa nela ao pegar o item. */
 	@Enumerated(EnumType.STRING)
@@ -92,7 +93,7 @@ class Item {
 	protected Item() {
 	}
 
-	Item(Long listaId, Long categoriaId, String nome, String quantidadePlanejada, TipoPreco medida, boolean extra,
+	Item(Long listaId, Long categoriaId, String nome, BigDecimal quantidadePlanejada, TipoPreco medida, boolean extra,
 			Long adicionadoPor) {
 		this.listaId = listaId;
 		this.categoriaId = categoriaId;
@@ -106,7 +107,7 @@ class Item {
 		this.atualizadoEm = this.criadoEm;
 	}
 
-	void editarPlanejamento(String nome, Long categoriaId, String quantidadePlanejada, TipoPreco medida) {
+	void editarPlanejamento(String nome, Long categoriaId, BigDecimal quantidadePlanejada, TipoPreco medida) {
 		this.nome = nome;
 		this.categoriaId = categoriaId;
 		this.quantidadePlanejada = quantidadePlanejada;
@@ -176,7 +177,7 @@ class Item {
 		return nome;
 	}
 
-	String getQuantidadePlanejada() {
+	BigDecimal getQuantidadePlanejada() {
 		return quantidadePlanejada;
 	}
 

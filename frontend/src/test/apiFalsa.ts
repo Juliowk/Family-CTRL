@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import type { Categoria, CompraDetalhe, FamiliaDetalhe, Item, Lista, Usuario } from '../api/tipos';
-import { subtotal } from '../util/compra';
+import { formatarQuantidade, subtotal } from '../util/compra';
 
 /**
  * API simulada em memória para os testes. Intercepta o fetch global e responde como o backend
@@ -349,7 +349,10 @@ export function criarApiFalsa() {
           nome: i.nome,
           categoria: estado.categorias.find((c) => c.id === i.categoriaId)?.nome ?? 'Outros',
           categoriaOrdem: 1,
-          quantidadePlanejada: i.quantidadePlanejada,
+          quantidadePlanejada:
+            i.quantidadePlanejada !== null
+              ? formatarQuantidade(i.quantidadePlanejada, i.medida)
+              : null,
           pego: i.pego,
           quantidadePega: i.quantidadePega,
           tipoPreco: i.tipoPreco,

@@ -70,7 +70,8 @@ export interface Item {
   listaId: number;
   categoriaId: number;
   nome: string;
-  quantidadePlanejada: string | null;
+  /** Quantidade desejada, na medida do item (unidades ou kg). */
+  quantidadePlanejada: number | null;
   /** Medida planejada: o "preço por" começa nela ao pegar o item. */
   medida: TipoPreco;
   pego: boolean;

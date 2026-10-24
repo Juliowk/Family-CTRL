@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
+  Minus,
   Moon,
   Pencil,
   Plus,
@@ -51,6 +52,7 @@ export const IconeVoltar = criar(ChevronLeft);
 export const IconeCheck = criar(Check);
 export const IconeEditar = criar(Pencil);
 export const IconeMais = criar(Plus);
+export const IconeMenos = criar(Minus);
 export const IconeSeta = criar(ArrowRight);
 export const IconeCopiar = criar(Copy);
 export const IconeOpcoes = criar(Ellipsis);

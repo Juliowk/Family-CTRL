@@ -141,16 +141,19 @@ describe('funcionalidades', () => {
 });
 
 describe('listas', () => {
-  it('cria uma lista e abre o planejamento dela', async () => {
+  it('cria uma lista pelo botão do topo, antes do resumo do mês, e abre o planejamento', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/familias/10', { logado: true });
 
     expect(await screen.findByRole('heading', { name: 'Casa da Ana' })).toBeInTheDocument();
-    await usuario.click(await screen.findByRole('button', { name: /Listas de compras/ }));
-    expect(await screen.findByText('Mercado')).toBeInTheDocument();
+    const criar = screen.getByRole('button', { name: 'Criar lista' });
+    const resumo = screen.getByLabelText('Resumo do mês');
+    expect(criar.compareDocumentPosition(resumo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    await usuario.type(screen.getByLabelText('Nome da nova lista'), 'Feira');
-    await usuario.click(screen.getByRole('button', { name: 'Criar lista' }));
+    await usuario.click(criar);
+    const dialogo = await screen.findByRole('dialog', { name: 'Nova lista' });
+    await usuario.type(within(dialogo).getByLabelText('Nome da lista'), 'Feira');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Criar lista' }));
 
     expect(await screen.findByRole('heading', { name: 'Feira' })).toBeInTheDocument();
     expect(screen.getByText('Nenhum item planejado')).toBeInTheDocument();
@@ -167,7 +170,6 @@ describe('listas', () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/familias/10?ctrl=listas', { logado: true });
 
-    await usuario.click(await screen.findByRole('tab', { name: 'Importar' }));
     expect(await screen.findByRole('button', { name: 'Copiar prompt' })).toBeInTheDocument();
 
     await usuario.type(screen.getByLabelText('Nome da lista importada'), 'Feira');
@@ -189,7 +191,7 @@ describe('listas', () => {
         corpo: {
           nome: 'Feira',
           itens: [
-            { nome: 'Pão', categoriaId: 1, quantidadePlanejada: '6 un', medida: 'UNIDADE' },
+            { nome: 'Pão', categoriaId: 1, quantidadePlanejada: 6, medida: 'UNIDADE' },
             { nome: 'Cerveja', categoriaId: 3, medida: 'UNIDADE' },
           ],
         },
@@ -218,45 +220,66 @@ describe('planejar', () => {
     expect(screen.queryByLabelText('Item')).not.toBeInTheDocument();
   });
 
-  it('adiciona item com categoria, medida e quantidade, agrupado pela categoria', async () => {
+  it('adiciona item por kg, de 100 em 100 g, agrupado pela categoria', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
 
-    await usuario.type(await screen.findByLabelText('Item'), 'Bananas');
+    await usuario.type(await screen.findByLabelText('Item'), 'Mussarela');
     await usuario.click(screen.getByRole('radio', { name: 'Hortifrúti e Congelados' }));
     await usuario.click(screen.getByRole('button', { name: 'Por kg' }));
-    await usuario.type(screen.getByLabelText('Quantidade (opcional)'), '1 dúzia');
+    // Por kg começa em 100 g, e o + soma mais 100 g
+    expect(screen.getByLabelText('Peso')).toHaveValue('0,1');
+    await usuario.click(screen.getByRole('button', { name: 'Aumentar peso' }));
+    await usuario.click(screen.getByRole('button', { name: 'Aumentar peso' }));
+    expect(screen.getByLabelText('Peso')).toHaveValue('0,3');
+    expect(screen.getByText('300 g')).toBeInTheDocument();
     await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     const grupo = await screen.findByRole('region', { name: /Hortifrúti e Congelados/ });
-    expect(within(grupo).getByText('Bananas')).toBeInTheDocument();
-    expect(within(grupo).getByText('1 dúzia · por kg')).toBeInTheDocument();
+    expect(within(grupo).getByText('Mussarela')).toBeInTheDocument();
+    expect(within(grupo).getByText('300 g')).toBeInTheDocument();
     expect(screen.getByLabelText('Item')).toHaveValue('');
-    // A medida não fica escolhida para o próximo item
-    expect(screen.getByRole('button', { name: 'Por kg' })).toHaveAttribute('aria-pressed', 'false');
+    // O próximo item volta para 1 unidade
+    expect(screen.getByRole('button', { name: 'Por unidade' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByLabelText('Quantidade')).toHaveValue('1');
     expect(chamadas).toContainEqual(
       expect.objectContaining({
         metodo: 'POST',
         caminho: '/api/listas/100/itens',
-        corpo: { nome: 'Bananas', categoriaId: 2, quantidadePlanejada: '1 dúzia', medida: 'KG' },
+        corpo: { nome: 'Mussarela', categoriaId: 2, quantidadePlanejada: 0.3, medida: 'KG' },
       }),
     );
   });
 
-  it('exige a medida antes de adicionar', async () => {
+  it('começa em 1 unidade e ajusta a quantidade com − e +', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
 
     await usuario.type(await screen.findByLabelText('Item'), 'Arroz');
+    expect(screen.getByLabelText('Quantidade')).toHaveValue('1');
+    // Não desce abaixo de 1
+    expect(screen.getByRole('button', { name: 'Diminuir quantidade' })).toBeDisabled();
+    await usuario.click(screen.getByRole('button', { name: 'Aumentar quantidade' }));
+    await usuario.click(screen.getByRole('button', { name: 'Aumentar quantidade' }));
+    await usuario.click(screen.getByRole('button', { name: 'Diminuir quantidade' }));
+    expect(screen.getByLabelText('Quantidade')).toHaveValue('2');
     await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Escolha a medida: por unidade ou por kg.',
+    await waitFor(() =>
+      expect(chamadas).toContainEqual(
+        expect.objectContaining({
+          caminho: '/api/listas/100/itens',
+          corpo: expect.objectContaining({
+            nome: 'Arroz',
+            quantidadePlanejada: 2,
+            medida: 'UNIDADE',
+          }),
+        }),
+      ),
     );
-    expect(chamadas.some((c) => c.caminho === '/api/listas/100/itens')).toBe(false);
-
-    await usuario.click(screen.getByRole('button', { name: 'Por unidade' }));
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 
@@ -273,7 +296,7 @@ describe('categorias', () => {
 describe('comprar', () => {
   it('marca um item pelo formulário e atualiza o total parcial', async () => {
     const { estado, chamadas } = criarApiFalsa();
-    estado.itens.push(novoItem({ id: 1, nome: 'Leite', quantidadePlanejada: '2 un' }));
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite', quantidadePlanejada: 2 }));
     const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
 
     // O checkbox só abre o formulário: o item fica marcado ao confirmar
@@ -306,7 +329,7 @@ describe('comprar', () => {
       novoItem({
         id: 1,
         nome: 'Banana',
-        quantidadePlanejada: '1 kg',
+        quantidadePlanejada: 1,
         medida: 'KG',
         tipoPreco: 'KG',
       }),

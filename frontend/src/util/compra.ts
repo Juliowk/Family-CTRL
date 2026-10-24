@@ -160,6 +160,16 @@ export function hoje(agora = new Date()): string {
   return `${mesAtual(agora)}-${String(agora.getDate()).padStart(2, '0')}`;
 }
 
+/** Passo dos botões − e + da quantidade (e a quantidade inicial): 1 unidade ou 100 g. */
+export const passoDaMedida = (medida: TipoPreco) => (medida === 'KG' ? 0.1 : 1);
+
+/** Quantidade na medida do item: "2 un", "300 g" (abaixo de 1 kg) ou "1,5 kg". */
+export function formatarQuantidade(quantidade: number, medida: TipoPreco) {
+  if (medida === 'UNIDADE') return `${formatarDecimal(quantidade)} un`;
+  if (quantidade < 1) return `${formatarDecimal(Math.round(quantidade * 1000))} g`;
+  return `${formatarDecimal(quantidade)} kg`;
+}
+
 /** Rótulo curto da medida planejada, para mostrar junto do item ("por kg"). */
 export function rotuloMedida(medida: TipoPreco) {
   return medida === 'KG' ? 'por kg' : 'por unidade';

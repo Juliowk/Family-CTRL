@@ -11,11 +11,13 @@ interface Props {
   valorInicial: string;
   carregando?: boolean;
   erro?: string;
+  /** Texto do botão de confirmar (padrão: "Salvar"). */
+  textoSalvar?: string;
   aoSalvar: (nome: string) => void;
   aoFechar: () => void;
 }
 
-/** Modal com um único campo de nome (renomear família ou lista). */
+/** Modal com um único campo de nome (criar lista, renomear família ou lista). */
 export function ModalNome(props: Props) {
   if (!props.aberto) return null;
   // Montado só quando aberto: o campo sempre começa com o valor atual
@@ -28,6 +30,7 @@ function ConteudoModalNome({
   valorInicial,
   carregando,
   erro,
+  textoSalvar = 'Salvar',
   aoSalvar,
   aoFechar,
 }: Props) {
@@ -54,7 +57,7 @@ function ConteudoModalNome({
             Cancelar
           </Botao>
           <Botao type="submit" variante="primario" carregando={carregando} disabled={!nome.trim()}>
-            Salvar
+            {textoSalvar}
           </Botao>
         </div>
       </form>
