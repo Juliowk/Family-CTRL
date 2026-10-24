@@ -13,6 +13,10 @@ export const formatarDecimal = (valor: number) => decimal.format(valor);
 /** "2026-10-04" → "04/10/2026" (sem converter fuso: a data já é do usuário). */
 export const formatarData = (iso: string) => dataCurta.format(new Date(`${iso}T00:00:00Z`));
 
+/** "04/10/2026 · Atacadão", ou só a data quando o mercado não foi informado. */
+export const dataEMercado = (compra: { dataCompra: string; mercado: string | null }) =>
+  [formatarData(compra.dataCompra), compra.mercado].filter(Boolean).join(' · ');
+
 /**
  * Lê um número digitado em pt-BR ("7,88", "1.250,5", "R$ 3,90"). Vazio ou inválido → undefined.
  */

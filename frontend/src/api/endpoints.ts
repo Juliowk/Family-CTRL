@@ -112,10 +112,11 @@ export const itensApi = {
 };
 
 export interface DadosFinalizar {
-  mercado: string;
+  /** Valor final pago (do cupom). A diferença para a soma dos itens fica registrada na compra. */
+  valorTotal: number;
+  mercado?: string;
   /** AAAA-MM-DD */
   dataCompra: string;
-  valorVariavel: number;
   extrasMantidos: number[];
   /** Versão da lista conferida na tela: se outra pessoa alterou depois, a API responde 409. */
   versaoLista: number;

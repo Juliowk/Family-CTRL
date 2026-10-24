@@ -9,7 +9,7 @@ import { IconeCarrinho, IconeSeta, IconeVoltar } from '../components/Icones';
 import { Indicadores } from '../components/Indicadores';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
-import { formatarData, mesAtual } from '../util/compra';
+import { dataEMercado, mesAtual } from '../util/compra';
 import cartoes from './Cartoes.module.css';
 import { ErroFamilia } from './FamiliaNaoEncontrada';
 import estilos from './FamiliaInicio.module.css';
@@ -93,11 +93,7 @@ export function FamiliaInicio() {
           { rotulo: 'Compras no mês', valor: resumo.data?.compras },
           {
             rotulo: 'Última compra',
-            valor: resumo.isPending
-              ? undefined
-              : ultima
-                ? `${formatarData(ultima.dataCompra)} · ${ultima.mercado}`
-                : 'Nenhuma ainda',
+            valor: resumo.isPending ? undefined : ultima ? dataEMercado(ultima) : 'Nenhuma ainda',
           },
         ]}
       />

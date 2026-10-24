@@ -169,9 +169,9 @@ itens (id, lista_id, categoria_id → categorias, nome, quantidade_planejada, me
        pego, pego_por → usuarios, pego_em, quantidade_pega numeric(10,3),
        tipo_preco UNIDADE|KG, preco numeric(10,2), marca, extra,
        adicionado_por → usuarios, criado_em, atualizado_em)
-compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mercado, data_compra,
-         valor_itens, valor_variavel, valor_total, finalizada_por → usuarios, finalizada_em,
-         exemplo)
+compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mercado (opcional),
+         data_compra, valor_itens, valor_variavel (negativo = desconto), valor_total,
+         finalizada_por → usuarios, finalizada_em, exemplo)
     ▲ compra_id (ON DELETE CASCADE)
 compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planejada, pego,
               quantidade_pega, tipo_preco, preco, subtotal, marca, extra)
@@ -212,15 +212,19 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
    unidade; por kg: peso e preço total pago; marca; tudo opcional) e o item só fica marcado ao confirmar. O item pego vai para o fim
    da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
    soma o **total parcial** (`util/compra.ts`) e mostra quantos itens estão sem preço.
-3. **Finalizar**: o usuário informa o **valor final pago** (o total do cupom), o mercado e a
-   data, e escolhe quais itens não planejados ficam na lista. O valor final e o **valor variável**
-   (itens cujo preço só aparece no caixa, como frutas e verduras) andam juntos:
-   final = itens com preço + variável. Dá para digitar qualquer um dos dois e o outro é
-   calculado; sem itens sem preço, o final já vem preenchido e uma diferença aparece como
-   "diferença no caixa". O final não pode ser menor que o valor dos itens com preço. Numa
-   transação, o backend grava a compra (recalculando o valor dos itens com
-   `Valores.subtotal`, a mesma regra do front, sem confiar no total enviado), zera a lista e
-   remove os extras não mantidos.
+3. **Finalizar**: só o **valor final pago** (o total do cupom) é obrigatório. Ele já vem
+   preenchido com a soma dos itens e pode ser corrigido. O mercado é opcional e a data já vem
+   como hoje. O usuário também escolhe quais itens não planejados ficam na lista. Numa transação,
+   o backend recalcula o valor dos itens com `Valores.subtotal` (a mesma regra do front, sem
+   confiar na soma da tela), grava a compra, zera a lista e remove os extras não mantidos.
+   A diferença entre o valor pago e a soma dos itens fica em `compras.valor_variavel`
+   (total = itens + variável): **negativa é desconto** no caixa; positiva é acréscimo ou itens
+   que ficaram sem preço.
+
+   **Por que o valor pago pode ser menor que a soma?** Antes a tela recusava esse caso e exigia
+   mercado e valor dos itens sem preço. Na prática isso travava o fim da compra: o cupom tem
+   descontos (clube de fidelidade, promoção leve 3 pague 2) que o app não conhece. O valor do
+   cupom é o que de fato saiu do bolso, então ele é a fonte da verdade para o gasto do mês.
 
 **Por que o cálculo existe nos dois lados?** O front calcula para mostrar o total enquanto se
 compra, sem ir ao servidor a cada toque. O backend recalcula ao finalizar porque o valor gravado
@@ -499,7 +503,7 @@ roxo `#7C3AED` como cor de ação e lavanda `#A78BFA` como destaque no escuro.
 | Backend  | Integração: categorias (padrão, ordem, "Outros" fixa, exclusão move itens), compra em andamento (pegar por unidade ou por kg, desmarcar, extras, desmarcar todos), finalizar (cópia, valor recalculado, lista zerada, extras mantidos), resumo do mês, 404 entre famílias em todas as rotas |
 | Backend  | Unitários (Mockito) das regras de membros: último ADMIN, único membro, permissões; cálculo do subtotal (`ValoresTest`) |
 | Frontend | Cliente HTTP (ProblemDetail, 401, falha de rede, retry)                                  |
-| Frontend | Fluxos com API simulada: login, token expirado, cadastro, criar lista, planejar com categoria, pegar pelo formulário com total, desmarcar todos com confirmação, rollback otimista, finalizar com valor variável, tema |
+| Frontend | Fluxos com API simulada: login, token expirado, cadastro, criar lista, planejar com categoria, pegar pelo formulário com total, desmarcar todos com confirmação, rollback otimista, finalizar só com o valor final (desconto, itens sem preço), tema |
 | Frontend | Unitários de `util/compra.ts`: leitura de decimal pt-BR, subtotal (mesmos casos do backend), agrupamento por categoria |
 
 Todos os testes de integração do backend compartilham um único contexto Spring e um único

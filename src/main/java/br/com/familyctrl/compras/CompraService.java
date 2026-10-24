@@ -64,7 +64,8 @@ public class CompraService {
 	/**
 	 * Finaliza a compra numa única transação: salva a cópia dos itens com os valores, zera a lista
 	 * e decide o destino dos itens não planejados. O valor dos itens é recalculado aqui a partir
-	 * dos preços salvos: o total enviado pela tela nunca é usado.
+	 * dos preços salvos; o valor pago (do cupom) é o informado pela pessoa, e a diferença entre os
+	 * dois fica registrada (negativa: desconto).
 	 *
 	 * <p>A lista fica travada durante a finalização: ninguém marca ou altera itens no meio dela. E,
 	 * com a versão informada pela tela, só finaliza se a lista ainda for exatamente a que a pessoa
@@ -81,8 +82,9 @@ public class CompraService {
 			.collect(Collectors.toMap(CategoriaResponse::id, Function.identity()));
 		List<CompraItem> itens = lista.itens().stream().map(item -> copiar(item, categorias)).toList();
 
-		Compra compra = compras.save(new Compra(lista.familiaId(), lista.id(), lista.nome(), request.mercado().trim(),
-				request.dataCompra(), request.valorVariavel(), usuarioId, itens));
+		String mercado = request.mercado() == null || request.mercado().isBlank() ? null : request.mercado().trim();
+		Compra compra = compras.save(Compra.finalizada(lista.familiaId(), lista.id(), lista.nome(), mercado,
+				request.dataCompra(), request.valorTotal(), usuarioId, itens));
 
 		Set<Long> manter = request.extrasMantidos() != null ? new HashSet<>(request.extrasMantidos()) : Set.of();
 		itemService.zerarAposCompra(listaId, manter);

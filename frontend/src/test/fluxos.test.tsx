@@ -374,78 +374,85 @@ describe('comprar', () => {
     );
   });
 
-  it('finaliza informando o valor dos itens sem preço, o mercado e a data', async () => {
+  it('finaliza só com o valor final, que já vem com a soma dos itens', async () => {
     const { estado, chamadas } = criarApiFalsa();
     const pegoEm = new Date().toISOString();
     estado.itens.push(
       novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm, preco: 7.88, quantidadePega: 4 }),
-      novoItem({ id: 2, nome: 'Frutas', categoriaId: 2, pego: true, pegoEm }),
     );
     const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Itens com valor do caixa' }),
-    ).toBeInTheDocument();
-    // Sem o valor dos itens sem preço, o valor final ainda não é conhecido
-    expect(screen.getByLabelText('Valor final pago (R$)')).toHaveValue('');
-    await usuario.type(screen.getByLabelText('Valor dos itens sem preço (R$)'), '10,00');
-    expect(screen.getByLabelText('Valor final pago (R$)')).toHaveValue('41,52');
-    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    // Sem mercado: é opcional, e a data já vem como hoje
+    expect(await screen.findByLabelText('Valor final pago (R$)')).toHaveValue('31,52');
     await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
 
     expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Mercado' })).toBeInTheDocument();
-    expect(chamadas).toContainEqual(
-      expect.objectContaining({
-        metodo: 'POST',
-        caminho: '/api/listas/100/compras',
-        corpo: expect.objectContaining({
-          mercado: 'Atacadão',
-          valorVariavel: 10,
-          extrasMantidos: [],
-        }),
-      }),
-    );
+    const corpo = chamadas.find((c) => c.caminho === '/api/listas/100/compras')?.corpo;
+    expect(corpo).toMatchObject({ valorTotal: 31.52, extrasMantidos: [] });
+    expect(corpo).not.toHaveProperty('mercado');
   });
 
-  it('o valor final do cupom calcula o valor dos itens sem preço', async () => {
+  it('aceita valor final menor que a soma dos itens, como desconto', async () => {
     const { estado, chamadas } = criarApiFalsa();
-    const pegoEm = new Date().toISOString();
-    estado.itens.push(
-      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm, preco: 7.88, quantidadePega: 4 }),
-      novoItem({ id: 2, nome: 'Frutas', categoriaId: 2, pego: true, pegoEm }),
-    );
-    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
-
-    await usuario.type(await screen.findByLabelText('Valor final pago (R$)'), '50,00');
-    expect(screen.getByLabelText('Valor dos itens sem preço (R$)')).toHaveValue('18,48');
-    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
-    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
-
-    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
-    expect(chamadas).toContainEqual(
-      expect.objectContaining({
-        caminho: '/api/listas/100/compras',
-        corpo: expect.objectContaining({ valorVariavel: 18.48 }),
-      }),
-    );
-  });
-
-  it('com todos os itens com preço, o valor final já vem preenchido e não aceita menos', async () => {
-    const { estado } = criarApiFalsa();
     estado.itens.push(
       novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm: new Date().toISOString(), preco: 7.88 }),
     );
     const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
 
     const campo = await screen.findByLabelText('Valor final pago (R$)');
-    expect(campo).toHaveValue('7,88');
     await usuario.clear(campo);
     await usuario.type(campo, '5,00');
-    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
+    const resumo = screen.getByRole('heading', { name: 'Resumo' }).closest('div')!;
+    expect(within(resumo).getByText('Desconto')).toBeInTheDocument();
+    await usuario.type(screen.getByLabelText('Mercado (opcional)'), 'Atacadão');
     await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
 
-    expect(screen.getByText(/não pode ser menor que o dos itens com preço/)).toBeInTheDocument();
+    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        caminho: '/api/listas/100/compras',
+        corpo: expect.objectContaining({ valorTotal: 5, mercado: 'Atacadão' }),
+      }),
+    );
+  });
+
+  it('itens sem preço entram corrigindo o valor final', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    const pegoEm = new Date().toISOString();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm, preco: 7.88, quantidadePega: 4 }),
+      novoItem({ id: 2, nome: 'Frutas', categoriaId: 2, pego: true, pegoEm }),
+    );
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    expect(await screen.findByRole('heading', { name: 'Itens sem preço' })).toBeInTheDocument();
+    const campo = screen.getByLabelText('Valor final pago (R$)');
+    await usuario.clear(campo);
+    await usuario.type(campo, '50,00');
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    expect(await screen.findByText('Compra concluída')).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        caminho: '/api/listas/100/compras',
+        corpo: expect.objectContaining({ valorTotal: 50 }),
+      }),
+    );
+  });
+
+  it('não finaliza sem o valor final', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    estado.itens.push(
+      novoItem({ id: 1, nome: 'Pão', pego: true, pegoEm: new Date().toISOString(), preco: 7.88 }),
+    );
+    const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
+
+    await usuario.clear(await screen.findByLabelText('Valor final pago (R$)'));
+    await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
+
+    expect(screen.getByText(/Informe o valor final pago/)).toBeInTheDocument();
+    expect(chamadas.some((c) => c.caminho === '/api/listas/100/compras')).toBe(false);
   });
 });
 
@@ -497,7 +504,6 @@ describe('compra em dois aparelhos', () => {
     const { usuario } = renderizarApp('/listas/100/finalizar', { logado: true });
 
     expect(await screen.findByLabelText('Valor final pago (R$)')).toHaveValue('7,88');
-    await usuario.type(screen.getByLabelText('Mercado'), 'Atacadão');
     alterarEmOutroAparelho(1, { preco: 10 });
     await usuario.click(screen.getByRole('button', { name: 'Concluir compra' }));
 

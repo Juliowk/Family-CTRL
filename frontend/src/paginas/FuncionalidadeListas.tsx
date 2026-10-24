@@ -15,7 +15,7 @@ import { IconeArquivo, IconeCarrinho, IconeSeta } from '../components/Icones';
 import { Progresso } from '../components/Progresso';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
-import { formatarData, formatarDinheiro } from '../util/compra';
+import { dataEMercado, formatarDinheiro } from '../util/compra';
 import cartoes from './Cartoes.module.css';
 import { ImportarLista } from './ImportarLista';
 import estilos from './Paginas.module.css';
@@ -205,9 +205,7 @@ function CartaoCompra({ compra }: { compra: CompraResumo }) {
       <div className={cartoes.cartaoTopo}>
         <div>
           <span className={cartoes.cartaoTitulo}>{compra.listaNome}</span>
-          <p className={cartoes.cartaoMeta}>
-            {formatarData(compra.dataCompra)} · {compra.mercado}
-          </p>
+          <p className={cartoes.cartaoMeta}>{dataEMercado(compra)}</p>
         </div>
         <span className={cartoes.cartaoValor}>{formatarDinheiro(compra.valorTotal)}</span>
       </div>

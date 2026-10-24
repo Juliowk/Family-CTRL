@@ -39,7 +39,8 @@ class Compra {
 	@Column(name = "lista_nome", nullable = false, updatable = false, length = 100)
 	private String listaNome;
 
-	@Column(nullable = false, updatable = false, length = 100)
+	/** Opcional. */
+	@Column(updatable = false, length = 100)
 	private String mercado;
 
 	@Column(name = "data_compra", nullable = false, updatable = false)
@@ -49,7 +50,10 @@ class Compra {
 	@Column(name = "valor_itens", nullable = false, updatable = false, precision = 10, scale = 2)
 	private BigDecimal valorItens;
 
-	/** Valor dos itens sem preço, informado no fim da compra (descoberto no caixa). */
+	/**
+	 * Diferença entre o valor pago e a soma dos itens com preço ({@code total = itens + variável}).
+	 * Negativo: desconto no caixa. Positivo: itens sem preço (descobertos no caixa) ou acréscimo.
+	 */
 	@Column(name = "valor_variavel", nullable = false, updatable = false, precision = 10, scale = 2)
 	private BigDecimal valorVariavel;
 
@@ -74,10 +78,15 @@ class Compra {
 	protected Compra() {
 	}
 
-	Compra(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
-			BigDecimal valorVariavel, Long finalizadaPor, List<CompraItem> itens) {
-		this(familiaId, listaId, listaNome, mercado, dataCompra, valorVariavel, finalizadaPor, Instant.now(), false,
-				itens);
+	/**
+	 * Compra finalizada agora, com o valor pago informado (o do cupom). A diferença para a soma dos
+	 * itens vira o valor variável: desconto se for negativa.
+	 */
+	static Compra finalizada(Long familiaId, Long listaId, String listaNome, String mercado, LocalDate dataCompra,
+			BigDecimal valorPago, Long finalizadaPor, List<CompraItem> itens) {
+		BigDecimal variavel = valorPago.subtract(somarItens(itens));
+		return new Compra(familiaId, listaId, listaNome, mercado, dataCompra, variavel, finalizadaPor, Instant.now(),
+				false, itens);
 	}
 
 	/** Com o momento da finalização explícito e a marca de exemplo: usado pela lista de exemplo. */
@@ -94,11 +103,16 @@ class Compra {
 		this.finalizadaEm = finalizadaEm;
 		this.exemplo = exemplo;
 		this.itens.addAll(itens);
-		this.valorItens = itens.stream()
+		this.valorItens = somarItens(itens);
+		this.valorTotal = this.valorItens.add(valorVariavel);
+	}
+
+	/** Soma dos subtotais dos itens com preço. */
+	private static BigDecimal somarItens(List<CompraItem> itens) {
+		return itens.stream()
 			.map(CompraItem::getSubtotal)
 			.filter(v -> v != null)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
-		this.valorTotal = this.valorItens.add(valorVariavel);
 	}
 
 	Long getId() {

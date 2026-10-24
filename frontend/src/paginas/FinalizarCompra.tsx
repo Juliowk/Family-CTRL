@@ -33,9 +33,9 @@ const temValor = (item: Item) =>
   subtotal(item.tipoPreco, item.preco, item.quantidadePega) !== undefined;
 
 /**
- * Finalizar a compra: confere o valor calculado e informa o valor final pago (do cupom), o
- * mercado e a data. O valor final e o valor dos itens sem preço (descoberto no caixa) andam
- * juntos: final = itens com preço + variável. Dá para digitar qualquer um dos dois.
+ * Finalizar a compra: só o valor final pago (do cupom) é obrigatório. Ele já vem com a soma dos
+ * itens e pode ser corrigido: menor que a soma fica como desconto; maior, como diferença no caixa
+ * (acréscimo ou itens sem preço). O mercado é opcional e a data já vem como hoje.
  * Itens não planejados: pergunta quais ficam na lista.
  *
  * Os valores continuam sincronizados enquanto a tela está aberta (outra pessoa pode estar marcando
@@ -63,8 +63,7 @@ export function FinalizarCompra() {
     enabled: familiaId !== undefined,
   });
 
-  const [variavel, setVariavel] = useState('');
-  // Valor final digitado; null = acompanha o calculado (itens com preço + variável)
+  // Valor final digitado; null = acompanha a soma dos itens (que muda se outra pessoa marcar algo)
   const [final, setFinal] = useState<string | null>(null);
   const [mercado, setMercado] = useState('');
   const [data, setData] = useState(hoje());
@@ -76,11 +75,11 @@ export function FinalizarCompra() {
   if (lista.data && versaoVista === undefined) setVersaoVista(lista.data.versao);
 
   const finalizar = useMutation({
-    mutationFn: ({ valorVariavel, versaoLista }: { valorVariavel: number; versaoLista: number }) =>
+    mutationFn: ({ valorTotal, versaoLista }: { valorTotal: number; versaoLista: number }) =>
       comprasApi.finalizar(listaId, {
-        mercado: mercado.trim(),
+        valorTotal,
+        mercado: mercado.trim() || undefined,
         dataCompra: data,
-        valorVariavel,
         extrasMantidos,
         versaoLista,
       }),
@@ -111,18 +110,13 @@ export function FinalizarCompra() {
   const semPreco = pegos.filter((i) => !temValor(i));
   const extras = pegos.filter((i) => i.extra);
   const { total: valorItens } = totalDaCompra(dados.itens);
-  const mercados = [...new Set((compras.data ?? []).map((c) => c.mercado))];
+  const mercados = [
+    ...new Set((compras.data ?? []).flatMap((c) => (c.mercado ? [c.mercado] : []))),
+  ];
 
-  const valorVariavel = lerDecimal(variavel);
-  // Sem itens sem preço, o final já nasce igual ao calculado; com eles, depende do variável
-  const finalCalculado =
-    semPreco.length === 0 || valorVariavel !== undefined
-      ? centavos(valorItens + (valorVariavel ?? 0))
-      : undefined;
-  const textoFinal =
-    final ?? (finalCalculado !== undefined ? paraCampoDinheiro(finalCalculado) : '');
+  const textoFinal = final ?? paraCampoDinheiro(valorItens);
   const valorFinal = lerDecimal(textoFinal);
-  /** O que vai para o backend como "valor variável": tudo o que o cupom tem além dos itens com preço. */
+  /** Diferença no caixa: negativa é desconto; positiva, acréscimo ou itens sem preço. */
   const diferenca = valorFinal !== undefined ? centavos(valorFinal - valorItens) : undefined;
 
   const trilha = [
@@ -145,51 +139,27 @@ export function FinalizarCompra() {
     );
   }
 
-  /** Digitou o valor dos itens sem preço: o final volta a acompanhar o calculado. */
-  function mudarVariavel(texto: string) {
-    setVariavel(texto);
-    setFinal(null);
-  }
-
-  /** Digitou o valor final: o variável passa a ser a diferença para os itens com preço. */
-  function mudarFinal(texto: string) {
-    setFinal(texto);
-    const novo = lerDecimal(texto);
-    setVariavel(
-      novo !== undefined && novo >= valorItens
-        ? paraCampoDinheiro(centavos(novo - valorItens))
-        : '',
-    );
-  }
-
-  const finalValido = diferenca !== undefined && diferenca >= 0;
-  const erroFinal = !tentouEnviar
-    ? (erro?.erroDoCampo('valorVariavel') ?? undefined)
-    : valorFinal === undefined
+  const finalValido = valorFinal !== undefined && valorFinal >= 0;
+  const erroFinal =
+    tentouEnviar && !finalValido
       ? 'Informe o valor final pago (está no cupom do caixa).'
-      : !finalValido
-        ? `O valor final não pode ser menor que o dos itens com preço (${formatarDinheiro(valorItens)}). Confira os preços marcados.`
-        : undefined;
-  const erroVariavel =
-    semPreco.length > 0 && tentouEnviar && valorFinal === undefined
-      ? 'Informe quanto custaram os itens sem preço, ou o valor final pago.'
-      : undefined;
-  const erroMercado =
-    tentouEnviar && !mercado.trim() ? 'Informe o mercado.' : erro?.erroDoCampo('mercado');
+      : erro?.erroDoCampo('valorTotal');
+  const erroData =
+    tentouEnviar && !data ? 'Informe a data da compra.' : erro?.erroDoCampo('dataCompra');
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
     setTentouEnviar(true);
-    if (!mercado.trim() || !data || !finalValido) return;
+    if (!data || !finalValido) return;
     if (extras.length > 0) setPerguntandoExtras(true);
     else concluir();
   }
 
   /** Envia com a versão da lista dos valores mostrados agora na tela. */
   function concluir() {
-    if (diferenca === undefined) return;
+    if (valorFinal === undefined) return;
     setVersaoVista(dados.versao);
-    finalizar.mutate({ valorVariavel: diferenca, versaoLista: dados.versao });
+    finalizar.mutate({ valorTotal: centavos(valorFinal), versaoLista: dados.versao });
   }
 
   return (
@@ -198,7 +168,7 @@ export function FinalizarCompra() {
         trilha={trilha}
         rotulo={dados.nome}
         titulo="Finalizar compra"
-        descricao="Confira os valores, informe o valor final do cupom e onde a compra foi feita."
+        descricao="Confira o valor final com o cupom do caixa. O resto é opcional."
       />
 
       <AvisoSincronia
@@ -222,15 +192,10 @@ export function FinalizarCompra() {
               </dt>
               <dd>{formatarDinheiro(valorItens)}</dd>
             </div>
-            {(semPreco.length > 0 || (diferenca !== undefined && diferenca !== 0)) && (
+            {diferenca !== undefined && diferenca !== 0 && (
               <div className={estilos.linha}>
-                <dt>
-                  {semPreco.length > 0 ? 'Valor variável' : 'Diferença no caixa'}
-                  {semPreco.length > 0 && (
-                    <span className={estilos.contagem}>{semPreco.length}</span>
-                  )}
-                </dt>
-                <dd>{diferenca !== undefined ? formatarDinheiro(diferenca) : '—'}</dd>
+                <dt>{diferenca < 0 ? 'Desconto' : 'Diferença no caixa'}</dt>
+                <dd>{formatarDinheiro(diferenca)}</dd>
               </div>
             )}
             <div className={[estilos.linha, estilos.total].join(' ')}>
@@ -240,12 +205,12 @@ export function FinalizarCompra() {
           </dl>
           <Campo
             rotulo="Valor final pago (R$)"
-            dica="Confira com o total do cupom do caixa."
+            dica="Já vem com a soma dos itens. Se o cupom tiver outro valor (um desconto, por exemplo), corrija aqui."
             inputMode="decimal"
             autoComplete="off"
             placeholder="Ex.: 653,46"
             value={textoFinal}
-            onChange={(e) => mudarFinal(e.target.value)}
+            onChange={(e) => setFinal(e.target.value)}
             erro={erroFinal}
           />
         </Card>
@@ -253,40 +218,31 @@ export function FinalizarCompra() {
         {semPreco.length > 0 && (
           <section className={estilos.variavel} aria-labelledby="titulo-variavel">
             <h2 id="titulo-variavel" className={estilos.titulo}>
-              Itens com valor do caixa
+              Itens sem preço
             </h2>
             <p className={estilos.texto}>
-              Estes itens foram pegos sem preço. Informe quanto custaram somados, ou só o valor
-              final pago acima: a diferença é calculada.
+              Estes itens foram pegos sem preço e não estão na soma. Inclua o valor deles no valor
+              final pago acima.
             </p>
             <ul className={estilos.semPreco}>
               {semPreco.map((item) => (
                 <li key={item.id}>{item.nome}</li>
               ))}
             </ul>
-            <Campo
-              rotulo="Valor dos itens sem preço (R$)"
-              inputMode="decimal"
-              autoComplete="off"
-              placeholder="Ex.: 23,40"
-              value={variavel}
-              onChange={(e) => mudarVariavel(e.target.value)}
-              erro={erroVariavel}
-            />
           </section>
         )}
 
         <Card className={estilos.onde}>
           <h2 className={estilos.titulo}>Onde e quando</h2>
           <Campo
-            rotulo="Mercado"
+            rotulo="Mercado (opcional)"
             placeholder="Ex.: Atacadão"
             maxLength={100}
             autoComplete="off"
             list={idMercados}
             value={mercado}
             onChange={(e) => setMercado(e.target.value)}
-            erro={erroMercado}
+            erro={erro?.erroDoCampo('mercado')}
           />
           <datalist id={idMercados}>
             {mercados.map((m) => (
@@ -299,14 +255,12 @@ export function FinalizarCompra() {
             max={hoje()}
             value={data}
             onChange={(e) => setData(e.target.value)}
-            erro={erro?.erroDoCampo('dataCompra')}
+            erro={erroData}
           />
         </Card>
 
         {erro &&
-          erro.erros.every(
-            (e) => !['mercado', 'dataCompra', 'valorVariavel'].includes(e.campo),
-          ) && (
+          erro.erros.every((e) => !['mercado', 'dataCompra', 'valorTotal'].includes(e.campo)) && (
             <p className={form.erro} role="alert">
               {erro.erros[0]?.mensagem ?? erro.message}
             </p>

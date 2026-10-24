@@ -62,10 +62,10 @@ class ComprasTest extends IntegracaoTest {
 		mvc.perform(como(ana, put("/api/itens/" + item + "/pego")).content(json)).andExpect(status().isOk());
 	}
 
-	private String finalizar(String extras) throws Exception {
+	private String finalizar(String valorTotal, String extras) throws Exception {
 		String corpo = """
-				{"mercado":"Atacadão","dataCompra":"%s","valorVariavel":12.50,"extrasMantidos":%s}"""
-			.formatted(LocalDate.now().minusDays(1), extras);
+				{"valorTotal":%s,"mercado":"Atacadão","dataCompra":"%s","extrasMantidos":%s}"""
+			.formatted(valorTotal, LocalDate.now().minusDays(1), extras);
 		return mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras")).content(corpo))
 			.andExpect(status().isCreated())
 			.andReturn()
@@ -81,7 +81,7 @@ class ComprasTest extends IntegracaoTest {
 		pegar(pao, "{\"quantidadePega\":4,\"preco\":7.88,\"marca\":\"Pullman\"}");
 		pegar(frutas, "{}"); // preço descoberto no caixa
 
-		String compra = finalizar("[]");
+		String compra = finalizar("44.02", "[]");
 
 		long compraId = ((Number) JsonPath.read(compra, "$.id")).longValue();
 		mvc.perform(como(ana, get("/api/compras/" + compraId)))
@@ -118,7 +118,7 @@ class ComprasTest extends IntegracaoTest {
 		lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
 			.content("{\"nome\":\"Pilhas\",\"categoriaId\":" + padaria + "}")).andReturn(), "$.id");
 
-		String compra = finalizar("[" + chocolate + "]");
+		String compra = finalizar("5", "[" + chocolate + "]");
 
 		// Os dois extras ficam registrados na compra concluída
 		org.assertj.core.api.Assertions.assertThat((List<?>) JsonPath.read(compra, "$.itens[?(@.extra == true)]"))
@@ -133,21 +133,46 @@ class ComprasTest extends IntegracaoTest {
 	void naoFinalizaSemItensPegosNemComDataFutura() throws Exception {
 		item("Pão", padaria);
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras"))
-			.content("{\"mercado\":\"X\",\"dataCompra\":\"" + LocalDate.now() + "\",\"valorVariavel\":0}"))
+			.content("{\"valorTotal\":0,\"dataCompra\":\"" + LocalDate.now() + "\"}"))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.erros[0].campo").value("itens"));
 
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras"))
 			.content("{\"mercado\":\"\",\"dataCompra\":\"" + LocalDate.now().plusDays(2) + "\"}"))
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.erros", hasSize(3)));
+			.andExpect(jsonPath("$.erros", hasSize(2)))
+			.andExpect(jsonPath("$.erros[?(@.campo == 'valorTotal')]", hasSize(1)))
+			.andExpect(jsonPath("$.erros[?(@.campo == 'dataCompra')]", hasSize(1)));
+	}
+
+	@Test
+	void valorPagoMenorQueOsItensFicaComoDescontoESemMercado() throws Exception {
+		long pao = item("Pão", padaria);
+		pegar(pao, "{\"quantidadePega\":4,\"preco\":7.88}");
+
+		String compra = mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras"))
+			.content("{\"valorTotal\":30,\"dataCompra\":\"" + LocalDate.now() + "\"}"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.mercado").doesNotExist())
+			.andExpect(jsonPath("$.valorItens").value(31.52))
+			.andExpect(jsonPath("$.valorVariavel").value(-1.52))
+			.andExpect(jsonPath("$.valorTotal").value(30))
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+
+		long compraId = ((Number) JsonPath.read(compra, "$.id")).longValue();
+		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/compras")))
+			.andExpect(jsonPath("$[0].id").value(compraId))
+			.andExpect(jsonPath("$[0].mercado").doesNotExist())
+			.andExpect(jsonPath("$[0].valorTotal").value(30));
 	}
 
 	@Test
 	void resumoDoMesSomaAsComprasDaFamilia() throws Exception {
 		long pao = item("Pão", padaria);
 		pegar(pao, "{\"preco\":10}");
-		finalizar("[]");
+		finalizar("22.50", "[]");
 		YearMonth mes = YearMonth.from(LocalDate.now().minusDays(1));
 
 		mvc.perform(como(ana, get("/api/familias/" + familiaId + "/compras/resumo?mes=" + mes)))
@@ -167,11 +192,11 @@ class ComprasTest extends IntegracaoTest {
 	void usuarioDeOutraFamiliaRecebe404() throws Exception {
 		long pao = item("Pão", padaria);
 		pegar(pao, "{}");
-		long compraId = ((Number) JsonPath.read(finalizar("[]"), "$.id")).longValue();
+		long compraId = ((Number) JsonPath.read(finalizar("0", "[]"), "$.id")).longValue();
 		pegar(pao, "{}");
 
 		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/compras"))
-			.content("{\"mercado\":\"X\",\"dataCompra\":\"" + LocalDate.now() + "\",\"valorVariavel\":0}"))
+			.content("{\"valorTotal\":0,\"dataCompra\":\"" + LocalDate.now() + "\"}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, get("/api/compras/" + compraId))).andExpect(status().isNotFound());
 		mvc.perform(como(intruso, get("/api/familias/" + familiaId + "/compras"))).andExpect(status().isNotFound());

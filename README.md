@@ -29,8 +29,9 @@ Projeto de estudo de backend e peça de portfólio.
   - **Planejar**: itens com nome, categoria e quantidade desejada, agrupados por categoria
   - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade, ou por kg com o preço total pago) e marca,
     todos opcionais; total parcial ao vivo; itens não planejados; "desmarcar todos" com confirmação
-- Finalizar compra: valor final pago (do cupom) e valor dos itens sem preço, um calculando o outro;
-  mercado e data; pergunta se os itens não planejados ficam na lista; a lista volta zerada para a
+- Finalizar compra: só o valor final pago (do cupom) é obrigatório, já preenchido com a soma dos
+  itens (menor que a soma fica como desconto); mercado opcional e data de hoje; pergunta se os
+  itens não planejados ficam na lista; a lista volta zerada para a
   próxima compra
 - Compras concluídas com valor, data, mercado e "x de y comprados"; gasto e compras do mês
 - Autorização: só membros da família acessam suas listas e itens (os demais recebem 404)

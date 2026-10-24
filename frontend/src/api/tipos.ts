@@ -106,10 +106,12 @@ export interface CompraResumo {
   id: number;
   listaId: number | null;
   listaNome: string;
-  mercado: string;
+  /** Opcional ao finalizar. */
+  mercado: string | null;
   /** AAAA-MM-DD */
   dataCompra: string;
   valorItens: number;
+  /** Valor pago menos a soma dos itens com preço. Negativo: desconto; positivo: itens sem preço ou acréscimo. */
   valorVariavel: number;
   valorTotal: number;
   totalItens: number;

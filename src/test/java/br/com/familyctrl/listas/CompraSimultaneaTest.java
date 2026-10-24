@@ -141,7 +141,7 @@ class CompraSimultaneaTest extends IntegracaoTest {
 		mvc.perform(como(bia, put("/api/itens/" + cafe + "/pego")).content("{\"preco\":20}")).andExpect(status().isOk());
 
 		String corpo = """
-				{"mercado":"Atacadão","dataCompra":"%s","valorVariavel":0,"extrasMantidos":[],"versaoLista":%d}""";
+				{"valorTotal":30,"mercado":"Atacadão","dataCompra":"%s","extrasMantidos":[],"versaoLista":%d}""";
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras"))
 			.content(corpo.formatted(LocalDate.now(), versaoVistaPelaAna)))
 			.andExpect(status().isConflict());
@@ -151,7 +151,7 @@ class CompraSimultaneaTest extends IntegracaoTest {
 		// Nada mudou: os dois itens continuam pegos
 		mvc.perform(como(ana, get("/api/listas/" + listaId))).andExpect(jsonPath("$.itens[?(@.pego == true)]", hasSize(2)));
 
-		// Com a versão atual, finaliza com o total que a tela mostra (10 + 20)
+		// Com a versão atual, finaliza com o total que a tela mostra (10 + 20), sem diferença
 		mvc.perform(como(ana, post("/api/listas/" + listaId + "/compras"))
 			.content(corpo.formatted(LocalDate.now(), versaoDaLista(ana))))
 			.andExpect(status().isCreated())

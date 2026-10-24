@@ -12,7 +12,7 @@ import { Indicadores } from '../components/Indicadores';
 import { Progresso } from '../components/Progresso';
 import { Selo } from '../components/Selo';
 import { chaves } from '../estado/chaves';
-import { descreverPego, formatarData, formatarDinheiro } from '../util/compra';
+import { dataEMercado, descreverPego, formatarDinheiro } from '../util/compra';
 import listaEstilos from './ListaPagina.module.css';
 import paginas from './Paginas.module.css';
 import { rotaListas } from './rotasFamilia';
@@ -82,7 +82,7 @@ export function CompraConcluida() {
         ]}
         rotulo="Compra concluída"
         titulo={dados.listaNome}
-        descricao={`${formatarData(dados.dataCompra)} · ${dados.mercado}${dados.finalizadaPor ? ` · finalizada por ${dados.finalizadaPor}` : ''}`}
+        descricao={`${dataEMercado(dados)}${dados.finalizadaPor ? ` · finalizada por ${dados.finalizadaPor}` : ''}`}
         selos={
           <>
             <Selo tom="sucesso" ponto>
@@ -98,7 +98,16 @@ export function CompraConcluida() {
         itens={[
           { rotulo: 'Total', valor: dados.valorTotal, dinheiro: true, destaque: true },
           { rotulo: 'Itens com preço', valor: dados.valorItens, dinheiro: true },
-          { rotulo: 'Valor variável', valor: dados.valorVariavel, dinheiro: true },
+          // Negativo: desconto no caixa. Positivo: itens sem preço ou acréscimo.
+          ...(dados.valorVariavel !== 0
+            ? [
+                {
+                  rotulo: dados.valorVariavel < 0 ? 'Desconto' : 'Diferença no caixa',
+                  valor: dados.valorVariavel,
+                  dinheiro: true,
+                },
+              ]
+            : []),
         ]}
       />
 
