@@ -15,4 +15,5 @@ export const chaves = {
   compras: (familiaId: number) => ['compras', 'familia', familiaId] as const,
   compra: (id: number) => ['compras', 'detalhe', id] as const,
   resumo: (familiaId: number, mes: string) => ['compras', 'resumo', familiaId, mes] as const,
+  sugestao: (familiaId: number, nome: string) => ['sugestao', familiaId, nome] as const,
 };

@@ -254,6 +254,51 @@ describe('planejar', () => {
     );
   });
 
+  it('preenche categoria e medida pelo nome do produto', async () => {
+    const { chamadas, estado } = criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
+
+    await usuario.type(await screen.findByLabelText('Item'), 'Banana');
+
+    expect(
+      await screen.findByText(
+        'Categoria e medida preenchidas pelo nome. Confira antes de adicionar.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Hortifrúti e Congelados' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Por kg' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Peso')).toHaveValue('0,1');
+    // Só pergunta quando a pessoa para de digitar
+    expect(estado.sugestoesPedidas).toEqual(['Banana']);
+    await usuario.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    await waitFor(() =>
+      expect(chamadas).toContainEqual(
+        expect.objectContaining({
+          caminho: '/api/listas/100/itens',
+          corpo: { nome: 'Banana', categoriaId: 2, quantidadePlanejada: 0.1, medida: 'KG' },
+        }),
+      ),
+    );
+  });
+
+  it('não troca a categoria que a pessoa já escolheu', async () => {
+    criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
+
+    await usuario.click(await screen.findByRole('radio', { name: 'Outros' }));
+    await usuario.type(screen.getByLabelText('Item'), 'Banana');
+
+    // A medida (não escolhida) segue a sugestão; a categoria escolhida fica
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Por kg' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    );
+    expect(screen.getByRole('radio', { name: 'Outros' })).toBeChecked();
+  });
+
   it('começa em 1 unidade e ajusta a quantidade com − e +', async () => {
     const { chamadas } = criarApiFalsa();
     const { usuario } = renderizarApp('/listas/100/planejar', { logado: true });
@@ -407,6 +452,35 @@ describe('comprar', () => {
           preco: 5.5,
         },
       }),
+    );
+  });
+
+  it('item não planejado já vem com a categoria e o "preço por" sugeridos', async () => {
+    const { chamadas } = criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.type(await screen.findByLabelText('O que você pegou?'), 'Banana{Enter}');
+    const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
+    expect(
+      await within(dialogo).findByText('Não estava na lista · Hortifrúti e Congelados'),
+    ).toBeInTheDocument();
+    expect(within(dialogo).getByLabelText('Peso')).toHaveValue('0,1');
+    await usuario.type(within(dialogo).getByLabelText('Preço total (R$)'), '3,20');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    await waitFor(() =>
+      expect(chamadas).toContainEqual(
+        expect.objectContaining({
+          caminho: '/api/listas/100/itens/extra',
+          corpo: {
+            nome: 'Banana',
+            categoriaId: 2,
+            tipoPreco: 'KG',
+            quantidadePega: 0.1,
+            preco: 3.2,
+          },
+        }),
+      ),
     );
   });
 

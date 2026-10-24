@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +84,19 @@ public class ItemService {
 			.stream()
 			.collect(Collectors.toMap(ItemRepository.ContagemLista::getListaId,
 					c -> new Progresso(c.getTotal(), c.getPegos())));
+	}
+
+	/**
+	 * Nome, categoria e medida dos itens dessas listas, do alterado mais recentemente para o mais
+	 * antigo (no máximo 1000): é o que a família já escolheu para cada produto. Uso interno das
+	 * sugestões, que já verificaram o acesso à família.
+	 */
+	@Transactional(readOnly = true)
+	public List<ItemClassificado> classificacoesRecentes(Collection<Long> listaIds) {
+		if (listaIds.isEmpty()) {
+			return List.of();
+		}
+		return itens.classificados(listaIds, PageRequest.of(0, 1000));
 	}
 
 	// ------------------------------------------------------------------ planejamento

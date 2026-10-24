@@ -1,0 +1,381 @@
+# Dicionário de produtos comuns de mercado: nome;categoria;medida
+# nome: minúsculo e sem acento (como a busca compara). O produto digitado é comparado pelas
+# primeiras palavras: "mussarela fatiada" encontra "mussarela"; "leite condensado" vence "leite".
+# categoria: ACOUGUE, MERCEARIA, LATICINIOS, PADARIA, HORTIFRUTI, LIMPEZA, HIGIENE
+# medida: UN (por unidade) ou KG (por peso)
+
+# ---------------------------------------------------------------- açougue, embutidos e peixaria
+carne;ACOUGUE;KG
+carne moida;ACOUGUE;KG
+patinho;ACOUGUE;KG
+acem;ACOUGUE;KG
+alcatra;ACOUGUE;KG
+picanha;ACOUGUE;KG
+maminha;ACOUGUE;KG
+fraldinha;ACOUGUE;KG
+contrafile;ACOUGUE;KG
+contra file;ACOUGUE;KG
+file mignon;ACOUGUE;KG
+costela;ACOUGUE;KG
+cupim;ACOUGUE;KG
+musculo;ACOUGUE;KG
+coxao mole;ACOUGUE;KG
+coxao duro;ACOUGUE;KG
+lagarto;ACOUGUE;KG
+cha de dentro;ACOUGUE;KG
+cha de fora;ACOUGUE;KG
+paleta;ACOUGUE;KG
+bife;ACOUGUE;KG
+figado;ACOUGUE;KG
+frango;ACOUGUE;KG
+peito de frango;ACOUGUE;KG
+file de frango;ACOUGUE;KG
+coxa;ACOUGUE;KG
+sobrecoxa;ACOUGUE;KG
+coxinha da asa;ACOUGUE;KG
+asa;ACOUGUE;KG
+coracao;ACOUGUE;KG
+moela;ACOUGUE;KG
+porco;ACOUGUE;KG
+carne de porco;ACOUGUE;KG
+lombo;ACOUGUE;KG
+pernil;ACOUGUE;KG
+bisteca;ACOUGUE;KG
+costelinha;ACOUGUE;KG
+toucinho;ACOUGUE;KG
+bacon;ACOUGUE;KG
+linguica;ACOUGUE;KG
+calabresa;ACOUGUE;KG
+salsicha;ACOUGUE;KG
+charque;ACOUGUE;KG
+carne seca;ACOUGUE;KG
+carne de sol;ACOUGUE;KG
+hamburguer;ACOUGUE;UN
+almondega;ACOUGUE;KG
+peixe;ACOUGUE;KG
+file de peixe;ACOUGUE;KG
+tilapia;ACOUGUE;KG
+file de tilapia;ACOUGUE;KG
+salmao;ACOUGUE;KG
+merluza;ACOUGUE;KG
+pescada;ACOUGUE;KG
+sardinha;ACOUGUE;KG
+bacalhau;ACOUGUE;KG
+camarao;ACOUGUE;KG
+nuggets;ACOUGUE;UN
+empanado;ACOUGUE;UN
+
+# ---------------------------------------------------------------- mercearia e alimentos básicos
+arroz;MERCEARIA;UN
+feijao;MERCEARIA;UN
+macarrao;MERCEARIA;UN
+espaguete;MERCEARIA;UN
+lasanha;MERCEARIA;UN
+miojo;MERCEARIA;UN
+macarrao instantaneo;MERCEARIA;UN
+oleo;MERCEARIA;UN
+azeite;MERCEARIA;UN
+vinagre;MERCEARIA;UN
+acucar;MERCEARIA;UN
+adocante;MERCEARIA;UN
+sal;MERCEARIA;UN
+cafe;MERCEARIA;UN
+cha;MERCEARIA;UN
+achocolatado;MERCEARIA;UN
+leite em po;MERCEARIA;UN
+leite condensado;MERCEARIA;UN
+creme de leite;MERCEARIA;UN
+farinha;MERCEARIA;UN
+farinha de trigo;MERCEARIA;UN
+farinha de mandioca;MERCEARIA;UN
+farofa;MERCEARIA;UN
+fuba;MERCEARIA;UN
+flocao;MERCEARIA;UN
+cuscuz;MERCEARIA;UN
+tapioca;MERCEARIA;UN
+goma;MERCEARIA;UN
+amido de milho;MERCEARIA;UN
+maizena;MERCEARIA;UN
+aveia;MERCEARIA;UN
+granola;MERCEARIA;UN
+cereal;MERCEARIA;UN
+sucrilhos;MERCEARIA;UN
+fermento;MERCEARIA;UN
+gelatina;MERCEARIA;UN
+pudim;MERCEARIA;UN
+mistura para bolo;MERCEARIA;UN
+massa de bolo;MERCEARIA;UN
+biscoito;MERCEARIA;UN
+bolacha;MERCEARIA;UN
+cream cracker;MERCEARIA;UN
+wafer;MERCEARIA;UN
+salgadinho;MERCEARIA;UN
+batata palha;MERCEARIA;UN
+pipoca;MERCEARIA;UN
+milho de pipoca;MERCEARIA;UN
+chocolate;MERCEARIA;UN
+bombom;MERCEARIA;UN
+bala;MERCEARIA;UN
+chiclete;MERCEARIA;UN
+doce de leite;MERCEARIA;UN
+goiabada;MERCEARIA;UN
+mel;MERCEARIA;UN
+geleia;MERCEARIA;UN
+nutella;MERCEARIA;UN
+amendoim;MERCEARIA;UN
+castanha;MERCEARIA;UN
+molho de tomate;MERCEARIA;UN
+extrato de tomate;MERCEARIA;UN
+catchup;MERCEARIA;UN
+ketchup;MERCEARIA;UN
+maionese;MERCEARIA;UN
+mostarda;MERCEARIA;UN
+molho shoyu;MERCEARIA;UN
+shoyu;MERCEARIA;UN
+molho ingles;MERCEARIA;UN
+tempero;MERCEARIA;UN
+caldo;MERCEARIA;UN
+caldo de galinha;MERCEARIA;UN
+sazon;MERCEARIA;UN
+colorau;MERCEARIA;UN
+pimenta;MERCEARIA;UN
+oregano;MERCEARIA;UN
+cominho;MERCEARIA;UN
+canela;MERCEARIA;UN
+louro;MERCEARIA;UN
+milho;MERCEARIA;UN
+milho verde;MERCEARIA;UN
+ervilha;MERCEARIA;UN
+seleta de legumes;MERCEARIA;UN
+palmito;MERCEARIA;UN
+azeitona;MERCEARIA;UN
+atum;MERCEARIA;UN
+sardinha em lata;MERCEARIA;UN
+lentilha;MERCEARIA;UN
+grao de bico;MERCEARIA;UN
+soja;MERCEARIA;UN
+pao de alho;PADARIA;UN
+agua;MERCEARIA;UN
+agua mineral;MERCEARIA;UN
+agua de coco;MERCEARIA;UN
+refrigerante;MERCEARIA;UN
+coca cola;MERCEARIA;UN
+guarana;MERCEARIA;UN
+suco;MERCEARIA;UN
+suco em po;MERCEARIA;UN
+refresco;MERCEARIA;UN
+cerveja;MERCEARIA;UN
+vinho;MERCEARIA;UN
+cachaca;MERCEARIA;UN
+energetico;MERCEARIA;UN
+isotonico;MERCEARIA;UN
+racao;MERCEARIA;UN
+papinha;MERCEARIA;UN
+
+# ---------------------------------------------------------------- laticínios, frios e ovos
+leite;LATICINIOS;UN
+leite integral;LATICINIOS;UN
+leite desnatado;LATICINIOS;UN
+leite semidesnatado;LATICINIOS;UN
+iogurte;LATICINIOS;UN
+coalhada;LATICINIOS;UN
+bebida lactea;LATICINIOS;UN
+danone;LATICINIOS;UN
+danoninho;LATICINIOS;UN
+queijo;LATICINIOS;KG
+mussarela;LATICINIOS;KG
+mucarela;LATICINIOS;KG
+muzzarela;LATICINIOS;KG
+queijo prato;LATICINIOS;KG
+queijo coalho;LATICINIOS;KG
+queijo minas;LATICINIOS;KG
+queijo ralado;LATICINIOS;UN
+parmesao;LATICINIOS;UN
+provolone;LATICINIOS;KG
+ricota;LATICINIOS;UN
+requeijao;LATICINIOS;UN
+cream cheese;LATICINIOS;UN
+manteiga;LATICINIOS;UN
+margarina;LATICINIOS;UN
+presunto;LATICINIOS;KG
+apresuntado;LATICINIOS;KG
+mortadela;LATICINIOS;KG
+salame;LATICINIOS;KG
+peito de peru;LATICINIOS;KG
+blanquet;LATICINIOS;KG
+ovo;LATICINIOS;UN
+ovos;LATICINIOS;UN
+ovo de codorna;LATICINIOS;UN
+nata;LATICINIOS;UN
+
+# ---------------------------------------------------------------- padaria
+pao;PADARIA;UN
+pao frances;PADARIA;KG
+pao carioquinha;PADARIA;KG
+pao de forma;PADARIA;UN
+pao integral;PADARIA;UN
+pao de queijo;PADARIA;KG
+pao doce;PADARIA;UN
+pao de hamburguer;PADARIA;UN
+pao de cachorro quente;PADARIA;UN
+pao sirio;PADARIA;UN
+bisnaguinha;PADARIA;UN
+torrada;PADARIA;UN
+bolo;PADARIA;UN
+rosca;PADARIA;UN
+croissant;PADARIA;UN
+broa;PADARIA;UN
+sonho;PADARIA;UN
+salgado;PADARIA;UN
+coxinha;PADARIA;UN
+esfirra;PADARIA;UN
+torta;PADARIA;UN
+
+# ---------------------------------------------------------------- hortifrúti e congelados
+banana;HORTIFRUTI;KG
+maca;HORTIFRUTI;KG
+laranja;HORTIFRUTI;KG
+limao;HORTIFRUTI;KG
+mamao;HORTIFRUTI;KG
+melancia;HORTIFRUTI;KG
+melao;HORTIFRUTI;KG
+abacaxi;HORTIFRUTI;UN
+manga;HORTIFRUTI;KG
+uva;HORTIFRUTI;KG
+pera;HORTIFRUTI;KG
+goiaba;HORTIFRUTI;KG
+maracuja;HORTIFRUTI;KG
+morango;HORTIFRUTI;UN
+abacate;HORTIFRUTI;KG
+kiwi;HORTIFRUTI;KG
+tangerina;HORTIFRUTI;KG
+mexerica;HORTIFRUTI;KG
+ameixa;HORTIFRUTI;KG
+coco;HORTIFRUTI;UN
+acerola;HORTIFRUTI;KG
+caju;HORTIFRUTI;KG
+fruta;HORTIFRUTI;KG
+frutas;HORTIFRUTI;KG
+tomate;HORTIFRUTI;KG
+cebola;HORTIFRUTI;KG
+alho;HORTIFRUTI;KG
+batata;HORTIFRUTI;KG
+batata doce;HORTIFRUTI;KG
+batata palito;HORTIFRUTI;UN
+cenoura;HORTIFRUTI;KG
+beterraba;HORTIFRUTI;KG
+abobora;HORTIFRUTI;KG
+abobrinha;HORTIFRUTI;KG
+chuchu;HORTIFRUTI;KG
+pepino;HORTIFRUTI;KG
+pimentao;HORTIFRUTI;KG
+berinjela;HORTIFRUTI;KG
+quiabo;HORTIFRUTI;KG
+maxixe;HORTIFRUTI;KG
+inhame;HORTIFRUTI;KG
+mandioca;HORTIFRUTI;KG
+macaxeira;HORTIFRUTI;KG
+aipim;HORTIFRUTI;KG
+cara;HORTIFRUTI;KG
+gengibre;HORTIFRUTI;KG
+vagem;HORTIFRUTI;KG
+milho verde espiga;HORTIFRUTI;UN
+alface;HORTIFRUTI;UN
+rucula;HORTIFRUTI;UN
+agriao;HORTIFRUTI;UN
+couve;HORTIFRUTI;UN
+couve flor;HORTIFRUTI;UN
+brocolis;HORTIFRUTI;UN
+repolho;HORTIFRUTI;UN
+espinafre;HORTIFRUTI;UN
+cheiro verde;HORTIFRUTI;UN
+coentro;HORTIFRUTI;UN
+salsa;HORTIFRUTI;UN
+cebolinha;HORTIFRUTI;UN
+hortela;HORTIFRUTI;UN
+manjericao;HORTIFRUTI;UN
+verdura;HORTIFRUTI;UN
+legume;HORTIFRUTI;KG
+legumes;HORTIFRUTI;KG
+cogumelo;HORTIFRUTI;UN
+sorvete;HORTIFRUTI;UN
+acai;HORTIFRUTI;UN
+polpa;HORTIFRUTI;UN
+polpa de fruta;HORTIFRUTI;UN
+pizza;HORTIFRUTI;UN
+pizza congelada;HORTIFRUTI;UN
+lasanha congelada;HORTIFRUTI;UN
+batata congelada;HORTIFRUTI;UN
+gelo;HORTIFRUTI;UN
+legumes congelados;HORTIFRUTI;UN
+
+# ---------------------------------------------------------------- limpeza
+detergente;LIMPEZA;UN
+sabao;LIMPEZA;UN
+sabao em po;LIMPEZA;UN
+sabao liquido;LIMPEZA;UN
+sabao em barra;LIMPEZA;UN
+lava roupas;LIMPEZA;UN
+amaciante;LIMPEZA;UN
+agua sanitaria;LIMPEZA;UN
+cloro;LIMPEZA;UN
+alvejante;LIMPEZA;UN
+desinfetante;LIMPEZA;UN
+multiuso;LIMPEZA;UN
+limpador;LIMPEZA;UN
+lustra moveis;LIMPEZA;UN
+limpa vidros;LIMPEZA;UN
+alcool;LIMPEZA;UN
+alcool em gel;HIGIENE;UN
+esponja;LIMPEZA;UN
+palha de aco;LIMPEZA;UN
+bombril;LIMPEZA;UN
+pano de chao;LIMPEZA;UN
+pano de prato;LIMPEZA;UN
+flanela;LIMPEZA;UN
+vassoura;LIMPEZA;UN
+rodo;LIMPEZA;UN
+saco de lixo;LIMPEZA;UN
+papel toalha;LIMPEZA;UN
+guardanapo;LIMPEZA;UN
+papel aluminio;LIMPEZA;UN
+filme pvc;LIMPEZA;UN
+filtro de cafe;LIMPEZA;UN
+inseticida;LIMPEZA;UN
+repelente;HIGIENE;UN
+luva;LIMPEZA;UN
+fosforo;LIMPEZA;UN
+vela;LIMPEZA;UN
+pilha;LIMPEZA;UN
+lampada;LIMPEZA;UN
+
+# ---------------------------------------------------------------- higiene pessoal
+papel higienico;HIGIENE;UN
+sabonete;HIGIENE;UN
+sabonete liquido;HIGIENE;UN
+shampoo;HIGIENE;UN
+xampu;HIGIENE;UN
+condicionador;HIGIENE;UN
+creme de cabelo;HIGIENE;UN
+creme dental;HIGIENE;UN
+pasta de dente;HIGIENE;UN
+escova de dente;HIGIENE;UN
+fio dental;HIGIENE;UN
+enxaguante bucal;HIGIENE;UN
+desodorante;HIGIENE;UN
+absorvente;HIGIENE;UN
+fralda;HIGIENE;UN
+lenco umedecido;HIGIENE;UN
+cotonete;HIGIENE;UN
+algodao;HIGIENE;UN
+aparelho de barbear;HIGIENE;UN
+lamina de barbear;HIGIENE;UN
+espuma de barbear;HIGIENE;UN
+protetor solar;HIGIENE;UN
+hidratante;HIGIENE;UN
+creme;HIGIENE;UN
+perfume;HIGIENE;UN
+esmalte;HIGIENE;UN
+acetona;HIGIENE;UN
+curativo;HIGIENE;UN
+band aid;HIGIENE;UN

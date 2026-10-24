@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../api/cliente';
 import { itensApi, type DadosPego } from '../api/endpoints';
-import type { Categoria, Item, TipoPreco } from '../api/tipos';
+import type { Categoria, Item, SugestaoItem, TipoPreco } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { FiltroChips } from '../components/FiltroChips';
@@ -27,9 +27,11 @@ import {
   mensagemDesatualizado,
 } from './cacheLista';
 import estilos from './ListaPagina.module.css';
+import { useSugestaoItem } from './useSugestaoItem';
 
 interface Props {
   listaId: number;
+  familiaId: number;
   categorias: Categoria[];
   /** Item planejado a pegar ou já pego a corrigir. Sem item: item não planejado (extra). */
   item?: Item;
@@ -47,6 +49,7 @@ interface Props {
  */
 export function ModalPegar({
   listaId,
+  familiaId,
   categorias,
   item,
   nomeExtra = '',
@@ -71,6 +74,18 @@ export function ModalPegar({
   const [preco, setPreco] = useState(paraCampo(item?.preco));
   const [marca, setMarca] = useState(item?.marca ?? '');
   const [tentouEnviar, setTentouEnviar] = useState(false);
+
+  // Item não planejado: categoria e "preço por" vêm sugeridos pelo nome, salvo se a pessoa já
+  // escolheu outro em "Mais detalhes"
+  const [escolheuCategoria, setEscolheuCategoria] = useState(false);
+  const [escolheuTipo, setEscolheuTipo] = useState(false);
+  const sugestao = useSugestaoItem(familiaId, extra ? nomeExtra : '', 0);
+  const [aplicada, setAplicada] = useState<SugestaoItem>();
+  if (sugestao && sugestao.origem !== 'PADRAO' && sugestao !== aplicada) {
+    setAplicada(sugestao);
+    if (!escolheuCategoria) setCategoriaId(sugestao.categoriaId);
+    if (!escolheuTipo && sugestao.medida !== tipo) escolherTipo(sugestao.medida);
+  }
 
   const qtd = lerDecimal(quantidade);
   const valor = lerDecimal(preco);
@@ -137,7 +152,11 @@ export function ModalPegar({
             Planejado: {formatarQuantidade(item.quantidadePlanejada, item.medida)}
           </p>
         )}
-        {extra && <p className={estilos.planejadoInfo}>Não estava na lista</p>}
+        {extra && (
+          <p className={estilos.planejadoInfo}>
+            Não estava na lista · {categorias.find((c) => c.id === categoriaId)?.nome}
+          </p>
+        )}
 
         <SeletorQuantidade
           rotulo={porKg ? 'Peso' : 'Quantidade'}
@@ -176,7 +195,10 @@ export function ModalPegar({
               <FiltroChips
                 rotulo="Preço por"
                 valor={tipo}
-                aoMudar={escolherTipo}
+                aoMudar={(novo) => {
+                  escolherTipo(novo);
+                  setEscolheuTipo(true);
+                }}
                 opcoes={[
                   { valor: 'UNIDADE', rotulo: 'Por unidade' },
                   { valor: 'KG', rotulo: 'Por kg' },
@@ -187,7 +209,10 @@ export function ModalPegar({
               <SeletorCategoria
                 categorias={categorias}
                 valor={categoriaId}
-                aoMudar={setCategoriaId}
+                aoMudar={(id) => {
+                  setCategoriaId(id);
+                  setEscolheuCategoria(true);
+                }}
                 erro={erro?.erroDoCampo('categoriaId')}
               />
             )}

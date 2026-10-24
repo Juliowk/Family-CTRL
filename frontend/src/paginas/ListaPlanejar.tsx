@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { itensApi } from '../api/endpoints';
-import type { Categoria, Item, ListaDetalhe, TipoPreco } from '../api/tipos';
+import type { Categoria, Item, ListaDetalhe, SugestaoItem, TipoPreco } from '../api/tipos';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
@@ -31,6 +31,7 @@ import {
   mensagemDesatualizado,
 } from './cacheLista';
 import estilos from './ListaPagina.module.css';
+import { useSugestaoItem } from './useSugestaoItem';
 
 /** Aba Planejar: cadastrar o que comprar, com categoria, medida e quantidade desejada. */
 export function ListaPlanejar({
@@ -132,6 +133,18 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
   );
   const qtd = lerQuantidade(quantidade);
 
+  // Digitado o nome, categoria e medida vêm sugeridas (histórico, dicionário ou IA). O que a pessoa
+  // já escolheu à mão para este item não é trocado.
+  const [escolheuCategoria, setEscolheuCategoria] = useState(false);
+  const [escolheuMedida, setEscolheuMedida] = useState(false);
+  const sugestao = useSugestaoItem(lista.familiaId, nome);
+  const [aplicada, setAplicada] = useState<SugestaoItem>();
+  if (sugestao && sugestao.origem !== 'PADRAO' && sugestao !== aplicada) {
+    setAplicada(sugestao);
+    if (!escolheuCategoria) setCategoriaId(sugestao.categoriaId);
+    if (!escolheuMedida && sugestao.medida !== medida) escolherMedida(sugestao.medida);
+  }
+
   const adicionar = useMutation({
     mutationFn: (quantidadePlanejada: number | undefined) =>
       itensApi.adicionar(lista.id, { nome: nome.trim(), categoriaId, quantidadePlanejada, medida }),
@@ -141,6 +154,9 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
       gravarItem(queryClient, item);
       setNome('');
       escolherMedida('UNIDADE');
+      setEscolheuCategoria(false);
+      setEscolheuMedida(false);
+      setAplicada(undefined);
     },
   });
   const erro = adicionar.error instanceof ApiError ? adicionar.error : undefined;
@@ -167,6 +183,11 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
           autoComplete="off"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
+          dica={
+            aplicada && nome.trim()
+              ? 'Categoria e medida preenchidas pelo nome. Confira antes de adicionar.'
+              : undefined
+          }
           erro={
             erro?.erroDoCampo('nome') ??
             (erro && erro.erros.length === 0 ? erro.message : undefined)
@@ -175,10 +196,20 @@ function FormularioItem({ lista }: { lista: ListaDetalhe }) {
         <SeletorCategoria
           categorias={lista.categorias}
           valor={categoriaId}
-          aoMudar={setCategoriaId}
+          aoMudar={(id) => {
+            setCategoriaId(id);
+            setEscolheuCategoria(true);
+          }}
           erro={erro?.erroDoCampo('categoriaId')}
         />
-        <SeletorMedida valor={medida} aoMudar={escolherMedida} erro={erro?.erroDoCampo('medida')} />
+        <SeletorMedida
+          valor={medida}
+          aoMudar={(nova) => {
+            escolherMedida(nova);
+            setEscolheuMedida(true);
+          }}
+          erro={erro?.erroDoCampo('medida')}
+        />
         <SeletorQuantidade
           rotulo={medida === 'KG' ? 'Peso' : 'Quantidade'}
           medida={medida}

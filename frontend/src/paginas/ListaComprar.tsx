@@ -131,6 +131,7 @@ export function ListaComprar({
   const painel = formulario && (
     <ModalPegar
       listaId={lista.id}
+      familiaId={lista.familiaId}
       categorias={lista.categorias}
       item={'item' in formulario ? formulario.item : undefined}
       nomeExtra={'extra' in formulario ? formulario.extra : undefined}

@@ -52,6 +52,12 @@ public class ListaService {
 			.toList();
 	}
 
+	/** Ids das listas da família. Uso interno de outros módulos, que já verificaram o acesso. */
+	@Transactional(readOnly = true)
+	public List<Long> idsDaFamilia(Long familiaId) {
+		return listas.findByFamiliaIdOrderByCriadaEmDesc(familiaId).stream().map(Lista::getId).toList();
+	}
+
 	public ListaResponse criar(Long familiaId, Long usuarioId, String nome) {
 		familiaService.verificarMembro(familiaId, usuarioId);
 		Lista lista = listas.save(new Lista(familiaId, nome.trim(), usuarioId));

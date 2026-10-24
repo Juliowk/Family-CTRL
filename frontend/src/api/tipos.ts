@@ -143,6 +143,16 @@ export interface CompraDetalhe extends CompraResumo {
   itens: CompraItem[];
 }
 
+/**
+ * Categoria e medida sugeridas pelo nome do produto. PADRAO: nada encontrado ("Outros", por
+ * unidade); a tela não aplica esse caso.
+ */
+export interface SugestaoItem {
+  categoriaId: number;
+  medida: TipoPreco;
+  origem: 'HISTORICO' | 'DICIONARIO' | 'IA' | 'PADRAO';
+}
+
 export interface ResumoMes {
   /** AAAA-MM */
   mes: string;

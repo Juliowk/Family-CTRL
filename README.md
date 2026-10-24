@@ -139,6 +139,9 @@ npm run format     # formata o código com o Prettier
 - `.slugignore` evita enviar `frontend/` e `docs/` para o Heroku.
 - Variáveis necessárias: `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` (e as `JDBC_DATABASE_*`, que o
   buildpack Java cria sozinho a partir do Heroku Postgres).
+- Opcional: `GEMINI_API_KEY`, chave da API do Google Gemini (gerada em
+  [aistudio.google.com](https://aistudio.google.com), plano gratuito, sem ativar faturamento).
+  Com ela, produtos fora do histórico e do dicionário ganham categoria e medida pela IA.
 - Health check: `/actuator/health`.
 
 ### Frontend (GitHub Pages)
@@ -159,6 +162,8 @@ variável de repositório `API_URL`) e publicação no Pages.
    # Segredo com 256 bits ou mais (ex.: gerado com openssl)
    heroku config:set JWT_SECRET="$(openssl rand -base64 48)" -a <nome-do-app>
    heroku config:set CORS_ALLOWED_ORIGINS="https://juliowk.github.io" -a <nome-do-app>
+   # Opcional: categoria automática pela IA (chave do Google AI Studio)
+   heroku config:set GEMINI_API_KEY="<chave>" -a <nome-do-app>
    ```
 3. **Conectar o repositório ao Heroku** (aba _Deploy_ → GitHub, com deploy automático da `main`)
    ou publicar manualmente com `git push heroku main`.

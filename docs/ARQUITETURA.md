@@ -36,6 +36,7 @@ simples que microsserviços (um banco, um deploy, sem rede entre módulos) e ain
 | `listas` | Listas de compras (o planejamento reutilizável)                               |
 | `itens`  | Itens das listas: planejamento e compra em andamento                          |
 | `compras`| Finalizar a compra, compras concluídas e resumo do mês                        |
+| `sugestoes` | Categoria e medida sugeridas pelo nome do produto (histórico, dicionário, IA) |
 
 Dentro de cada módulo: **entidade** JPA, **repositório** (Spring Data), **serviço** (regras de
 negócio), **controller** REST e **DTOs** (records em `dto/`).
@@ -138,6 +139,7 @@ Prefixo `/api`. Corpo em JSON. Erros em ProblemDetail (seção 7).
 | GET    | `/api/familias/{id}/compras`                  | Compras concluídas                      | 200     |
 | GET    | `/api/familias/{id}/compras/resumo?mes=AAAA-MM` | Gasto e compras do mês, última compra | 200     |
 | GET    | `/api/compras/{id}`                           | Compra concluída com os itens           | 200     |
+| GET    | `/api/familias/{id}/sugestao-item?nome=...`   | Categoria e medida sugeridas pelo nome  | 200     |
 | GET    | `/actuator/health`                            | Health check (público)                  | 200     |
 
 Status de erro: **400** validação, **401** sem token/token inválido/credenciais erradas,
@@ -175,6 +177,8 @@ compras (id, familia_id, lista_id → listas ON DELETE SET NULL, lista_nome, mer
     ▲ compra_id (ON DELETE CASCADE)
 compra_itens (id, compra_id, nome, categoria, categoria_ordem, quantidade_planejada, pego,
               quantidade_pega, tipo_preco, preco, subtotal, marca, extra)
+sugestoes_item (id, familia_id, nome_normalizado, categoria_id → categorias ON DELETE CASCADE,
+                medida, criado_em)          UNIQUE (familia_id, nome_normalizado)
 ```
 
 - **Flyway** versiona o schema (`src/main/resources/db/migration/`). `V1` criou o schema inicial;
@@ -295,6 +299,44 @@ tê-lo visto.
 **Detalhe do front:** enquanto uma alteração está em andamento, a busca periódica pausa e as
 buscas em curso são canceladas. Assim, uma resposta antiga não "desfaz" na tela o que acabou de
 ser alterado. Depois da alteração, a lista é buscada de novo para trazer a versão nova.
+
+## 4.3 Categoria e medida automáticas (módulo `sugestoes`)
+
+Quem digita só o nome do produto (ao planejar ou em "O que você pegou?") recebe a categoria e a
+medida já preenchidas. A tela pergunta a `GET /api/familias/{id}/sugestao-item?nome=...` quando a
+pessoa para de digitar (~0,4 s) e não troca o que ela já escolheu à mão. O backend tenta, do mais
+barato para o mais caro:
+
+1. **Histórico da família**: o item mais recente das listas da família com o mesmo nome (a
+   escolha dela vale mais que qualquer regra). "Outros" não conta, porque pode ser só o padrão.
+2. **Dicionário embutido** (`src/main/resources/sugestoes/produtos.csv`, ~360 produtos comuns):
+   compara pelas primeiras palavras ("mussarela fatiada" → "mussarela") e liga a categoria padrão à
+   categoria da família pelo nome (funciona mesmo se ela renomeou "Laticínios, Frios e Ovos").
+3. **Resposta da IA já guardada** para a família (tabela `sugestoes_item`).
+4. **IA (Google Gemini)**, se houver `GEMINI_API_KEY`: o prompt leva o nome e as categorias da
+   família, e a resposta vem num JSON fixo (`responseSchema`), com a categoria restrita a elas.
+   A resposta é guardada para não perguntar de novo.
+
+Sem nada disso: "Outros", por unidade (a tela não aplica esse caso). Os nomes são comparados
+normalizados (`NomeProduto`): minúsculos, sem acento e no singular ("Pães" = "pão").
+
+**Por que Gemini e por que nessa ordem?** O plano gratuito do Gemini não exige cartão e sobra
+para uma família, mas tem limite de requisições por minuto e muda com frequência. Por isso a IA
+é o último recurso: histórico e dicionário respondem na hora, sem rede e sem custo, e continuam
+funcionando se o Google mudar o plano. A chamada é REST simples com o `RestClient` do Spring
+(sem SDK nem dependência nova).
+
+**Cuidados:**
+- A chave fica só no ambiente (`GEMINI_API_KEY` no Heroku), nunca no front nem no repositório.
+  Sem chave (no computador de quem desenvolve, nos testes), o resto funciona igual.
+- Tempo máximo de 5 s (`familyctrl.gemini.tempo-maximo`); qualquer erro vira "sem sugestão": a
+  ajuda nunca trava quem está comprando.
+- Limite de 60 consultas à IA por usuário por hora (`LimiteDeConsultas`, em memória), para ninguém
+  gastar a cota da família de propósito.
+- O serviço não é `@Transactional`: a chamada à IA pode levar alguns segundos e não deve segurar
+  uma das 5 conexões do pool. Cada consulta ao banco tem a sua transação curta.
+- O modelo padrão é `gemini-flash-lite-latest`, que acompanha o modelo leve mais novo (os nomes
+  dos modelos mudam e os antigos são desligados); dá para fixar outro com `GEMINI_MODEL`.
 
 ## 5. Autenticação com JWT
 
@@ -528,6 +570,9 @@ contêiner, e cada teste cria usuários com e-mails únicos. Por isso não é pr
 entre os testes.
 
 ## 12. Decisões e ajustes em relação ao planejamento
+
+- **IA para sugerir categoria (Gemini):** tecnologia nova, combinada antes de entrar no projeto.
+  Fica restrita ao módulo `sugestoes` e é opcional (sem chave, histórico e dicionário). Ver 4.3.
 
 - **Starters do Boot 4:** o Spring Boot 4 modularizou os starters. Os nomes usados são
   `spring-boot-starter-webmvc` (não mais `-web`), `spring-boot-starter-flyway` (mais

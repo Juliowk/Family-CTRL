@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +26,14 @@ interface ItemRepository extends JpaRepository<Item, Long> {
 			where i.listaId in :listaIds
 			group by i.listaId""")
 	List<ContagemLista> contarPorLista(Collection<Long> listaIds);
+
+	/** Nome, categoria e medida dos itens das listas, do alterado mais recentemente para o mais antigo. */
+	@Query("""
+			select new br.com.familyctrl.itens.ItemClassificado(i.nome, i.categoriaId, i.medida)
+			from Item i
+			where i.listaId in :listaIds
+			order by i.atualizadoEm desc""")
+	List<ItemClassificado> classificados(Collection<Long> listaIds, Pageable pagina);
 
 	/** Usado quando uma categoria é excluída: os itens vão para "Outros". */
 	@Modifying

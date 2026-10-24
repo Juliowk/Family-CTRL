@@ -51,6 +51,7 @@ Ao final:
 - Spring Boot Actuator (apenas `health` exposto publicamente)
 - Erros no formato `ProblemDetail` (RFC 9457), com os erros de validação campo a campo
 - Testes: JUnit 5, Spring Boot Test, Spring Security Test, Testcontainers (PostgreSQL, com `@ServiceConnection`)
+- IA: Google Gemini (API REST via `RestClient`, sem SDK), só no módulo `sugestoes`, para sugerir categoria e medida pelo nome do produto. Opcional: sem `GEMINI_API_KEY`, usa só o histórico da família e o dicionário embutido
 
 ## Stack do frontend
 - React + TypeScript + Vite
@@ -85,6 +86,7 @@ Ao final:
   - `familia`: famílias, membros, convites
   - `listas`: listas de compras
   - `itens`: itens das listas
+  - `sugestoes`: categoria e medida sugeridas pelo nome do produto (histórico, dicionário, IA)
   - `web`: controllers REST compartilhados/utilitários de API (ou controllers dentro de cada módulo, desde que consistente)
 - Dentro de cada módulo, separe entidade, repositório, serviço, controller REST e DTOs (records). Nunca exponha entidades JPA na API.
 - Regras de negócio ficam nos serviços.
@@ -175,7 +177,7 @@ Tempo real (WebSocket), notificações, e-mail, recuperação de senha, refresh 
 - Perfis do Spring: `local` (Docker Compose), `test` (Testcontainers), `prod` (Heroku).
 - `server.port=${PORT:8080}`
 - Em prod: `spring.datasource.url=${JDBC_DATABASE_URL}`, `spring.datasource.username=${JDBC_DATABASE_USERNAME}`, `spring.datasource.password=${JDBC_DATABASE_PASSWORD}`. Não use `DATABASE_URL` diretamente em apps Java.
-- Variáveis de ambiente em prod: `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`.
+- Variáveis de ambiente em prod: `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` e `GEMINI_API_KEY` (opcional).
 - Nenhum segredo commitado.
 ### Frontend
 - `VITE_API_URL`: `http://localhost:8080` em dev (`.env.development`) e a URL do Heroku em prod (definida no workflow de deploy).
@@ -211,7 +213,7 @@ Tempo real (WebSocket), notificações, e-mail, recuperação de senha, refresh 
 ## Passos manuais (feitos por mim, não pelo Claude)
 Liste-os no README ao final da primeira sessão:
 1. Criar o app no Heroku e adicionar o Heroku Postgres Essential/Mini
-2. Definir no Heroku as variáveis `JWT_SECRET` e `CORS_ALLOWED_ORIGINS`
+2. Definir no Heroku as variáveis `JWT_SECRET` e `CORS_ALLOWED_ORIGINS` (e, opcional, `GEMINI_API_KEY`)
 3. Conectar o repositório GitHub ao Heroku (ou `git push heroku main`)
 4. No GitHub: Settings → Pages → Source = "GitHub Actions"; criar a variável de repositório `API_URL` com a URL do Heroku
 5. Configurar a proteção da branch `main`

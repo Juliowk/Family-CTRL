@@ -13,6 +13,7 @@ import type {
   TipoPreco,
   TokenResponse,
   Usuario,
+  SugestaoItem,
 } from './tipos';
 
 /** Uma função por endpoint da API. */
@@ -121,6 +122,12 @@ export interface DadosFinalizar {
   /** Versão da lista conferida na tela: se outra pessoa alterou depois, a API responde 409. */
   versaoLista: number;
 }
+
+/** Categoria e medida sugeridas pelo nome do produto (histórico da família, dicionário ou IA). */
+export const sugestoesApi = {
+  item: (familiaId: number, nome: string) =>
+    api<SugestaoItem>(`/api/familias/${familiaId}/sugestao-item?nome=${encodeURIComponent(nome)}`),
+};
 
 export const comprasApi = {
   finalizar: (listaId: number, dados: DadosFinalizar) =>

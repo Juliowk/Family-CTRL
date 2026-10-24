@@ -20,6 +20,8 @@ interface Estado {
   usuario: Usuario;
   familia: FamiliaDetalhe;
   categorias: Categoria[];
+  /** Nomes consultados em /sugestao-item, na ordem. */
+  sugestoesPedidas: string[];
   listas: Lista[];
   itens: Item[];
   compras: CompraDetalhe[];
@@ -99,6 +101,7 @@ export function criarApiFalsa() {
       ],
     },
     categorias: [...CATEGORIAS],
+    sugestoesPedidas: [],
     listas: [
       { id: 100, familiaId: 10, nome: 'Mercado', criadaEm: agora, totalItens: 0, itensPegos: 0 },
     ],
@@ -365,6 +368,18 @@ export function criarApiFalsa() {
       estado.compras.push(compra);
       itensDa(listaId).forEach(desmarcar);
       return json(201, compra);
+    }
+
+    // Sugestão pelo nome: "banana" vem do dicionário (Hortifrúti, por kg); o resto, padrão
+    if ((m = rota.match(/^GET \/api\/familias\/(\d+)\/sugestao-item$/))) {
+      estado.sugestoesPedidas.push(searchParams.get('nome') ?? '');
+      const nome = (searchParams.get('nome') ?? '').toLowerCase();
+      return json(
+        200,
+        nome.startsWith('banana')
+          ? { categoriaId: 2, medida: 'KG', origem: 'DICIONARIO' }
+          : { categoriaId: 3, medida: 'UNIDADE', origem: 'PADRAO' },
+      );
     }
 
     if ((m = rota.match(/^GET \/api\/familias\/(\d+)\/compras\/resumo$/))) {
