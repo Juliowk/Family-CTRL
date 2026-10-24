@@ -210,10 +210,18 @@ A **lista é o plano**, reutilizável; cada ida ao mercado é uma **compra**.
    mercado); ao desmarcar (ou ao finalizar a compra), `tipo_preco` volta para a medida. Por que
    duas colunas: se o "preço por" trocado no mercado sobrescrevesse a medida, o plano mudaria sem
    ninguém pedir.
-2. **Comprar** (no mercado): o checkbox abre um formulário (por unidade: quantidade e preço da
-   unidade; por kg: peso e preço total pago; marca; tudo opcional) e o item só fica marcado ao confirmar. O item pego vai para o fim
-   da categoria (ordem de `pego_em`). Itens não planejados entram já pegos (`extra = true`). A tela
-   soma o **total parcial** (`util/compra.ts`) e mostra quantos itens estão sem preço.
+2. **Comprar** (no mercado): no topo, um campo grande "O que você pegou?". Digitar o nome abre o
+   painel do item da lista com esse nome ou, se não houver, de um item não planejado (que entra
+   já pego, com `extra = true`). Tocar num item da lista abre o mesmo painel. O painel é curto:
+   só **quantidade** (− e +) e **preço**, que é **obrigatório**; o "preço por" (unidade ou kg), a
+   categoria e a marca ficam em "Mais detalhes", fechado por padrão. O item só fica marcado ao
+   confirmar e vai para o fim da categoria (ordem de `pego_em`). A tela soma o **total parcial**
+   (`util/compra.ts`). Numa lista vazia, a aba já abre nesse modo: dá para comprar sem planejar.
+
+   **Por que o preço virou obrigatório?** Com o preço de todos os itens, o total da compra é
+   sempre conhecido e a finalização vira só conferir o cupom. Antes existia o "valor variável"
+   (itens com preço só no caixa), que obrigava a digitar mais um valor no fim. Itens pegos sem
+   preço antes dessa mudança continuam aparecendo como "no caixa" até a compra ser finalizada.
 3. **Finalizar**: só o **valor final pago** (o total do cupom) é obrigatório. Ele já vem
    preenchido com a soma dos itens e pode ser corrigido. O mercado é opcional e a data já vem
    como hoje. O usuário também escolhe quais itens não planejados ficam na lista. Numa transação,

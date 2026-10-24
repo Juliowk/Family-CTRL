@@ -304,6 +304,8 @@ describe('comprar', () => {
     const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
     expect(within(dialogo).getByLabelText('Quantidade')).toHaveValue('2');
     await usuario.type(within(dialogo).getByLabelText('Preço da unidade (R$)'), '6,50');
+    // Marca fica em "Mais detalhes", fechado por padrão
+    await usuario.click(within(dialogo).getByText('Mais detalhes'));
     await usuario.type(within(dialogo).getByLabelText('Marca (opcional)'), 'Itambé');
     expect(within(dialogo).getByText(/13,00/)).toBeInTheDocument();
     await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
@@ -339,12 +341,14 @@ describe('comprar', () => {
     await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Banana' }));
     const dialogo = await screen.findByRole('dialog', { name: 'Banana' });
     // Item planejado por kg já abre em "Por kg", com o peso planejado sugerido
+    expect(within(dialogo).getByLabelText('Peso')).toHaveValue('1');
+    await usuario.click(within(dialogo).getByText('Mais detalhes'));
     expect(within(dialogo).getByRole('button', { name: 'Por kg' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await usuario.clear(within(dialogo).getByLabelText('Peso (kg)'));
-    await usuario.type(within(dialogo).getByLabelText('Peso (kg)'), '1,25');
+    await usuario.clear(within(dialogo).getByLabelText('Peso'));
+    await usuario.type(within(dialogo).getByLabelText('Peso'), '1,25');
     await usuario.type(within(dialogo).getByLabelText('Preço total (R$)'), '8,63');
     expect(within(dialogo).getByText(/8,63/, { selector: 'strong' })).toBeInTheDocument();
     await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
@@ -357,6 +361,65 @@ describe('comprar', () => {
         corpo: { tipoPreco: 'KG', quantidadePega: 1.25, preco: 8.63, versao: 0 },
       }),
     );
+  });
+
+  it('não marca sem o preço', async () => {
+    const { estado, chamadas } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite' }));
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.click(await screen.findByRole('checkbox', { name: 'Pegar Leite' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    expect(within(dialogo).getByText('Informe o preço.')).toBeInTheDocument();
+    expect(chamadas.some((c) => c.caminho === '/api/itens/1/pego')).toBe(false);
+  });
+
+  it('sem planejar, "O que você pegou?" adiciona o item com quantidade e preço', async () => {
+    const { chamadas } = criarApiFalsa();
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    // Lista vazia: a aba Comprar já funciona, sem mandar para Planejar
+    expect(await screen.findByText('Lista vazia')).toBeInTheDocument();
+    await usuario.type(screen.getByLabelText('O que você pegou?'), 'Chocolate{Enter}');
+    const dialogo = await screen.findByRole('dialog', { name: 'Chocolate' });
+    expect(within(dialogo).getByLabelText('Quantidade')).toHaveValue('1');
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Aumentar quantidade' }));
+    await usuario.type(within(dialogo).getByLabelText('Preço da unidade (R$)'), '5,50');
+    expect(within(dialogo).getByText(/11,00/)).toBeInTheDocument();
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Marcar como pego' }));
+
+    expect(
+      await screen.findByRole('checkbox', { name: 'Desmarcar Chocolate' }),
+    ).toBeInTheDocument();
+    const total = screen.getByRole('region', { name: 'Total da compra' });
+    expect(within(total).getByText(/11,00/)).toBeInTheDocument();
+    expect(chamadas).toContainEqual(
+      expect.objectContaining({
+        metodo: 'POST',
+        caminho: '/api/listas/100/itens/extra',
+        corpo: {
+          nome: 'Chocolate',
+          categoriaId: 3,
+          tipoPreco: 'UNIDADE',
+          quantidadePega: 2,
+          preco: 5.5,
+        },
+      }),
+    );
+  });
+
+  it('"O que você pegou?" com o nome de um item da lista abre o painel dele', async () => {
+    const { estado } = criarApiFalsa();
+    estado.itens.push(novoItem({ id: 1, nome: 'Leite', quantidadePlanejada: 6 }));
+    const { usuario } = renderizarApp('/listas/100/comprar', { logado: true });
+
+    await usuario.type(await screen.findByLabelText('O que você pegou?'), 'leite{Enter}');
+
+    const dialogo = await screen.findByRole('dialog', { name: 'Leite' });
+    expect(within(dialogo).getByText('Planejado: 6 un')).toBeInTheDocument();
+    expect(within(dialogo).getByLabelText('Quantidade')).toHaveValue('6');
   });
 
   it('desmarcar todos pede confirmação e zera a compra', async () => {

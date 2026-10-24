@@ -153,7 +153,7 @@ class ListasEItensTest extends IntegracaoTest {
 	}
 
 	@Test
-	void pegaPorKgComPrecoTotalEItemSemPrecoFicaSemSubtotal() throws Exception {
+	void pegaPorKgComPrecoTotalEOPrecoEObrigatorio() throws Exception {
 		long listaId = criarLista("Feira");
 		long banana = adicionarItem(listaId, "Banana");
 		long alface = adicionarItem(listaId, "Alface");
@@ -163,11 +163,14 @@ class ListasEItensTest extends IntegracaoTest {
 			.andExpect(jsonPath("$.tipoPreco").value("KG"))
 			.andExpect(jsonPath("$.subtotal").value(8.63));
 
-		// Sem preço: valor só será conhecido no caixa
+		// Sem preço não marca: o total da compra precisa ser conhecido
 		mvc.perform(como(ana, put("/api/itens/" + alface + "/pego")).content("{}"))
-			.andExpect(jsonPath("$.pego").value(true))
-			.andExpect(jsonPath("$.tipoPreco").value("UNIDADE"))
-			.andExpect(jsonPath("$.subtotal").doesNotExist());
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros[0].campo").value("preco"));
+		mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
+			.content("{\"nome\":\"Chocolate\",\"categoriaId\":" + padaria + "}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.erros[0].campo").value("preco"));
 	}
 
 	@Test
@@ -195,7 +198,7 @@ class ListasEItensTest extends IntegracaoTest {
 			.andReturn(), "$.id");
 
 		// Pegou por unidade (mudou no mercado); ao desmarcar, volta à medida planejada
-		mvc.perform(como(ana, put("/api/itens/" + carne + "/pego")).content("{\"tipoPreco\":\"UNIDADE\"}"))
+		mvc.perform(como(ana, put("/api/itens/" + carne + "/pego")).content("{\"tipoPreco\":\"UNIDADE\",\"preco\":30}"))
 			.andExpect(jsonPath("$.tipoPreco").value("UNIDADE"))
 			.andExpect(jsonPath("$.medida").value("KG"));
 		mvc.perform(como(ana, delete("/api/itens/" + carne + "/pego")))
@@ -285,11 +288,11 @@ class ListasEItensTest extends IntegracaoTest {
 			.content("{\"nome\":\"X\",\"categoriaId\":" + outraFamiliaCategoria + ",\"medida\":\"UNIDADE\"}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/itens/extra"))
-			.content("{\"nome\":\"X\",\"categoriaId\":" + outraFamiliaCategoria + "}"))
+			.content("{\"nome\":\"X\",\"categoriaId\":" + outraFamiliaCategoria + ",\"preco\":1}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/desmarcar-todos")))
 			.andExpect(status().isNotFound());
-		mvc.perform(como(intruso, put("/api/itens/" + item + "/pego")).content("{}"))
+		mvc.perform(como(intruso, put("/api/itens/" + item + "/pego")).content("{\"preco\":1}"))
 			.andExpect(status().isNotFound());
 		mvc.perform(como(intruso, delete("/api/itens/" + item + "/pego"))).andExpect(status().isNotFound());
 		mvc.perform(como(intruso, patch("/api/itens/" + item)).content("{\"nome\":\"X\"}"))

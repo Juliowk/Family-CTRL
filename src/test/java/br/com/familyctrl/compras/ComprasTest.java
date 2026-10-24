@@ -79,7 +79,7 @@ class ComprasTest extends IntegracaoTest {
 		long frutas = item("Frutas", hortifruti);
 		item("Bolo", padaria); // planejado, não pego
 		pegar(pao, "{\"quantidadePega\":4,\"preco\":7.88,\"marca\":\"Pullman\"}");
-		pegar(frutas, "{}"); // preço descoberto no caixa
+		pegar(frutas, "{\"tipoPreco\":\"KG\",\"preco\":12.50}");
 
 		String compra = finalizar("44.02", "[]");
 
@@ -88,8 +88,8 @@ class ComprasTest extends IntegracaoTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.listaNome").value("Compra do mês"))
 			.andExpect(jsonPath("$.mercado").value("Atacadão"))
-			.andExpect(jsonPath("$.valorItens").value(31.52))
-			.andExpect(jsonPath("$.valorVariavel").value(12.5))
+			.andExpect(jsonPath("$.valorItens").value(44.02))
+			.andExpect(jsonPath("$.valorVariavel").value(0))
 			.andExpect(jsonPath("$.valorTotal").value(44.02))
 			.andExpect(jsonPath("$.totalItens").value(3))
 			.andExpect(jsonPath("$.itensPegos").value(2))
@@ -112,11 +112,11 @@ class ComprasTest extends IntegracaoTest {
 	@Test
 	void extrasMantidosViramPlanejadosEOsOutrosSaemDaLista() throws Exception {
 		long pao = item("Pão", padaria);
-		pegar(pao, "{}");
+		pegar(pao, "{\"preco\":3}");
 		long chocolate = lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
 			.content("{\"nome\":\"Chocolate\",\"categoriaId\":" + padaria + ",\"preco\":5}")).andReturn(), "$.id");
 		lerId(mvc.perform(como(ana, post("/api/listas/" + listaId + "/itens/extra"))
-			.content("{\"nome\":\"Pilhas\",\"categoriaId\":" + padaria + "}")).andReturn(), "$.id");
+			.content("{\"nome\":\"Pilhas\",\"categoriaId\":" + padaria + ",\"preco\":12}")).andReturn(), "$.id");
 
 		String compra = finalizar("5", "[" + chocolate + "]");
 
@@ -191,9 +191,9 @@ class ComprasTest extends IntegracaoTest {
 	@Test
 	void usuarioDeOutraFamiliaRecebe404() throws Exception {
 		long pao = item("Pão", padaria);
-		pegar(pao, "{}");
-		long compraId = ((Number) JsonPath.read(finalizar("0", "[]"), "$.id")).longValue();
-		pegar(pao, "{}");
+		pegar(pao, "{\"preco\":3}");
+		long compraId = ((Number) JsonPath.read(finalizar("3", "[]"), "$.id")).longValue();
+		pegar(pao, "{\"preco\":3}");
 
 		mvc.perform(como(intruso, post("/api/listas/" + listaId + "/compras"))
 			.content("{\"valorTotal\":0,\"dataCompra\":\"" + LocalDate.now() + "\"}"))

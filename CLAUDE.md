@@ -120,9 +120,9 @@ Ao final:
 
 ### Itens
 - Planejar (aba própria): nome, categoria (obrigatória), medida (padrão: por unidade) e quantidade numérica com botões − e + (começa em 1 unidade ou 100 g; passo de 1 unidade ou 100 g); editar e remover
-- Comprar (aba própria): checkbox abre formulário (quantidade pega, por unidade: quantidade e preço da unidade; por kg: peso e preço total pago; marca; tudo opcional) e marca ao confirmar
+- Comprar (aba própria): campo "O que você pegou?" no topo abre o painel do item da lista com aquele nome ou de um item não planejado (funciona em lista sem planejamento); o checkbox abre o mesmo painel curto: quantidade (− e +) e preço obrigatório (por unidade: preço da unidade; por kg: preço total pago); "preço por", categoria e marca em "Mais detalhes"; marca ao confirmar
 - Item pego vai para o fim da sua categoria, com destaque simples além do check
-- Itens não planejados podem ser adicionados durante a compra
+- Itens não planejados podem ser adicionados durante a compra (pelo "O que você pegou?")
 - Total parcial calculado ao vivo; "Desmarcar todos" (com confirmação) apaga quantidades, preços e marcas
 - Finalizar compra: só o valor final pago (do cupom) é obrigatório, já preenchido com a soma dos itens; a diferença para a soma é registrada (negativa = desconto); mercado opcional; data já vem como hoje; pergunta se os itens não planejados viram fixos; a lista volta zerada
 

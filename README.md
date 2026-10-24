@@ -28,8 +28,9 @@ Projeto de estudo de backend e peça de portfólio.
 - Listas como planejamento reutilizável, em duas abas:
   - **Planejar**: itens com nome, categoria, medida e quantidade (botões − e +: de 1 em 1
     unidade ou de 100 em 100 g), agrupados por categoria
-  - **Comprar**: checkbox abre o formulário de quantidade, preço (por unidade, ou por kg com o preço total pago) e marca,
-    todos opcionais; total parcial ao vivo; itens não planejados; "desmarcar todos" com confirmação
+  - **Comprar**: campo "O que você pegou?" no topo (funciona sem planejar a lista); o painel de
+    cada item pede só quantidade (− e +) e preço (obrigatório), com "preço por", categoria e marca em
+    "Mais detalhes"; total parcial ao vivo; "desmarcar todos" com confirmação
 - Finalizar compra: só o valor final pago (do cupom) é obrigatório, já preenchido com a soma dos
   itens (menor que a soma fica como desconto); mercado opcional e data de hoje; pergunta se os
   itens não planejados ficam na lista; a lista volta zerada para a

@@ -8,16 +8,17 @@
 
 /* ---------- Planejar: formulário ---------- */
 
-/* Item e categorias ocupam a linha toda; quantidade e botão dividem a última */
+/* Um campo por linha: a quantidade com − e + precisa da largura toda no celular */
 .formItem {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--espaco-4) var(--espaco-2);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-4);
 }
 
-.formItem > :not(:nth-last-child(-n + 2)) {
-  grid-column: 1 / -1;
+@media (min-width: 40rem) {
+  .formItem > button[type='submit'] {
+    justify-self: end;
+  }
 }
 
 /* ---------- Grupos por categoria ---------- */
@@ -324,4 +325,75 @@
   display: flex;
   align-items: center;
   padding-right: var(--espaco-4);
+}
+
+/* Aba Comprar: "O que você pegou?" no topo, campo grande e um botão */
+.pegarRapido {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espaco-2);
+}
+
+.pegarRapido > :first-child {
+  flex: 1;
+}
+
+.pegarRapido input {
+  min-height: 3.5rem;
+  font-size: var(--texto-lg);
+}
+
+.pegarRapido > button {
+  min-height: 3.5rem;
+}
+
+/* "Mais detalhes" do painel de pegar: fechado por padrão */
+.maisDetalhes {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: var(--espaco-3);
+}
+
+.maisDetalhes > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  list-style: none;
+  min-height: var(--alvo-toque);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.maisDetalhes > summary::-webkit-details-marker {
+  display: none;
+}
+
+.maisDetalhes > summary svg {
+  transition: transform var(--transicao);
+}
+
+.maisDetalhes[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.maisDetalhes > summary:hover {
+  color: var(--cor-texto);
+}
+
+.maisDetalhes > summary:focus-visible {
+  outline: none;
+  box-shadow: var(--anel-foco);
+  border-radius: var(--raio-sm);
+}
+
+.maisDetalhesConteudo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding-top: var(--espaco-2);
+}
+
+.desmarcarTodos {
+  margin-left: auto;
 }

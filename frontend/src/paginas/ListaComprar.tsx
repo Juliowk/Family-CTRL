@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { itensApi } from '../api/endpoints';
 import type { Item, ListaDetalhe } from '../api/tipos';
-import { Botao, LinkBotao } from '../components/Botao';
+import { Botao } from '../components/Botao';
+import { Campo } from '../components/Campo';
 import { ConfirmarDialogo } from '../components/ConfirmarDialogo';
 import { EstadoVazio } from '../components/Estados';
 import form from '../components/Formulario.module.css';
@@ -19,6 +20,7 @@ import {
   subtotal,
   totalDaCompra,
 } from '../util/compra';
+import { normalizar } from '../util/csvLista';
 import {
   antesDeAlterar,
   depoisDeAlterar,
@@ -29,10 +31,14 @@ import {
 import estilos from './ListaPagina.module.css';
 import { ModalPegar } from './ModalPegar';
 
-/** Formulário aberto: um item (pegar/corrigir) ou "extra" (item não planejado). */
-type Formulario = { item: Item } | { extra: true } | null;
+/** Formulário aberto: um item (pegar/corrigir) ou um item não planejado, com o nome digitado. */
+type Formulario = { item: Item } | { extra: string } | null;
 
-/** Aba Comprar: no mercado, marcar o que foi pego e acompanhar o total. */
+/**
+ * Aba Comprar: no mercado, marcar o que foi pego e acompanhar o total. No topo, "O que você
+ * pegou?": digitar o nome abre o painel curto (quantidade e preço) de um item da lista com esse
+ * nome ou, se não houver, de um item não planejado. Funciona igual numa lista sem planejamento.
+ */
 export function ListaComprar({
   lista,
   aoDesatualizado,
@@ -44,6 +50,7 @@ export function ListaComprar({
   const queryClient = useQueryClient();
   const navegar = useNavigate();
   const [formulario, setFormulario] = useState<Formulario>(null);
+  const [pegou, setPegou] = useState('');
   const [confirmandoDesmarcar, setConfirmandoDesmarcar] = useState(false);
   const [erroDesmarcar, setErroDesmarcar] = useState<string>();
 
@@ -93,42 +100,67 @@ export function ListaComprar({
     onSettled: () => depoisDeAlterar(queryClient, lista.id),
   });
 
+  /** Item da lista ainda não pego com o nome digitado; senão, entra como não planejado. */
+  function abrirPegou(evento: FormEvent) {
+    evento.preventDefault();
+    const nome = pegou.trim();
+    if (!nome) return;
+    const planejado = lista.itens.find((i) => !i.pego && normalizar(i.nome) === normalizar(nome));
+    setFormulario(planejado ? { item: planejado } : { extra: nome });
+    setPegou('');
+  }
+
+  const campoPegou = (
+    <form className={estilos.pegarRapido} onSubmit={abrirPegou}>
+      <Campo
+        rotulo="O que você pegou?"
+        placeholder="Ex.: Mussarela"
+        maxLength={120}
+        autoComplete="off"
+        enterKeyHint="go"
+        value={pegou}
+        onChange={(e) => setPegou(e.target.value)}
+      />
+      <Botao type="submit" disabled={!pegou.trim()}>
+        <IconeMais tamanho={20} />
+        Adicionar
+      </Botao>
+    </form>
+  );
+
+  const painel = formulario && (
+    <ModalPegar
+      listaId={lista.id}
+      categorias={lista.categorias}
+      item={'item' in formulario ? formulario.item : undefined}
+      nomeExtra={'extra' in formulario ? formulario.extra : undefined}
+      aoFechar={() => setFormulario(null)}
+      aoDesatualizado={aoDesatualizado}
+    />
+  );
+
   if (lista.itens.length === 0) {
     return (
       <>
-        <EstadoVazio
-          icone={<IconeCarrinho />}
-          titulo="Nada planejado para comprar"
-          acao={<LinkBotao to={`/listas/${lista.id}/planejar`}>Planejar itens</LinkBotao>}
-        >
-          Planeje os itens em casa ou adicione no mercado o que encontrar.
+        {campoPegou}
+        <EstadoVazio icone={<IconeCarrinho />} titulo="Lista vazia">
+          Sem planejar? Tudo bem: digite acima o que você pegou e informe o preço. O total vai
+          somando aqui.
         </EstadoVazio>
-        <Botao className={estilos.botaoExtraSozinho} onClick={() => setFormulario({ extra: true })}>
-          <IconeMais tamanho={20} />
-          Item não planejado
-        </Botao>
-        {formulario && (
-          <ModalPegar
-            listaId={lista.id}
-            categorias={lista.categorias}
-            aoFechar={() => setFormulario(null)}
-            aoDesatualizado={aoDesatualizado}
-          />
-        )}
+        {painel}
       </>
     );
   }
 
   return (
     <>
+      {campoPegou}
+
       <div className={estilos.ferramentas}>
-        <Botao pequeno onClick={() => setFormulario({ extra: true })}>
-          <IconeMais tamanho={20} />
-          Item não planejado
-        </Botao>
         <Botao
           pequeno
           variante="fantasma"
+          className={estilos.desmarcarTodos}
           disabled={pegos === 0}
           onClick={() => setConfirmandoDesmarcar(true)}
         >
@@ -187,15 +219,7 @@ export function ListaComprar({
         </Botao>
       </div>
 
-      {formulario && (
-        <ModalPegar
-          listaId={lista.id}
-          categorias={lista.categorias}
-          item={'item' in formulario ? formulario.item : undefined}
-          aoFechar={() => setFormulario(null)}
-          aoDesatualizado={aoDesatualizado}
-        />
-      )}
+      {painel}
 
       <ConfirmarDialogo
         aberto={confirmandoDesmarcar}
